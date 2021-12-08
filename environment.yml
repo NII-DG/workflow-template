@@ -1,0 +1,6 @@
+name: ploomber-workshop
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - r-irkernel 

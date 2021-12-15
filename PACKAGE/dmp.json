@@ -1,0 +1,36 @@
+{
+    "schema": "METI",
+    "dmpType": "",
+    "agreementTitle": "The Data Management Plan",
+    "agreementDate": "2021/07/20",
+    "submitDate": "2021/08/01",
+    "corporateName": "The Corporate",
+    "researches": [
+        {
+            "index": 1,
+            "title": "sample-1",
+            "description": "This is description.",
+            "manager": "John Doe",
+            "dataType": "My Data",
+            "releaseLevel": 4,
+            "concealReason": "nothing",
+            "concealPeriod": "",
+            "acquirer": "John Lab",
+            "acquireMethod": "by download link",
+            "remarks": ""
+        },
+        {
+            "index": 2,
+            "title": "sample-2",
+            "description": "This is description.",
+            "manager": "John Doe",
+            "dataType": "My Data",
+            "releaseLevel": 4,
+            "concealReason": "nothing",
+            "concealPeriod": "",
+            "acquirer": "John Lab",
+            "acquireMethod": "by download link",
+            "remarks": ""
+        }
+    ]
+}

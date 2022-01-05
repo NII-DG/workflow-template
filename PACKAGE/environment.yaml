@@ -1,0 +1,6 @@
+name: package environment
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - datalad

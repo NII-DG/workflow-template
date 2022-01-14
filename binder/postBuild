@@ -3,3 +3,8 @@ set -e
 conda install datalad
 pip install papermill
 conda env export > environment.yml
+pip install jupyter_contrib_nbextensions
+jupyter contrib nbextension install --user
+jupyter nbextensions_configurator enable --user
+pip install git+https://github.com/NII-cloud-operation/Jupyter-LC_run_through
+jupyter run-through quick-setup --user

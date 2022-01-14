@@ -1,10 +1,18 @@
 #!/bin/bash
+
+# エラーが無視されるのを防ぐため
 set -e
+
+# 必要なパッケージのインストール
 conda install datalad
 pip install papermill
-conda env export > environment.yml
+
+# 拡張機能のインストール
 pip install jupyter_contrib_nbextensions
 jupyter contrib nbextension install --user
 jupyter nbextensions_configurator enable --user
 pip install git+https://github.com/NII-cloud-operation/Jupyter-LC_run_through
 jupyter run-through quick-setup --user
+
+# 仮想環境の出力
+conda env export > environment.yml

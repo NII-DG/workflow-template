@@ -8,11 +8,17 @@ conda install datalad
 pip install papermill
 
 # 拡張機能のインストール
+# nbextensions
 pip install jupyter_contrib_nbextensions
 jupyter contrib nbextension install --user
 jupyter nbextensions_configurator enable --user
+# Jupyter-LC_run_through
 pip install git+https://github.com/NII-cloud-operation/Jupyter-LC_run_through
 jupyter run-through quick-setup --user
+# Jupyter-multi_outputs
+pip install git+https://github.com/NII-cloud-operation/Jupyter-multi_outputs
+jupyter nbextension install --py lc_multi_outputs --user
+jupyter nbextension enable --py lc_multi_outputs --user
 
 # 仮想環境の出力
 conda env export > environment.yml

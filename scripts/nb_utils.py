@@ -89,3 +89,10 @@ def notebooks_toc(nb_dir):
         for nb, headers in nb_headers
     ]))
 
+import json
+
+JSON = ""
+def load_json(PATH):
+    with open(PATH) as f:
+        JSON = json.load(f)
+        return JSON

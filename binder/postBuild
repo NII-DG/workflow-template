@@ -6,6 +6,7 @@ set -e
 # 必要なパッケージのインストール
 conda install datalad
 pip install papermill
+pip install blockdiag
 
 # 拡張機能のインストール
 # nbextensions

@@ -155,5 +155,43 @@ def generate_svg_diag(
         _embed_detail_information(Path(output), skeleton, Path(nb_dir))
         return output
 
- def _generate_skeleton(output, diag, font):
+def _generate_skeleton(output, diag, font):
     run(['blockdiag', '-f', font, '-Tsvg', '-o', output, diag], check=True)
+
+def setup_python_path():
+    ver = sys.version_info
+    lib_path = f'~/.local/lib/python{ver.major}.{ver.minor}/site-packages'
+    lib_path = str(Path(lib_path).expanduser())
+    if lib_path not in sys.path:
+        sys.path.append(lib_path)
+
+def _embed_detail_information(output, skeleton, nb_dir):
+    # Notebookのヘッダ取得
+    nb_headers = _get_notebook_headers(nb_dir)
+
+    # 雛形の読み込み
+    tree = etree.parse(str(skeleton))
+
+    # 雛形をNotebook情報で置き換え
+    for elem in list(tree.findall(SVG_TEXT)):
+        if _is_target_rect(elem, nb_headers.keys()):
+            nb_name = _find_matching_notebook(nb_headers.keys(), elem.text)
+            _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name)
+
+    # SVGの保存
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open(mode='wb') as f:
+        f.write(etree.tostring(tree, method='xml', pretty_print=True))
+
+def _is_target_rect(elem, notebooks):
+    return (
+        elem.getprevious() is not None and
+        elem.getprevious().tag == SVG_RECT and
+        len(elem.text) > 0 and
+        _find_matching_notebook(notebooks, elem.text) is not None)
+
+def _find_matching_notebook(notebooks, prefix):
+    nb_prefix = prefix if prefix.find(':') < 0 else prefix.split(':')[0]
+    for nb in notebooks:
+        if nb.startswith(nb_prefix):
+            return nb

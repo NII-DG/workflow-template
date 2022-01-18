@@ -96,3 +96,64 @@ def load_json(PATH):
     with open(PATH) as f:
         JSON = json.load(f)
         return JSON
+    
+    
+def setup_diag():
+    setup_blockdiag()
+    setup_lxml()
+
+def setup_lxml():
+    if not check_lxml():
+        install_lxml()
+    return check_lxml()
+
+
+def check_lxml():
+    try:
+        import lxml
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
+def install_lxml():
+    run('pip install -q --user lxml', shell=True)
+    setup_python_path()
+
+    
+def setup_blockdiag():
+    if not check_blockdiag():
+        install_blockdiag()
+    return check_blockdiag()
+
+def check_blockdiag():
+    try:
+        run('blockdiag -h', shell=True, check=True)
+        return True
+    except CalledProcessError:
+        return False
+
+def install_blockdiag():
+    run('pip install -q --user blockdiag', shell=True)
+    paths = os.environ['PATH'].split(':')
+    local_bin = str(Path('~/.local/bin').expanduser())
+    if local_bin not in paths:
+        paths.append(local_bin)
+        os.environ['PATH'] = ':'.join(paths)
+    if not check_blockdiag():
+        install_blockdiag()
+
+def generate_svg_diag(
+        output='images/notebooks.svg',
+        diag='images/notebooks.diag',
+        nb_dir='/home/jovyan/FLOW',
+        font='/usr/share/fonts/truetype/fonts-japanese-gothic.ttf',
+):
+    with TemporaryDirectory() as workdir:
+        skeleton = Path(workdir) / 'skeleton.svg'
+        _generate_skeleton(skeleton, Path(diag), Path(font))
+        _embed_detail_information(Path(output), skeleton, Path(nb_dir))
+        return output
+
+ def _generate_skeleton(output, diag, font):
+    run(['blockdiag', '-f', font, '-Tsvg', '-o', output, diag], check=True)

@@ -1,1 +1,2 @@
 fonts-ipafont
+fontconfig

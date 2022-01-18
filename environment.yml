@@ -1,0 +1,8 @@
+	name: note
+	channels:
+	  - conda-forge
+	  - defaults
+	dependencies:
+  - datalad
+  - pip
+    - blockdiag

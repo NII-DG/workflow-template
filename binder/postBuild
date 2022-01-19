@@ -22,4 +22,4 @@ jupyter nbextension install --py lc_multi_outputs --user
 jupyter nbextension enable --py lc_multi_outputs --user
 
 # 仮想環境の出力
-conda env export > environment.yml
+# conda env export > environment.yml

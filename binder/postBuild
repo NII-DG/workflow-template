@@ -7,6 +7,7 @@ set -e
 conda install datalad
 pip install papermill
 pip install blockdiag
+pip install lxml
 
 # 拡張機能のインストール
 # nbextensions

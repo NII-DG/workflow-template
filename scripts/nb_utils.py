@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import os
 import re
 import sys
@@ -96,8 +95,8 @@ def load_json(PATH):
     with open(PATH) as f:
         JSON = json.load(f)
         return JSON
-    
-    
+
+
 def setup_diag():
     setup_blockdiag()
     setup_lxml()
@@ -120,7 +119,7 @@ def install_lxml():
     run('pip install -q --user lxml', shell=True)
     setup_python_path()
 
-    
+
 def setup_blockdiag():
     if not check_blockdiag():
         install_blockdiag()
@@ -147,7 +146,7 @@ def generate_svg_diag(
         output='/home/jovyan/WORKFLOW/images/notebooks.svg',
         diag='images/notebooks.diag',
         nb_dir='/home/jovyan/FLOW',
-        font='/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf',
+        font='/home/jovyan/.fonts/ipag.ttf',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'

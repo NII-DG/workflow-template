@@ -144,10 +144,10 @@ def install_blockdiag():
         install_blockdiag()
 
 def generate_svg_diag(
-        output='images/notebooks.svg',
+        output='/home/jovyan/WORKFLOW/images/notebooks.svg',
         diag='images/notebooks.diag',
         nb_dir='/home/jovyan/FLOW',
-        font='/usr/share/fonts/truetype/fonts-japanese-gothic.ttf',
+        font='/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'

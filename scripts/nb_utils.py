@@ -66,7 +66,7 @@ def _to_title_text(nb_path, text):
 def _get_notebook_headers(nb_dir):
     return dict([
         (nb.name, parse_headers(nb))
-        for nb in nb_dir.glob("*.ipynb")
+        for nb in nb_dir.glob("**/*.ipynb")
     ])
 
 def notebooks_toc(nb_dir):
@@ -97,56 +97,11 @@ def load_json(PATH):
         return JSON
 
 
-def setup_diag():
-    setup_blockdiag()
-    setup_lxml()
-
-def setup_lxml():
-    if not check_lxml():
-        install_lxml()
-    return check_lxml()
-
-
-def check_lxml():
-    try:
-        import lxml
-        return True
-    except ModuleNotFoundError:
-        return False
-
-
-def install_lxml():
-    run('pip install -q --user lxml', shell=True)
-    setup_python_path()
-
-
-def setup_blockdiag():
-    if not check_blockdiag():
-        install_blockdiag()
-    return check_blockdiag()
-
-def check_blockdiag():
-    try:
-        run('blockdiag -h', shell=True, check=True)
-        return True
-    except CalledProcessError:
-        return False
-
-def install_blockdiag():
-    run('pip install -q --user blockdiag', shell=True)
-    paths = os.environ['PATH'].split(':')
-    local_bin = str(Path('~/.local/bin').expanduser())
-    if local_bin not in paths:
-        paths.append(local_bin)
-        os.environ['PATH'] = ':'.join(paths)
-    if not check_blockdiag():
-        install_blockdiag()
-
 def generate_svg_diag(
-        output='/home/jovyan/WORKFLOW/images/notebooks.svg',
-        diag='images/notebooks.diag',
-        nb_dir='/home/jovyan/FLOW',
-        font='/home/jovyan/.fonts/ipag.ttf',
+        output='WORKFLOW/images/notebooks.svg',
+        diag='WORKFLOW/images/notebooks.diag',
+        nb_dir='WORKFLOW/FLOW',
+        font='.fonts/ipag.ttf',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'
@@ -175,6 +130,7 @@ def _embed_detail_information(output, skeleton, nb_dir):
     for elem in list(tree.findall(SVG_TEXT)):
         if _is_target_rect(elem, nb_headers.keys()):
             nb_name = _find_matching_notebook(nb_headers.keys(), elem.text)
+            print("nb_namee:", nb_name)
             _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name)
 
     # SVGの保存
@@ -189,15 +145,15 @@ def _is_target_rect(elem, notebooks):
         len(elem.text) > 0 and
         _find_matching_notebook(notebooks, elem.text) is not None)
 
-def _find_matching_notebook(notebooks, prefix):
-    nb_prefix = prefix if prefix.find(':') < 0 else prefix.split(':')[0]
+def _find_matching_notebook(notebooks, title):
     for nb in notebooks:
-        if nb.startswith(nb_prefix):
+        if nb.startswith(title):
             return nb
 
 def _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name):
     headers = nb_headers[nb_name]
-    nb_file = nb_dir / nb_name
+    nb_file = nb_name
+    print("nb_file;", nb_file)
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),
@@ -286,6 +242,7 @@ def create_text(rect, font_size, font_weight='normal', font_style='normal'):
 def create_anchor(elems, link):
     a_elem = etree.Element('a')
     a_elem.attrib['{http://www.w3.org/1999/xlink}href'] = link
+    print("attlib:",a_elem.attrib['{http://www.w3.org/1999/xlink}href'])
     for elem in elems:
         a_elem.append(elem)
     return a_elem

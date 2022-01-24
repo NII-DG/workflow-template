@@ -22,9 +22,14 @@ ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
 WORKDIR ${HOME}
-COPY . .
+# run datalad create .
+COPY . ${HOME}
+USER root
+RUN chown -R ${NB_UID} ${HOME}
+# USER ${USER}
+
 RUN adduser --disabled-password \
     --gecos "Default user" \
     --uid ${NB_UID} \
     ${NB_USER}
-USER ${USER}
+USER ${NB_USER}

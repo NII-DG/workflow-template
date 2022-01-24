@@ -44,6 +44,7 @@ def parse_headers(nb_path):
     ]
     # 最初の見出しはtitle, 残りはheadersとして返す
     return {
+        'path': nb_path.as_posix(),
         'title': {
             'text': _to_title_text(nb_path, headers[0][0]),
             'summary': headers[0][1],
@@ -66,7 +67,7 @@ def _to_title_text(nb_path, text):
 def _get_notebook_headers(nb_dir):
     return dict([
         (nb.name, parse_headers(nb))
-        for nb in nb_dir.glob("**/*.ipynb")
+        for nb in nb_dir.glob("*.ipynb")
     ])
 
 def notebooks_toc(nb_dir):
@@ -100,13 +101,16 @@ def load_json(PATH):
 def generate_svg_diag(
         output='WORKFLOW/images/notebooks.svg',
         diag='WORKFLOW/images/notebooks.diag',
-        nb_dir='WORKFLOW/FLOW',
+        dir_util='WORKFLOW/FLOW/util',
+        dir_01='WORKFLOW/FLOW/01_preparation_phase',
+        dir_02='WORKFLOW/FLOW/02_experimental_phase',
+        dir_03='WORKFLOW/FLOW/03_after_research_phase',
         font='.fonts/ipag.ttf',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'
         _generate_skeleton(skeleton, Path(diag), Path(font))
-        _embed_detail_information(Path(output), skeleton, Path(nb_dir))
+        _embed_detail_information(Path(output), skeleton, Path(dir_util), Path(dir_01), Path(dir_02), Path(dir_03))
         return output
 
 def _generate_skeleton(output, diag, font):
@@ -119,9 +123,12 @@ def setup_python_path():
     if lib_path not in sys.path:
         sys.path.append(lib_path)
 
-def _embed_detail_information(output, skeleton, nb_dir):
+def _embed_detail_information(output, skeleton, dir_util, dir_01, dir_02, dir_03):
     # Notebookのヘッダ取得
-    nb_headers = _get_notebook_headers(nb_dir)
+    nb_headers = _get_notebook_headers(dir_util)
+    nb_headers.update(_get_notebook_headers(dir_01))
+    nb_headers.update(_get_notebook_headers(dir_02))
+    nb_headers.update(_get_notebook_headers(dir_03))
 
     # 雛形の読み込み
     tree = etree.parse(str(skeleton))
@@ -130,8 +137,7 @@ def _embed_detail_information(output, skeleton, nb_dir):
     for elem in list(tree.findall(SVG_TEXT)):
         if _is_target_rect(elem, nb_headers.keys()):
             nb_name = _find_matching_notebook(nb_headers.keys(), elem.text)
-            print("nb_namee:", nb_name)
-            _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name)
+            _embed_info_in_one_rect(elem, nb_headers, Path('WORKFLOW/FLOW'), nb_name)
 
     # SVGの保存
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -152,8 +158,8 @@ def _find_matching_notebook(notebooks, title):
 
 def _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name):
     headers = nb_headers[nb_name]
-    nb_file = nb_name
-    print("nb_file;", nb_file)
+    nb_file = nb_headers[nb_name]['path']
+    nb_file = nb_file.replace('WORKFLOW/FLOW/', '')
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),
@@ -242,7 +248,6 @@ def create_text(rect, font_size, font_weight='normal', font_style='normal'):
 def create_anchor(elems, link):
     a_elem = etree.Element('a')
     a_elem.attrib['{http://www.w3.org/1999/xlink}href'] = link
-    print("attlib:",a_elem.attrib['{http://www.w3.org/1999/xlink}href'])
     for elem in elems:
         a_elem.append(elem)
     return a_elem

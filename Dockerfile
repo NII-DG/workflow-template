@@ -7,21 +7,23 @@ RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get autoremove -y
 
-# 必要なdebianライブラリのインストール
-RUN apt-get install -y gettext \
-    libcurl4-gnutls-dev \
-    libexpat1-dev \
-    libghc-zlib-dev \
-    libssl-dev \
-    make \
-    wget
+RUN apt-get install datalad
 
-# gitアップグレード（datalad対応のため）
-RUN wget https://github.com/git/git/archive/v2.33.1.tar.gz \
-    && tar -xzf v2.33.1.tar.gz \
-    && cd git-* \
-    && make prefix=/usr/local all \
-    && make prefix=/usr/local instal
+# # 必要なdebianライブラリのインストール
+# RUN apt-get install -y gettext \
+#     libcurl4-gnutls-dev \
+#     libexpat1-dev \
+#     libghc-zlib-dev \
+#     libssl-dev \
+#     make \
+#     wget
+
+# # gitアップグレード（datalad対応のため）
+# RUN wget https://github.com/git/git/archive/v2.33.1.tar.gz \
+#     && tar -xzf v2.33.1.tar.gz \
+#     && cd git-* \
+#     && make prefix=/usr/local all \
+#     && make prefix=/usr/local instal
 
 # create user with a home directory
 ARG NB_USER=jovyan

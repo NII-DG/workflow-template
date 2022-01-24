@@ -6,8 +6,9 @@ RUN pip install --no-cache --upgrade pip && \
 RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get autoremove -y
-
-RUN apt-get install datalad
+    && apt-get install -y  datalad
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # # 必要なdebianライブラリのインストール
 # RUN apt-get install -y gettext \

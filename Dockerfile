@@ -7,7 +7,8 @@ RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get autoremove -y
     && apt-get install -y  datalad
-    && apt-get clean \
+
+RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # # 必要なdebianライブラリのインストール

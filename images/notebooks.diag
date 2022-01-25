@@ -15,9 +15,9 @@
                 group {
                     orientation = portrait;
                     color = "#ffeed9";
-                    "0. ワークフロー準備"[label = "0. ワークフロー準備", fontsize = 14, description = "次のフェーズに進む前に必ず実行する必要があります。<br>ワークフロー機能を使うのが初めての場合は、「FLOWの立ち上げ毎に実行」、「初回立ち上げ時のみ実行」の順にで実行してください。<br>2回目以降は、ワークフロー機能を実行する前に「FLOWの立ち上げ毎に実行」を実行してください。"];
-                    "起動毎に必要な準備を行う";
-                    "初回のみ必要な準備を行う";
+                    "0. prepare_for_workflow"[label = "0. prepare_for_workflow", fontsize = 14];
+                    "base_required_every_time";
+                    "base_required_first_time";
                 }
             }
 
@@ -28,10 +28,10 @@
                 group {
                     orientation = portrait;
                     color = "#fcdcb1";
-                    "1. 研究準備フェーズ"[label = "1. 研究準備フェーズ", fontsize = 14, description = ""];
-                    "分析ツール設定を行う";
-                    "クリーニングツール設定を行う";
-                    "GakuNin RDMと連携する";
+                    "1. preparation_phase"[label = "1. preparation_phase", fontsize = 14];
+                    "base_setup_analysis_tools";
+                    "base_setup_cleaning_tools";
+                    "base_work_with_GakuNinRDM";
                 }
             }
 
@@ -42,9 +42,9 @@
                 group {
                     orientation = portrait;
                     color = "#ffd6a1";
-                    "2. 実験期フェーズ"[label = "2. 実験期フェーズ", fontsize = 14, description = ""];
-                    "実験を開始する";
-                    "モニタリングを実施する";
+                    "2. experimental_phase"[label = "2. experimental_phase", fontsize = 14];
+                    "base_launch_an_experiment";
+                    "base_monitor_repository";
                 }
             }
             group {
@@ -54,8 +54,8 @@
                 group {
                     orientation = portrait;
                     color = "#ffb95c";
-                    "3. 実験終了後フェーズ"[label = "3. 実験終了後フェーズ", fontsize = 14, description = ""];
-                    "研究成果を公開する";
+                    "3. after_experiments_phase"[label = "3. after_experiments_phase", fontsize = 14];
+                    "base_publish";
                 }
             }
             group {
@@ -65,16 +65,15 @@
                 group {
                     orientation = portrait;
                     color = "#ffa329";
-                    "4. 研究終了後"[label = "4. 研究終了後", fontsize = 14, description = ""];
-                    "研究を終了する";
+                    "4. after_research"[label = "4. after_research", fontsize = 14];
+                    "base_finish_research";
                 }
             }
         }
 
-        "0. ワークフロー準備" -> "1. 研究準備フェーズ" -> "2. 実験期フェーズ" -> "3. 実験終了後フェーズ" -> "4. 研究終了後";
-        "起動毎に必要な準備を行う" -> "初回のみ必要な準備を行う";
+        "0. prepare_for_workflow" -> "1. preparation_phase" -> "2. experimental_phase" -> "3. after_experiments_phase" -> "4. after_research";
+        "base_required_first_time" -> "base_required_every_time";
 
-        "実験を開始する" -> "実験を開始する";
-        "実験を開始する" -> "モニタリングを実施する";
+        "base_launch_an_experiment" -> "base_launch_an_experiment", "base_monitor_repository";
 
     }

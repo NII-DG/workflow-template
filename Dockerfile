@@ -11,9 +11,9 @@ RUN apt-get update -y \
 # install the notebook package etc.
 RUN pip install --no-cache --upgrade pip \
     && pip install --no-cache notebook jupyterlab \
-    && pip install datalad==0.15.4 \
-    && pip install papermill==2.3.3 \
-    && pip install black==21.12b0
+    && pip install --no-cache datalad==0.15.4 \
+    && pip install --no-cache papermill==2.3.3 \
+    && pip install --no-cache black==21.12b0
 
 # create user with a home directory
 ARG NB_USER=jovyan
@@ -22,11 +22,9 @@ ENV USER ${NB_USER}
 ENV HOME /home/${NB_USER}
 
 WORKDIR ${HOME}
-# run datalad create .
 COPY . ${HOME}
 USER root
 RUN chown -R ${NB_UID} ${HOME}
-# USER ${USER}
 
 RUN adduser --disabled-password \
     --gecos "Default user" \

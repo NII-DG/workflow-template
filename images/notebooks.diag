@@ -30,7 +30,6 @@
                     color = "#fcdcb1";
                     "1. preparation_phase"[label = "1. preparation_phase", fontsize = 14];
                     "base_setup_analysis_tools";
-                    "base_setup_cleaning_tools";
                     "base_work_with_GakuNinRDM";
                 }
             }

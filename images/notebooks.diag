@@ -1,88 +1,80 @@
-blockdiag {
-    node_width = 180
-    node_height = 120
 
-    group {
-        orientation = portrait;
-        shape = line;
-        style = none;
+   blockdiag {
+    node_width = 230;
+    node_height = 145;
 
         group {
+            orientation = portrait;
             shape = line;
             style = none;
-            orientation = portrait;
+
             group {
+                shape = line;
+                style = none;
                 orientation = portrait;
-                label = "0. ワークフロー準備";
-                color = "#ffeed9";
-                "FLOW起動毎に必要な準備を行う";
-                "初回FLOW立ち上げ時に必要な準備を行う";
+                group {
+                    orientation = portrait;
+                    color = "#ffeed9";
+                    "0. ワークフロー準備"[label = "0. ワークフロー準備", fontsize = 14, description = "次のフェーズに進む前に必ず実行する必要があります。<br>ワークフロー機能を使うのが初めての場合は、「FLOWの立ち上げ毎に実行」、「初回立ち上げ時のみ実行」の順にで実行してください。<br>2回目以降は、ワークフロー機能を実行する前に「FLOWの立ち上げ毎に実行」を実行してください。"];
+                    "起動毎に必要な準備を行う";
+                    "初回のみ必要な準備を行う";
+                }
+            }
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#fcdcb1";
+                    "1. 研究準備フェーズ"[label = "1. 研究準備フェーズ", fontsize = 14, description = ""];
+                    "分析ツール設定を行う";
+                    "クリーニングツール設定を行う";
+                    "GakuNin RDMと連携する";
+                }
+            }
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffd6a1";
+                    "2. 実験期フェーズ"[label = "2. 実験期フェーズ", fontsize = 14, description = ""];
+                    "実験を開始する";
+                    "モニタリングを実施する";
+                }
+            }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffb95c";
+                    "3. 実験終了後フェーズ"[label = "3. 実験終了後フェーズ", fontsize = 14, description = ""];
+                    "研究成果を公開する";
+                }
+            }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffa329";
+                    "4. 研究終了後"[label = "4. 研究終了後", fontsize = 14, description = ""];
+                    "研究を終了する";
+                }
             }
         }
 
-        group {
-            shape = line;
-            style = none;
-            orientation = portrait;
-            group {
-                orientation = portrait;
-                label = "1. 研究準備フェーズ";
-                color = "#fcdcb1";
-                "データ分析ツールの環境構築を行う";
-                "データクリーニングツールの環境構築を行う";
-                "GakuNin RDMと連携する";
-            }
-        }
-        
-        group {
-            shape = line;
-            style = none;
-            orientation = portrait;
-            group {
-                orientation = portrait;
-                label = "2. 実験期フェーズ";
-                color = "#ffd6a1";
-                "実験を開始する";
-                "リポジトリ構成をモニタリングする";
-            }
-        }
-        group {
-            shape = line;
-            style = none;
-            orientation = portrait;
-            group {
-                orientation = portrait;
-                label = "3. 実験終了後フェーズ";
-                color = "#fcb14e";
-                "研究成果を公開する";
-            }
-        }
-        group {
-            shape = line;
-            style = none;
-            orientation = portrait;
-            group {
-                orientation = portrait;
-                label = "4. 研究終了後";
-                color = "#fcb14e";
-                "研究を終了する";
-            }
-        }
+        "0. ワークフロー準備" -> "1. 研究準備フェーズ" -> "2. 実験期フェーズ" -> "3. 実験終了後フェーズ" -> "4. 研究終了後";
+        "起動毎に必要な準備を行う" -> "初回のみ必要な準備を行う";
+
+        "実験を開始する" -> "実験を開始する";
+        "実験を開始する" -> "モニタリングを実施する";
+
     }
-
-    "FLOW起動毎に必要な準備を行う" -> "初回FLOW立ち上げ時に必要な準備を行う";
-    "初回FLOW立ち上げ時に必要な準備を行う" -> "データクリーニングツールの環境構築を行う";
-    "初回FLOW立ち上げ時に必要な準備を行う" -> "データ分析ツールの環境構築を行う";
-    "初回FLOW立ち上げ時に必要な準備を行う" -> "GakuNin RDMと連携する";
-
-    "データクリーニングツールの環境構築を行う" -> "実験を開始する";
-    "データ分析ツールの環境構築を行う" -> "実験を開始する";
-    "GakuNin RDMと連携する" -> "実験を開始する";
-    
-    "実験を開始する" -> "実験を開始する";
-    "実験を開始する" -> "リポジトリ構成をモニタリングする";
-
-    "リポジトリ構成をモニタリングする" -> "研究成果を公開する";
-    
-    "研究成果を公開する" -> "研究を終了する";
-}

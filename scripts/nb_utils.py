@@ -44,6 +44,7 @@ def parse_headers(nb_path):
     ]
     # 最初の見出しはtitle, 残りはheadersとして返す
     return {
+        'path': nb_path.as_posix(),
         'title': {
             'text': _to_title_text(nb_path, headers[0][0]),
             'summary': headers[0][1],
@@ -97,61 +98,19 @@ def load_json(PATH):
         return JSON
 
 
-def setup_diag():
-    setup_blockdiag()
-    setup_lxml()
-
-def setup_lxml():
-    if not check_lxml():
-        install_lxml()
-    return check_lxml()
-
-
-def check_lxml():
-    try:
-        import lxml
-        return True
-    except ModuleNotFoundError:
-        return False
-
-
-def install_lxml():
-    run('pip install -q --user lxml', shell=True)
-    setup_python_path()
-
-
-def setup_blockdiag():
-    if not check_blockdiag():
-        install_blockdiag()
-    return check_blockdiag()
-
-def check_blockdiag():
-    try:
-        run('blockdiag -h', shell=True, check=True)
-        return True
-    except CalledProcessError:
-        return False
-
-def install_blockdiag():
-    run('pip install -q --user blockdiag', shell=True)
-    paths = os.environ['PATH'].split(':')
-    local_bin = str(Path('~/.local/bin').expanduser())
-    if local_bin not in paths:
-        paths.append(local_bin)
-        os.environ['PATH'] = ':'.join(paths)
-    if not check_blockdiag():
-        install_blockdiag()
-
 def generate_svg_diag(
-        output='/home/jovyan/WORKFLOW/images/notebooks.svg',
-        diag='images/notebooks.diag',
-        nb_dir='/home/jovyan/FLOW',
-        font='/home/jovyan/.fonts/ipag.ttf',
+        output='WORKFLOW/images/notebooks.svg',
+        diag='WORKFLOW/images/notebooks.diag',
+        dir_util='WORKFLOW/FLOW/util',
+        dir_01='WORKFLOW/FLOW/01_preparation_phase',
+        dir_02='WORKFLOW/FLOW/02_experimental_phase',
+        dir_03='WORKFLOW/FLOW/03_after_research_phase',
+        font='.fonts/ipag.ttf',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'
         _generate_skeleton(skeleton, Path(diag), Path(font))
-        _embed_detail_information(Path(output), skeleton, Path(nb_dir))
+        _embed_detail_information(Path(output), skeleton, Path(dir_util), Path(dir_01), Path(dir_02), Path(dir_03))
         return output
 
 def _generate_skeleton(output, diag, font):
@@ -164,9 +123,12 @@ def setup_python_path():
     if lib_path not in sys.path:
         sys.path.append(lib_path)
 
-def _embed_detail_information(output, skeleton, nb_dir):
+def _embed_detail_information(output, skeleton, dir_util, dir_01, dir_02, dir_03):
     # Notebookのヘッダ取得
-    nb_headers = _get_notebook_headers(nb_dir)
+    nb_headers = _get_notebook_headers(dir_util)
+    nb_headers.update(_get_notebook_headers(dir_01))
+    nb_headers.update(_get_notebook_headers(dir_02))
+    nb_headers.update(_get_notebook_headers(dir_03))
 
     # 雛形の読み込み
     tree = etree.parse(str(skeleton))
@@ -175,7 +137,7 @@ def _embed_detail_information(output, skeleton, nb_dir):
     for elem in list(tree.findall(SVG_TEXT)):
         if _is_target_rect(elem, nb_headers.keys()):
             nb_name = _find_matching_notebook(nb_headers.keys(), elem.text)
-            _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name)
+            _embed_info_in_one_rect(elem, nb_headers, Path('WORKFLOW/FLOW'), nb_name)
 
     # SVGの保存
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -189,15 +151,15 @@ def _is_target_rect(elem, notebooks):
         len(elem.text) > 0 and
         _find_matching_notebook(notebooks, elem.text) is not None)
 
-def _find_matching_notebook(notebooks, prefix):
-    nb_prefix = prefix if prefix.find(':') < 0 else prefix.split(':')[0]
+def _find_matching_notebook(notebooks, title):
     for nb in notebooks:
-        if nb.startswith(nb_prefix):
+        if nb.startswith(title):
             return nb
 
 def _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name):
     headers = nb_headers[nb_name]
-    nb_file = nb_dir / nb_name
+    nb_file = nb_headers[nb_name]['path']
+    nb_file = nb_file.replace('WORKFLOW/FLOW/', '')
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),

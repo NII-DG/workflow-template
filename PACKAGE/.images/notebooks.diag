@@ -1,0 +1,43 @@
+
+   blockdiag {
+    node_width = 230;
+    node_height = 145;
+
+        group {
+            orientation = portrait;
+            shape = line;
+            style = none;
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffeed9";
+                    "0. ワークフロー準備"[label = "0. ワークフロー準備", fontsize = 14];
+                    "必要な準備を行う";
+                }
+            }
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#fcdcb1";
+                    "1. 実験中のフロー"[label = "1. 実験中のフロー", fontsize = 14];
+                    "実験メタデータを入力する";
+                    "実験を終了する";
+                }
+            }
+
+            
+        }
+
+        "0. ワークフロー準備" -> "1. 実験中のフロー";
+        "実験メタデータを入力する" -> "実験を終了する";
+
+
+    }

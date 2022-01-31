@@ -252,6 +252,8 @@ def create_anchor(elems, link):
         a_elem.append(elem)
     return a_elem
 
+
 # refs: https://note.nkmk.me/python-if-name-main/
+# maDMP.ipynbからコマンドライン引数でdiagファイルのパスが渡されてくる
 if __name__ == '__main__':
-    SVG(filename=generate_svg_diag(diag='WORKFLOW/images/notebooks.diag'))
+    generate_svg_diag(diag=sys.argv[1])

@@ -74,7 +74,7 @@ def notebooks_toc(nb_dir):
     nb_headers = sorted(
         _get_notebook_headers(Path(nb_dir)).items(),
         key=lambda x: x[0])
-    
+
     return "\n".join(chain.from_iterable([
         [
             f'* [{headers["title"]["text"]}]({nb_dir}/{str(nb)})'
@@ -251,3 +251,9 @@ def create_anchor(elems, link):
     for elem in elems:
         a_elem.append(elem)
     return a_elem
+
+
+# refs: https://note.nkmk.me/python-if-name-main/
+# maDMP.ipynbからコマンドライン引数でdiagファイルのパスが渡されてくる
+if __name__ == '__main__':
+    generate_svg_diag(diag=sys.argv[1])

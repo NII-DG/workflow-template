@@ -101,6 +101,7 @@ def load_json(PATH):
 def generate_svg_diag(
         output='WORKFLOW/images/notebooks.svg',
         diag='WORKFLOW/images/notebooks.diag',
+        # FIXME
         dir_util='WORKFLOW/FLOW/util',
         dir_01='WORKFLOW/FLOW/01_preparation_phase',
         dir_02='WORKFLOW/FLOW/02_experimental_phase',

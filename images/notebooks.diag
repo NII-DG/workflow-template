@@ -15,7 +15,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffeed9";
-                    "0. prepare_for_workflow"[label = "0. prepare_for_workflow", fontsize = 14];
+                    "0. prepare_for_workflow"[label = "0. ワークフロー実行準備", fontsize = 14];
                     "base_required_every_time";
                     "base_required_first_time";
                 }
@@ -28,7 +28,7 @@
                 group {
                     orientation = portrait;
                     color = "#fcdcb1";
-                    "1. preparation_phase"[label = "1. preparation_phase", fontsize = 14];
+                    "1. preparation_phase"[label = "1. 研究準備", fontsize = 14];
                     "base_setup_data_analysis_tools";
                     "base_work_with_GakuNinRDM";
                 }
@@ -41,7 +41,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffd6a1";
-                    "2. experimental_phase"[label = "2. experimental_phase", fontsize = 14];
+                    "2. experimental_phase"[label = "2. 実験期", fontsize = 14];
                     "base_launch_an_experiment";
                     "base_monitor_repository";
                 }
@@ -53,7 +53,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffb95c";
-                    "3. after_experiments_phase"[label = "3. after_experiments_phase", fontsize = 14];
+                    "3. after_experiments_phase"[label = "3 実験終了後", fontsize = 14];
                     "base_publish";
                 }
             }
@@ -64,7 +64,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffa329";
-                    "4. after_research"[label = "4. after_research", fontsize = 14];
+                    "4. after_research"[label = "4. 研究終了後", fontsize = 14];
                     "base_finish_research";
                 }
             }

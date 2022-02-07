@@ -99,10 +99,10 @@ def load_json(PATH):
 
 
 def generate_svg_diag(
-        output='.images/notebooks.svg',
-        diag='.images/notebooks.diag',
-        dir_util='SECTIONS/util',
-        dir_experiment='SECTIONS',
+        output='WORKFLOW/images/notebooks.svg',
+        diag='WORKFLOW/images/notebooks.diag',
+        dir_util='WORKFLOW/util',
+        dir_experiment='WORKFLOW',
         font='.fonts/ipag.ttf',
 ):
     with TemporaryDirectory() as workdir:
@@ -155,7 +155,6 @@ def _find_matching_notebook(notebooks, title):
 def _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name):
     headers = nb_headers[nb_name]
     nb_file = nb_headers[nb_name]['path']
-    nb_file = nb_file.replace('WORKFLOW/FLOW/', '')
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),

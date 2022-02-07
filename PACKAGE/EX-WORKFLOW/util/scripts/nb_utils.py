@@ -74,7 +74,7 @@ def notebooks_toc(nb_dir):
     nb_headers = sorted(
         _get_notebook_headers(Path(nb_dir)).items(),
         key=lambda x: x[0])
-    
+
     return "\n".join(chain.from_iterable([
         [
             f'* [{headers["title"]["text"]}]({nb_dir}/{str(nb)})'
@@ -101,9 +101,9 @@ def load_json(PATH):
 def generate_svg_diag(
         output='WORKFLOW/images/notebooks.svg',
         diag='WORKFLOW/images/notebooks.diag',
+        font='.fonts/ipag.ttf',
         dir_util='WORKFLOW/util',
         dir_experiment='WORKFLOW',
-        font='.fonts/ipag.ttf',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'
@@ -133,7 +133,7 @@ def _embed_detail_information(output, skeleton, dir_util, dir_experiment):
     for elem in list(tree.findall(SVG_TEXT)):
         if _is_target_rect(elem, nb_headers.keys()):
             nb_name = _find_matching_notebook(nb_headers.keys(), elem.text)
-            _embed_info_in_one_rect(elem, nb_headers, Path('PACKAGE/SECTIONS'), nb_name)
+            _embed_info_in_one_rect(elem, nb_headers, Path('WORKFLOW'), nb_name)
 
     # SVGの保存
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -246,3 +246,9 @@ def create_anchor(elems, link):
     for elem in elems:
         a_elem.append(elem)
     return a_elem
+
+
+# refs: https://note.nkmk.me/python-if-name-main/
+# maDMP.ipynbからコマンドライン引数でdiagファイルのパスが渡されてくる
+if __name__ == '__main__':
+    generate_svg_diag(diag=sys.argv[1])

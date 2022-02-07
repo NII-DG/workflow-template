@@ -31,12 +31,11 @@
                     "enter_metadata";
                     "save";
                     "finish";
-                    "experiment_on_mdx";
                 }
             }
         }
 
         "0. 実験ワークフロー実行準備" -> "1. 実験ワークフロー";
-        "enter_metadata","save","experiment_on_mdx" -> "finish";
+        "enter_metadata","save" -> "finish";
 
     }

@@ -1,0 +1,42 @@
+
+   blockdiag {
+    node_width = 230;
+    node_height = 145;
+
+        group {
+            orientation = portrait;
+            shape = line;
+            style = none;
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffeed9";
+                    "0. 実験ワークフロー実行準備"[label = "0. 実験ワークフロー実行準備", fontsize = 14];
+                    "required_every_time";
+                }
+            }
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#fcdcb1";
+                    "1. 実験ワークフロー"[label = "1. 実験ワークフロー", fontsize = 14];
+                    "enter_metadata";
+                    "save";
+                    "finish";
+                    "experiment_on_mdx";
+                }
+            }
+        }
+
+        "0. 実験ワークフロー実行準備" -> "1. 実験ワークフロー";
+        "enter_metadata","save","experiment_on_mdx" -> "finish";
+
+    }

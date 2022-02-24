@@ -46,7 +46,7 @@
                     "dummy"[shape=none, width=1, height=1];
                     "base_monitor_repository";
                     "base_monitor_data_size";
-                    "base_monitor_repository_configuration";
+                    "base_monitor_dataset_structure";
                 }
             }
             group {
@@ -77,5 +77,5 @@
         "base_required_first_time" -> "base_required_every_time";
         "base_launch_an_experiment" -> "base_launch_an_experiment";
         "base_launch_an_experiment" -> "dummy"[dir=none];
-        "dummy" -> "base_monitor_repository", "base_monitor_data_size", "base_monitor_repository_configuration";
+        "dummy" -> "base_monitor_repository", "base_monitor_data_size", "base_monitor_dataset_structure";
     }

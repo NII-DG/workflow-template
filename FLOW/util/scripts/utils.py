@@ -1,3 +1,6 @@
+import json
+
+
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOW/FLOW/param_files/params.json'
 
@@ -6,15 +9,25 @@ def fetch_monitoring_param_file_path() -> str:
     return '/home/jovyan/WORKFLOW/FLOW/param_files/monitoring_params.json'
 
 
-def reflect_monitoring_results(item_name: str, isOK: bool) -> None:
+def reflect_monitoring_results(monitoring_item, isOK: bool) -> None:
+    # モニタリング観点名とnotebookへのパスとを取得
+    path_params = fetch_param_file_path()
+    params = {}
+    with open(path_params, 'r') as f:
+        params = json.load(f)
+
+    nb = params['monitoring'][monitoring_item]
+    # nb['name']: モニタリング観点名(str)
+    # nb['path']: Notebookへのパス(str)
+
+    # READMEの内容を取得する
     with open("/home/jovyan/README.md", "r") as f:
         readme = f.read()
-
-    point1 = readme.find("| " + item_name + " |")
+    point1 = readme.find("| " + nb['name'] + " |")
     output = readme[:point1]
 
-    # FIXME: リンク先が全て"base_monitor_data_size.ipynb"になる点を修正したい
-    output += "| " + item_name + " | [" + ("OK" if isOK else "NG") + "](./WORKFLOW/FLOW/02_experimental_phase/base_monitor_data_size.ipynb) |"
+    # 該当する行を書き換え
+    output += "| " + nb['name'] + " | [" + ("OK" if isOK else "NG") + "](" + nb['path'] + ") |"
 
     point2 = readme[point1:].find("\n")
     output += readme[point1 + point2:]

@@ -12,10 +12,12 @@ from itertools import chain, zip_longest
 from jinja2 import Template
 from datetime import datetime
 
-title_font_size = 11
-item_font_size = 9
+title_font_size = 20
+item_font_size = 17
 head_margin = 3
 text_margin = 2
+title_font_color = 'rgb(255,140,0)'
+text_font_color = 'rgb(0,0,0)'
 
 SVG_TEXT = '{http://www.w3.org/2000/svg}text'
 SVG_RECT = '{http://www.w3.org/2000/svg}rect'
@@ -189,19 +191,19 @@ def insert_title(parent_elem, childpos, rect, title, link):
         text_margin + (title_font_size + text_margin) * 2 + head_margin * 2)
     lines = split_title(title)
     if len(lines) == 2:
-        text_elem = create_text(rect, title_font_size, font_weight='bold')
+        text_elem = create_text(rect, title_font_size, font_weight='bold', font_color=title_font_color)
         text_elem.text = lines[0]
         text_elem.attrib['y'] = str(
                 rect[0][1] + head_margin + text_margin + title_font_size)
         text_elems = [text_elem]
 
-        text_elem = create_text(rect, title_font_size, font_weight='bold')
+        text_elem = create_text(rect, title_font_size, font_weight='bold', font_color=title_font_color)
         text_elem.text = lines[1]
         text_elem.attrib['y'] = str(
                 rect[0][1] + height_title - text_margin - head_margin)
         text_elems.append(text_elem)
     else:
-        text_elem = create_text(rect, title_font_size, font_weight='bold')
+        text_elem = create_text(rect, title_font_size, font_weight='bold', font_color=title_font_color)
         text_elem.text = title
         text_elem.attrib['y'] = str(
                 rect[0][1] + height_title // 2 + title_font_size // 2)
@@ -216,7 +218,7 @@ def insert_headers(parent_elem, childpos, rect, headers, title_lines):
         (title_font_size + text_margin) * (title_lines + 1) +
         head_margin * 2 + text_margin)
     for i, header in enumerate(headers):
-        text_elem = create_text(rect, item_font_size)
+        text_elem = create_text(rect, item_font_size, font_color=text_font_color)
         text_elem.text = header['text']
         text_elem.attrib['y'] = str(
                 rect[0][1] + offset_y + (item_font_size + text_margin) * i +
@@ -233,9 +235,9 @@ def split_title(title):
     else:
         return [title]
 
-def create_text(rect, font_size, font_weight='normal', font_style='normal'):
+def create_text(rect, font_size, font_color, font_weight='normal', font_style='normal'):
     text_elem = etree.Element(SVG_TEXT)
-    text_elem.attrib['fill'] = 'rgb(0,0,0)'
+    text_elem.attrib['fill'] = font_color
     text_elem.attrib['font-family'] = 'sans-serif'
     text_elem.attrib['font-size'] = str(font_size)
     text_elem.attrib['font-style'] = font_style
@@ -243,6 +245,7 @@ def create_text(rect, font_size, font_weight='normal', font_style='normal'):
     text_elem.attrib['font-anchor'] = 'middle'
     text_elem.attrib['x'] = str(rect[0][0] + text_margin)
     text_elem.attrib['width'] = str(rect[1][0] - text_margin * 2)
+    text_elem.attrib['inline-size'] = '400px'
     return text_elem
 
 def create_anchor(elems, link):

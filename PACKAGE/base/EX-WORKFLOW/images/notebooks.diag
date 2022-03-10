@@ -15,7 +15,7 @@
                     orientation = portrait;
                     color = "#ffeed9";
                     "0. 実験ワークフロー実行準備"[label = "0. 実験ワークフロー実行準備", fontsize = 14];
-                    "required_every_time"[numbered = 済];
+                    "required_every_time";
                 }
             }
 

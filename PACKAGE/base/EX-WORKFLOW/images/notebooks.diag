@@ -1,4 +1,3 @@
-
    blockdiag {
     node_width = 230;
     node_height = 145;
@@ -16,7 +15,7 @@
                     orientation = portrait;
                     color = "#ffeed9";
                     "0. 実験ワークフロー実行準備"[label = "0. 実験ワークフロー実行準備", fontsize = 14];
-                    "required_every_time";
+                    "required_every_time"[numbered = 済];
                 }
             }
 
@@ -27,16 +26,45 @@
                 group {
                     orientation = portrait;
                     color = "#fcdcb1";
-                    "1. 実験ワークフロー"[label = "1. 実験ワークフロー", fontsize = 14];
+                    "1. 実験準備"[label = "1. 実験準備", fontsize = 14];
                     "enter_metadata";
-                    "save";
-                    "finish";
+                }
+            }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    color = "#ffd6a1";
+                    orientation = portrait;
+                    "2. 実験"[label = "2. 実験", fontsize = 14];
                     "prepare_input_data";
+                    "save";
+                }
+            }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffb95c";
+                    "3. 実験データなどの整理"[label = "3. 実験データなどの整理", fontsize = 14];
+                }
+            }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffa329";
+                    "4. 実験終了"[label = "4. 実験終了", fontsize = 14];
+                    "finish";
                 }
             }
         }
 
-        "0. 実験ワークフロー実行準備" -> "1. 実験ワークフロー";
-        "enter_metadata","save","prepare_input_data" -> "finish";
+        "0. 実験ワークフロー実行準備" -> "1. 実験準備" -> "2. 実験" -> "3. 実験データなどの整理" -> "4. 実験終了";
 
     }

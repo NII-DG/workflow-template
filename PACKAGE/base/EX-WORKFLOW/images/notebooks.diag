@@ -1,6 +1,7 @@
    blockdiag {
     node_width = 230;
     node_height = 145;
+    span_width = 40
 
         group {
             orientation = portrait;

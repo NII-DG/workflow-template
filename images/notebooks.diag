@@ -17,7 +17,6 @@
                     color = "#ffeed9";
                     "0. prepare_for_workflow"[label = "0. ワークフロー機能の実行準備", fontsize = 23];
                     "base_required_every_time";
-                    "base_required_first_time";
                 }
             }
 
@@ -74,7 +73,6 @@
         }
 
         "0. prepare_for_workflow" -> "1. preparation_phase" -> "2. experimental_phase" -> "3. after_experiments_phase" -> "4. after_research";
-        "base_required_first_time" -> "base_required_every_time";
         "base_launch_an_experiment" -> "base_launch_an_experiment";
         "base_launch_an_experiment" -> "dummy"[dir=none];
         "dummy" -> "base_monitor_data_size", "base_monitor_dataset_structure", "base_monitor_reproducibility";

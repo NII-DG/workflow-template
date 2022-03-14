@@ -1,3 +1,4 @@
+   
    blockdiag {
     node_width = 230;
     node_height = 145;
@@ -16,7 +17,7 @@
                     orientation = portrait;
                     color = "#ffeed9";
                     "0. prepare_for_workflow"[label = "0. ワークフロー機能の実行準備", fontsize = 14];
-                    "base_required_every_time";
+                    "base_required_every_time"[fontsize = 14];
                 }
             }
 

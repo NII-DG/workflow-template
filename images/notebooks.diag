@@ -1,8 +1,9 @@
-
+   
    blockdiag {
-    node_width = 400;
-    node_height = 250;
+    node_width = 230;
+    node_height = 145;
     orientation = portrait;
+    span_width = 40
 
         group {
             shape = line;
@@ -15,8 +16,8 @@
                 group {
                     orientation = portrait;
                     color = "#ffeed9";
-                    "0. prepare_for_workflow"[label = "0. ワークフロー機能の実行準備", fontsize = 23];
-                    "base_required_every_time";
+                    "0. prepare_for_workflow"[label = "0. ワークフロー機能の実行準備", fontsize = 14];
+                    "base_required_every_time"[fontsize = 14];
                 }
             }
 
@@ -27,7 +28,7 @@
                 group {
                     orientation = portrait;
                     color = "#fcdcb1";
-                    "1. preparation_phase"[label = "1. 研究準備フェーズ", fontsize = 23];
+                    "1. preparation_phase"[label = "1. 研究準備フェーズ", fontsize = 14];
                     "base_setup_data_analysis_tools";
                     "base_work_with_GakuNinRDM";
                 }
@@ -40,7 +41,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffd6a1";
-                    "2. experimental_phase"[label = "2. 実験期フェーズ", fontsize = 23];
+                    "2. experimental_phase"[label = "2. 実験期フェーズ", fontsize = 14];
                     "base_launch_an_experiment";
                     "dummy"[shape=none, width=1, height=1];
                     "base_monitor_data_size";
@@ -55,8 +56,8 @@
                 group {
                     orientation = portrait;
                     color = "#ffb95c";
-                    "3. after_experiments_phase"[label = "3 実験終了後フェーズ", fontsize = 23];
-                    "base_publish"[fontsize = 20];
+                    "3. after_experiments_phase"[label = "3 実験終了後フェーズ", fontsize = 14];
+                    "base_publish"[fontsize = 14];
                 }
             }
             group {
@@ -66,7 +67,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffa329";
-                    "4. after_research"[label = "4. 研究終了後", fontsize = 23];
+                    "4. after_research"[label = "4. 研究終了後", fontsize = 14];
                     "base_finish_research";
                 }
             }

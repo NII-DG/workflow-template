@@ -1,5 +1,6 @@
 import os
 import json
+import glob
 
 def fetch_param_file_path():
     param_file_path = '/home/jovyan/EX-WORKFLOW/param_files/params.json'
@@ -18,12 +19,12 @@ def config_mdx(name_mdx, mdxDomain):
         # 設定ファイルがある場合
         with open(path, "r") as f:
             s = f.read()
-        
+
         # mdxの設定があれば該当部分のみ削除して設定を新たに追記する
         if s.find('Host mdx') == -1:
             # mdxの設定が無ければ追記する
             write_mdx_config(mode='a', mdxDomain=mdxDomain, name_mdx=name_mdx)
-        
+
         else:
             #mdxの設定があれば該当部分のみ削除して設定を新たに追記する
             front = s[:s.find('Host mdx')]
@@ -65,7 +66,7 @@ def config_GIN(ginHttp):
         if s.find('host ' + ginDomain +'\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null') == -1:
         # 設定が無い場合は追記する
             with open('/home/jovyan/.ssh/config', mode='a') as f:
-                write_GIN_config(mode='a', ginDomain = ginDomain)   
+                write_GIN_config(mode='a', ginDomain = ginDomain)
         else:
         # すでにGINを信頼する設定があれば何もしない
             pass
@@ -80,6 +81,11 @@ def write_GIN_config(mode, ginDomain):
         f.write('\nhost ' + ginDomain +'\n')
         f.write('\tStrictHostKeyChecking no\n')
         f.write('\tUserKnownHostsFile=/dev/null\n')
-        
-        
 
+def fetch_files(dir_path):
+    """引数に与えたディレクトリパス以下にあるファイルのリストを作成して返す"""
+    data_list = []
+    files = glob.glob(dir_path + "/*")
+    for f in files:
+        data_list += [f]
+    return data_list

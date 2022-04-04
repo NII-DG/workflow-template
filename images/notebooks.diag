@@ -41,7 +41,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffd6a1";
-                    "2. experimental_phase"[label = "2. 実験期フェーズ", fontsize = 14];
+                    "2. experimental_phase"[label = "2. 実験フェーズ", fontsize = 14];
                     "base_launch_an_experiment";
                     "dummy"[shape=none, width=1, height=1];
                     "base_monitor_data_size";

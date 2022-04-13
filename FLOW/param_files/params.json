@@ -6,7 +6,6 @@
         "gitHubSsh": "git@github.com:"
     },
     "rcosBinderUrl": "https://jupyter.cs.rcos.nii.ac.jp",
-    "mdxDomain": "163.220.176.51",
     "monitoring": {
         "dataAmount": {
             "name": "データ容量",

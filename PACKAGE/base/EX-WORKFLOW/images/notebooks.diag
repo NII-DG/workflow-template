@@ -40,6 +40,7 @@
                     orientation = portrait;
                     "2. 実験"[label = "2. 実験", fontsize = 14];
                     "prepare_input_data";
+                    "prepare_data_from_research_project";
                     "save";
                 }
             }
@@ -64,8 +65,20 @@
                     "finish";
                 }
             }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffa329";
+                    "5. 実験環境の利用終了"[label = "5. 実験環境の利用終了", fontsize = 14];
+                    "close_experimental_environment";
+                }
+            }
         }
 
-        "0. 実験ワークフロー実行準備" -> "1. 実験準備" -> "2. 実験" -> "3. 実験データなどの整理" -> "4. 実験終了";
+        "0. 実験ワークフロー実行準備" -> "1. 実験準備" -> "2. 実験" -> "3. 実験データなどの整理" -> "4. 実験終了" -> "5. 実験環境の利用終了";
+        "4. 実験終了" -> "1. 実験準備";
 
     }

@@ -101,12 +101,12 @@ def load_json(PATH):
 
 
 def generate_svg_diag(
-        output='WORKFLOW/images/notebooks.svg',
-        diag='WORKFLOW/images/notebooks.diag',
-        dir_util='WORKFLOW/FLOW/util',
-        dir_01='WORKFLOW/FLOW/01_preparation_phase',
-        dir_02='WORKFLOW/FLOW/02_experimental_phase',
-        dir_03='WORKFLOW/FLOW/03_after_research_phase',
+        output='WORKFLOWS/images/notebooks.svg',
+        diag='WORKFLOWS/images/notebooks.diag',
+        dir_util='WORKFLOWS/FLOW/util',
+        dir_01='WORKFLOWS/FLOW/01_preparation_phase',
+        dir_02='WORKFLOWS/FLOW/02_experimental_phase',
+        dir_03='WORKFLOWS/FLOW/03_after_research_phase',
         font='.fonts/ipag.ttf',
 ):
     with TemporaryDirectory() as workdir:
@@ -139,7 +139,7 @@ def _embed_detail_information(output, skeleton, dir_util, dir_01, dir_02, dir_03
     for elem in list(tree.findall(SVG_TEXT)):
         if _is_target_rect(elem, nb_headers.keys()):
             nb_name = _find_matching_notebook(nb_headers.keys(), elem.text)
-            _embed_info_in_one_rect(elem, nb_headers, Path('WORKFLOW/FLOW'), nb_name)
+            _embed_info_in_one_rect(elem, nb_headers, Path('WORKFLOWS/FLOW'), nb_name)
 
     # SVGの保存
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -161,7 +161,7 @@ def _find_matching_notebook(notebooks, title):
 def _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name):
     headers = nb_headers[nb_name]
     nb_file = nb_headers[nb_name]['path']
-    nb_file = nb_file.replace('WORKFLOW/FLOW/', '')
+    nb_file = nb_file.replace('WORKFLOWS/FLOW/', '')
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),

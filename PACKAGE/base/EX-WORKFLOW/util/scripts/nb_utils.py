@@ -101,11 +101,11 @@ def load_json(PATH):
 
 
 def generate_svg_diag(
-        output='WORKFLOWS/EX-WORKFLOWS/images/notebooks.svg',
-        diag='WORKFLOWS/EX-WORKFLOWS/images/notebooks.diag',
+        output='EX-WORKFLOWS/images/notebooks.svg',
+        diag='EX-WORKFLOWS/images/notebooks.diag',
         font='.fonts/ipag.ttf',
-        dir_util='WORKFLOWS/EX-WORKFLOWS/util',
-        dir_experiment='WORKFLOWS/EX-WORKFLOWS',
+        dir_util='EX-WORKFLOWS/util',
+        dir_experiment='EX-WORKFLOWS',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'

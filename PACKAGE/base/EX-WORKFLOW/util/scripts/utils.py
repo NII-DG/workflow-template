@@ -3,7 +3,7 @@ import json
 import glob
 
 def fetch_param_file_path():
-    param_file_path = '/home/jovyan/EX-WORKFLOW/param_files/params.json'
+    param_file_path = '/home/jovyan/WORKFLOWS/EX-WORKFLOWS/param_files/params.json'
     return param_file_path
 
 def fetch_ssh_config_path():

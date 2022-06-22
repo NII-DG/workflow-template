@@ -161,7 +161,7 @@ def _find_matching_notebook(notebooks, title):
 def _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name):
     headers = nb_headers[nb_name]
     nb_file = nb_headers[nb_name]['path']
-    nb_file = nb_file.replace('WORKFLOWS/FLOW/', '')
+    nb_file = nb_file.replace('WORKFLOWS/FLOW/', 'FLOW/')
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),

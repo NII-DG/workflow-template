@@ -105,7 +105,7 @@ def generate_svg_diag(
         diag='WORKFLOWS/EX-WORKFLOWS/images/notebooks.diag',
         font='.fonts/ipag.ttf',
         dir_util='WORKFLOWS/EX-WORKFLOWS/util',
-        dir_experiment='EX-WORKFLOWS',
+        dir_experiment='WORKFLOWS/EX-WORKFLOWS',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'
@@ -135,7 +135,7 @@ def _embed_detail_information(output, skeleton, dir_util, dir_experiment):
     for elem in list(tree.findall(SVG_TEXT)):
         if _is_target_rect(elem, nb_headers.keys()):
             nb_name = _find_matching_notebook(nb_headers.keys(), elem.text)
-            _embed_info_in_one_rect(elem, nb_headers, Path('EX-WORKFLOWS'), nb_name)
+            _embed_info_in_one_rect(elem, nb_headers, Path('WORKFLOWS/EX-WORKFLOWS'), nb_name)
 
     # SVGの保存
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -157,6 +157,7 @@ def _find_matching_notebook(notebooks, title):
 def _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name):
     headers = nb_headers[nb_name]
     nb_file = nb_headers[nb_name]['path']
+    nb_file = nb_file.replace('WORKFLOWS/EX-WORKFLOWS/', 'EX-WORKFLOWS/')
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),

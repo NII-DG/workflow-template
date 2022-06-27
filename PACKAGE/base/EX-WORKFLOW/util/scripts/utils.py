@@ -89,3 +89,13 @@ def fetch_files(dir_path):
     for f in files:
         data_list += [f]
     return data_list
+
+def fetch_experiment_title():
+    with open("/home/jovyan/experiment.txt", "r") as f:
+        experiment_title = f.read().splitlines()[0]
+    return experiment_title
+
+def fetch_experiment_file_path():
+    experiment_title = fetch_experiment_title()
+    experiment_path = '/home/jovyan/experiments/' + experiment_title
+    return experiment_path

@@ -2,11 +2,11 @@ import json
 
 
 def fetch_param_file_path() -> str:
-    return '/home/jovyan/WORKFLOW/FLOW/param_files/params.json'
+    return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
 
 
 def fetch_monitoring_param_file_path() -> str:
-    return '/home/jovyan/WORKFLOW/FLOW/param_files/monitoring_params.json'
+    return '/home/jovyan/WORKFLOWS/FLOW/param_files/monitoring_params.json'
 
 
 def reflect_monitoring_results(monitoring_item, isOK: bool) -> None:

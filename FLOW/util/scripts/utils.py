@@ -1,5 +1,5 @@
 import json
-
+import os
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'

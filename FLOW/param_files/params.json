@@ -17,7 +17,7 @@
         },
         "reproducibility": {
             "name": "再現性",
-            "path": "./WORKFLOWS/FLOW/02_experimental_phase/base_monitor_reproducibility.ipynb"
+            "path": "/home/jovyan/WORKFLOWS/FLOW/02_experimental_phase/base_monitor_reproducibility.ipynb"
         }
     }
 }

@@ -39,7 +39,7 @@
                     color = "#ffd6a1";
                     orientation = portrait;
                     "2. 実験"[label = "2. 実験", fontsize = 14];
-                    "prepare_input_data";
+                    "prepare_input_and_source";
                     "save";
                     "prepare_parameter_experiment"
                 }

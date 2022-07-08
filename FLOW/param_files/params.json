@@ -9,11 +9,11 @@
     "monitoring": {
         "dataAmount": {
             "name": "データ容量",
-            "path": "./WORKFLOWS/FLOW/02_experimental_phase/base_monitor_data_size.ipynb"
+            "path": "/home/jovyan/WORKFLOWS/FLOW/02_experimental_phase/base_monitor_data_size.ipynb"
         },
         "datasetStructure": {
             "name": "データ構造",
-            "path": "./WORKFLOWS/FLOW/02_experimental_phase/base_monitor_dataset_structure.ipynb"
+            "path": "/home/jovyan/WORKFLOWS/FLOW/02_experimental_phase/base_monitor_dataset_structure.ipynb"
         },
         "reproducibility": {
             "name": "再現性",

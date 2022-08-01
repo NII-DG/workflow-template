@@ -44,14 +44,16 @@ def reflect_monitoring_results(monitoring_item, isOK: bool, package_path) -> Non
     with open(readme_path, "w") as f:
         f.write(output)
 
-def verify_GIN_user() -> None:
+def verify_GIN_user():
 # 以下の認証の手順で用いる、
 # GINのドメイン名等をパラメタファイルから取得する
     params = {}
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
 
-# 正常に認証が終わるまで繰り返し
+    # 正常に認証が終わるまで繰り返し
+    global tokens
+    global access_token
     while True:
         name = input("ユーザー名：")
         password = getpass.getpass("パスワード：")
@@ -66,7 +68,7 @@ def verify_GIN_user() -> None:
         if response.status_code == HTTPStatus.UNAUTHORIZED:
             print("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。")
             continue
-        
+     
         tokens = response.json()
         if len(tokens) >= 1:
             access_token = response.json()[-1]
@@ -79,7 +81,8 @@ def verify_GIN_user() -> None:
                 access_token = response.json()
                 clear_output()
                 break
-                
+    return tokens, access_token, name, email
+                 
 def fetch_ssh_config_path():
     ssh_config_path = '/home/jovyan/.ssh/config'
     return ssh_config_path

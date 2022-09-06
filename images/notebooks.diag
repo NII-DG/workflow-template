@@ -29,8 +29,7 @@
                     orientation = portrait;
                     color = "#fcdcb1";
                     "1. preparation_phase"[label = "1. 研究準備", fontsize = 14];
-                    "base_setup_data_analysis_tools";
-                    "base_work_with_GakuNinRDM";
+                    "～準備中（GRDMと連携予定）～"[fontsize = 14, color = "#e6e5e3"];
                 }
             }
 
@@ -56,7 +55,7 @@
                     orientation = portrait;
                     color = "#ffb95c";
                     "3. after_experiments_phase"[label = "3 実験終了後", fontsize = 14];
-                    "base_publish"[fontsize = 14];
+                    "～準備中（WEKO3と連携予定）～"[fontsize = 14, color = "#e6e5e3"];
                 }
             }
             group {

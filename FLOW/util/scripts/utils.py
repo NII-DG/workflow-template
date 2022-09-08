@@ -6,6 +6,7 @@ import getpass
 import requests
 from requests.auth import HTTPBasicAuth
 from http import HTTPStatus
+from datalad import api
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
@@ -166,3 +167,26 @@ def fetch_files(dir_path):
     for f in files:
         data_list += [f]
     return data_list
+
+def update_repo_url():
+    # HTTPとSSHのリモートURLを最新化する
+    # APIリクエストに必要な情報を取得する
+    params = {}
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+    os.chdir(os.environ['HOME'])
+    file_path = '.repo_id'
+    if os.path.exists(file_path):
+        f =  open(file_path, 'r')
+        repo_id =f.read()
+        f.close()
+        # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
+        request_url = params['siblings']['ginHttp'] + 'api/v1/repos/search?id=' + repo_id
+        res = requests.get(request_url)
+        res_data = res.json()
+        ssh_url = res_data["data"][0]["ssh_url"]
+        http_url = res_data["data"][0]["html_url"] + '.git'
+        api.siblings(action='configure', name='gin', url=ssh_url)
+        api.siblings(action='configure', name='origin', url=http_url)
+    else:
+        pass

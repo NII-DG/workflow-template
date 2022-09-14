@@ -6,7 +6,9 @@ import getpass
 import requests
 from requests.auth import HTTPBasicAuth
 from http import HTTPStatus
+from urllib import parse
 from datalad import api
+
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
@@ -45,9 +47,10 @@ def reflect_monitoring_results(monitoring_item, isOK: bool, package_path) -> Non
     with open(readme_path, "w") as f:
         f.write(output)
 
+
 def verify_GIN_user():
-# 以下の認証の手順で用いる、
-# GINのドメイン名等をパラメタファイルから取得する
+    # 以下の認証の手順で用いる、
+    # GINのドメイン名等をパラメタファイルから取得する
     params = {}
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
@@ -60,16 +63,16 @@ def verify_GIN_user():
         password = getpass.getpass("パスワード：")
         email = input("メールアドレス：")
         clear_output()
-        
+
         # GIN API Basic Authentication
         # refs: https://docs.python-requests.org/en/master/user/authentication/
-        
+
         # 既存のトークンがあるか確認する
-        response = requests.get(params['siblings']['ginHttp']+'api/v1/users/' + name + '/tokens', auth=(name, password))
+        response = requests.get(params['siblings']['ginHttp'] + 'api/v1/users/' + name + '/tokens', auth=(name, password))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
             print("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。")
             continue
-     
+
         tokens = response.json()
         if len(tokens) >= 1:
             access_token = response.json()[-1]
@@ -77,16 +80,18 @@ def verify_GIN_user():
             break
         elif len(tokens) < 1:
             # 既存のトークンがなければ作成する
-            response = requests.post(params['siblings']['ginHttp']+'api/v1/users/' + name + '/tokens', data={"name": "system-generated"} ,auth=(name, password))
+            response = requests.post(params['siblings']['ginHttp'] + 'api/v1/users/' + name + '/tokens', data={"name": "system-generated"}, auth=(name, password))
             if response.status_code == HTTPStatus.CREATED:
                 access_token = response.json()
                 clear_output()
                 break
     return tokens, access_token, name, email
-                 
+
+
 def fetch_ssh_config_path():
     ssh_config_path = '/home/jovyan/.ssh/config'
     return ssh_config_path
+
 
 def config_mdx(name_mdx, mdxDomain):
     # mdx接続情報を設定ファイルに反映させる
@@ -104,11 +109,11 @@ def config_mdx(name_mdx, mdxDomain):
             write_mdx_config(mode='a', mdxDomain=mdxDomain, name_mdx=name_mdx)
 
         else:
-            #mdxの設定があれば該当部分のみ削除して設定を新たに追記する
+            # mdxの設定があれば該当部分のみ削除して設定を新たに追記する
             front = s[:s.find('Host mdx')]
             front = front.rstrip()
             find_words = 'IdentityFile ~/.ssh/id_rsa\n\tStrictHostKeyChecking no'
-            back = s[(s.find(find_words)  + len(find_words)):]
+            back = s[(s.find(find_words) + len(find_words)):]
             back = back.strip()
             if len(back) >= 1:
                 s = front + '\n' + back + '\n'
@@ -123,6 +128,7 @@ def config_mdx(name_mdx, mdxDomain):
         # 設定ファイルが無い場合、新規作成して新たに書き込む
         write_mdx_config(mode='w', mdxDomain=mdxDomain, name_mdx=name_mdx)
 
+
 def write_mdx_config(mode, mdxDomain, name_mdx):
     path = fetch_ssh_config_path()
     with open(path, mode) as f:
@@ -133,32 +139,35 @@ def write_mdx_config(mode, mdxDomain, name_mdx):
         f.write('\tIdentityFile ~/.ssh/id_rsa\n')
         f.write('\tStrictHostKeyChecking no\n')
 
+
 def config_GIN(ginHttp):
     # SSHホスト（＝GIN）を信頼する設定
     path = fetch_ssh_config_path()
-    s=''
+    s = ''
     ginDomain = ginHttp.split('/')[-2]
     if os.path.exists(path):
         with open(path, 'r') as f:
             s = f.read()
-        if s.find('host ' + ginDomain +'\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null') == -1:
-        # 設定が無い場合は追記する
+        if s.find('host ' + ginDomain + '\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null') == -1:
+            # 設定が無い場合は追記する
             with open('/home/jovyan/.ssh/config', mode='a') as f:
-                write_GIN_config(mode='a', ginDomain = ginDomain)
+                write_GIN_config(mode='a', ginDomain=ginDomain)
         else:
-        # すでにGINを信頼する設定があれば何もしない
+            # すでにGINを信頼する設定があれば何もしない
             pass
     else:
         # 設定ファイルが無い場合は新規作成して設定を書きこむ
         with open('/home/jovyan/.ssh/config', mode='w') as f:
-            write_GIN_config(mode='w', ginDomain = ginDomain)
+            write_GIN_config(mode='w', ginDomain=ginDomain)
+
 
 def write_GIN_config(mode, ginDomain):
     path = fetch_ssh_config_path()
     with open(path, mode) as f:
-        f.write('\nhost ' + ginDomain +'\n')
+        f.write('\nhost ' + ginDomain + '\n')
         f.write('\tStrictHostKeyChecking no\n')
         f.write('\tUserKnownHostsFile=/dev/null\n')
+
 
 def fetch_files(dir_path):
     """引数に与えたディレクトリパス以下にあるファイルのリストを作成して返す"""
@@ -168,6 +177,7 @@ def fetch_files(dir_path):
         data_list += [f]
     return data_list
 
+
 def update_repo_url():
     # HTTPとSSHのリモートURLを最新化する
     # APIリクエストに必要な情報を取得する
@@ -176,10 +186,10 @@ def update_repo_url():
         params = json.load(f)
     os.chdir(os.environ['HOME'])
     file_path = '.repository_id'
-    f =  open(file_path, 'r')
-    repo_id =f.read()
+    f = open(file_path, 'r')
+    repo_id = f.read()
     f.close()
-    
+
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
     request_url = params['siblings']['ginHttp'] + 'api/v1/repos/search?id=' + repo_id
     res = requests.get(request_url)
@@ -188,3 +198,25 @@ def update_repo_url():
     http_url = res_data["data"][0]["html_url"] + '.git'
     api.siblings(action='configure', name='gin', url=ssh_url)
     api.siblings(action='configure', name='origin', url=http_url)
+
+# リポジトリの現在のuserNm/repoNmの値を取得する。(by gin api : api/v1/repos/search?id=xxxx)
+
+
+def get_new_user_repo_nm(scheme, domain):
+    # リポジトリidを取得
+    os.chdir(os.environ['HOME'])
+    file_path = '.repository_id'
+    f = open(file_path, 'r')
+    repo_id = f.read()
+    f.close()
+    request_url = parse.urlunparse((scheme, domain, "api/v1/repos/search", "", "id=" + repo_id, ""))
+    try:
+        res = requests.get(request_url)
+        res_data = res.json()
+        if len(res_data["data"]) == 1:
+            full_name: str = res_data["data"][0]["full_name"]
+            return full_name
+        else:
+            print("不正なクエリが発行されました。")
+    except requests.exceptions.RequestException:
+        raise requests.exceptions.RequestException()

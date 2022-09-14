@@ -1,3 +1,4 @@
+from .... except_class import query_err
 import json
 import os
 import glob
@@ -208,8 +209,10 @@ def get_new_user_repo_nm(scheme, domain):
     file_path = '.repository_id'
     f = open(file_path, 'r')
     repo_id = f.read()
+    print(repo_id)
     f.close()
     request_url = parse.urlunparse((scheme, domain, "api/v1/repos/search", "", "id=" + repo_id, ""))
+    print(request_url)
     try:
         res = requests.get(request_url)
         res_data = res.json()
@@ -217,6 +220,6 @@ def get_new_user_repo_nm(scheme, domain):
             full_name: str = res_data["data"][0]["full_name"]
             return full_name
         else:
-            print("不正なクエリが発行されました。")
+            raise query_err.QueryError()
     except requests.exceptions.RequestException:
         raise requests.exceptions.RequestException()

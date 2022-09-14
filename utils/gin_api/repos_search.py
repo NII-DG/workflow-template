@@ -4,7 +4,7 @@
 
 from ..repository_id import repository_id
 from ...except_class import query_err
-import api
+from ..gin_api import api
 
 
 def get_new_user_repo_nm(scheme, domain):

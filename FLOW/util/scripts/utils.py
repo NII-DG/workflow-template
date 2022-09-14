@@ -200,38 +200,3 @@ def update_repo_url():
     http_url = res_data["data"][0]["html_url"] + '.git'
     api.siblings(action='configure', name='gin', url=ssh_url)
     api.siblings(action='configure', name='origin', url=http_url)
-
-# リポジトリの現在のuserNm/repoNmの値を取得する。(by gin api : api/v1/repos/search?id=xxxx)
-
-
-def get_new_user_repo_nm(scheme, domain):
-    # リポジトリidを取得
-    os.chdir(os.environ['HOME'])
-    file_path = '.repository_id'
-    f = open(file_path, 'r')
-    repo_id = f.read()
-    f.close()
-    request_url = parse.urlunparse((scheme, domain, "api/v1/repos/search", "", "id=" + repo_id, ""))
-    print(request_url)
-    try:
-        res = requests.get(request_url)
-        res_data = res.json()
-        if len(res_data["data"]) == 1:
-            full_name: str = res_data["data"][0]["full_name"]
-            return full_name
-        else:
-            raise query_err.QueryError()
-    except requests.exceptions.RequestException:
-        raise requests.exceptions.RequestException()
-
-
-def update_param_git_url(http_url, ssh_url):
-    f = open(fetch_param_file_path(), 'r')
-    df = json.load(f)
-    f.close()
-
-    df["siblings"]["ginHttp"] = http_url
-    df["siblings"]["ginSsh"] = ssh_url
-
-    with open(fetch_param_file_path(), 'w') as f:
-        json.dump(df, f, indent=4)

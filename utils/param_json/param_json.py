@@ -2,7 +2,7 @@
 from http import HTTPStatus
 from ..gin_api import api
 import json
-import display_util
+from ... utils import display_util
 from ..gin_api import repos_search
 
 from urllib import parse

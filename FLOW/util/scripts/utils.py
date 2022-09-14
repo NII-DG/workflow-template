@@ -1,3 +1,4 @@
+from pathlib import Path
 from .... except_class import query_err
 import json
 import os
@@ -209,7 +210,6 @@ def get_new_user_repo_nm(scheme, domain):
     file_path = '.repository_id'
     f = open(file_path, 'r')
     repo_id = f.read()
-    print(repo_id)
     f.close()
     request_url = parse.urlunparse((scheme, domain, "api/v1/repos/search", "", "id=" + repo_id, ""))
     print(request_url)
@@ -223,3 +223,15 @@ def get_new_user_repo_nm(scheme, domain):
             raise query_err.QueryError()
     except requests.exceptions.RequestException:
         raise requests.exceptions.RequestException()
+
+
+def update_param_git_url(http_url, ssh_url):
+    f = open(fetch_param_file_path(), 'r')
+    df = json.load(f)
+    f.close()
+
+    df["siblings"]["ginHttp"] = http_url
+    df["siblings"]["ginSsh"] = ssh_url
+
+    with open(fetch_param_file_path(), 'w') as f:
+        json.dump(df, f, indent=4)

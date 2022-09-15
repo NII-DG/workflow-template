@@ -19,16 +19,15 @@ def repos_search_by_repo_id(scheme, domain, repo_id):
 
     RETURN
     ---------------
-    res.json() :
-        Description : レスポンス（Json形式）
+    Respons :
+        Description : レスポンスインスタンス
 
     EXCEPTION
     ---------------
     接続の確立不良 : requests.exceptions.RequestException
     """
     request_url = parse.urlunparse((scheme, domain, "api/v1/repos/search", "", "id=" + repo_id, ""))
-    res = requests.get(request_url)
-    return res.json()
+    return requests.get(request_url)
 
 
 def repos(scheme, domain, onner_repo_nm):

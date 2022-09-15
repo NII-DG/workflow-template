@@ -194,7 +194,8 @@ def update_repo_url():
 
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
     pr = parse.urlparse(params['siblings']['ginHttp'])
-    res_data = repos_search_by_repo_id(pr.scheme, pr.netloc, repo_id)
+    res = repos_search_by_repo_id(pr.scheme, pr.netloc, repo_id)
+    res_data = res.json()
     ssh_url = res_data["data"][0]["ssh_url"]
     http_url = res_data["data"][0]["html_url"] + '.git'
     api.siblings(action='configure', name='gin', url=ssh_url)

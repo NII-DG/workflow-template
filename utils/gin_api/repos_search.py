@@ -33,8 +33,8 @@ def get_new_user_repo_nm(scheme, domain):
     # リポジトリidを取得
     repo_id = repository_id.get_repo_id()
 
-    res_data = api.repos_search_by_repo_id(scheme, domain, repo_id)
-
+    res = api.repos_search_by_repo_id(scheme, domain, repo_id)
+    res_data = res.json()
     if len(res_data["data"]) == 1:
         full_name: str = res_data["data"][0]["full_name"]
         return full_name

@@ -32,7 +32,6 @@ def update_param_url(remote_origin_url):
     retry_num = 6
     flg = True
     while flg:
-        display_util.display_err(owner_repo_nm)
         response = api.repos(pr.scheme, pr.netloc, owner_repo_nm)
         if response.status_code == HTTPStatus.OK:
             flg = False
@@ -53,10 +52,8 @@ def update_param_url(remote_origin_url):
             display_util.display_info("データガバナンス機能のサーバ情報を更新が完了しまいた。次の進んでください")
 
         elif response.status_code == HTTPStatus.NOT_FOUND:
-            display_util.display_err("NOT_FOUND")
             retry_num -= 1
             if retry_num == 0:
-                display_util.display_err("データガバナンス機能から正しいデータが取得できませんでした。システム担当者にご連絡ください")
+                display_util.display_err("データガバナンス機能から正しいデータが取得できませんでした。システム担当者にご連絡ください   : " + owner_repo_nm)
                 break
             owner_repo_nm = repos_search.get_new_user_repo_nm(pr.scheme, pr.netloc)
-            display_util.display_err(owner_repo_nm)

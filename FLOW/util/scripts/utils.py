@@ -1,4 +1,3 @@
-from urllib import parse
 import json
 import os
 import glob
@@ -8,7 +7,6 @@ import requests
 from http import HTTPStatus
 from datalad import api
 from pathlib import Path
-from .... utils.gin_api.api import repos_search_by_repo_id
 
 
 def fetch_param_file_path() -> str:
@@ -193,8 +191,8 @@ def update_repo_url():
     f.close()
 
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
-    pr = parse.urlparse(params['siblings']['ginHttp'])
-    res = repos_search_by_repo_id(pr.scheme, pr.netloc, repo_id)
+    request_url = str(Path(params['siblings']['ginHttp'], 'api/v1/repos/search')) + "?id=" + repo_id
+    res = requests.get(request_url)
     res_data = res.json()
     ssh_url = res_data["data"][0]["ssh_url"]
     http_url = res_data["data"][0]["html_url"] + '.git'

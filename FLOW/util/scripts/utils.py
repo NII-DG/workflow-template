@@ -1,3 +1,4 @@
+from urllib import parse
 import json
 import os
 import glob
@@ -6,6 +7,8 @@ import getpass
 import requests
 from http import HTTPStatus
 from datalad import api
+from pathlib import Path
+from ....utils.gin_api.api import repos_search_by_repo_id
 
 
 def fetch_param_file_path() -> str:
@@ -66,7 +69,8 @@ def verify_GIN_user():
         # refs: https://docs.python-requests.org/en/master/user/authentication/
 
         # 既存のトークンがあるか確認する
-        response = requests.get(params['siblings']['ginHttp'] + 'api/v1/users/' + name + '/tokens', auth=(name, password))
+        baseURL = str(Path(params['siblings']['ginHttp'], 'api/v1/users/'))
+        response = requests.get(baseURL + name + '/tokens', auth=(name, password))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
             print("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。")
             continue
@@ -78,7 +82,7 @@ def verify_GIN_user():
             break
         elif len(tokens) < 1:
             # 既存のトークンがなければ作成する
-            response = requests.post(params['siblings']['ginHttp'] + 'api/v1/users/' + name + '/tokens', data={"name": "system-generated"}, auth=(name, password))
+            response = requests.post(baseURL + name + '/tokens', data={"name": "system-generated"}, auth=(name, password))
             if response.status_code == HTTPStatus.CREATED:
                 access_token = response.json()
                 clear_output()
@@ -189,9 +193,8 @@ def update_repo_url():
     f.close()
 
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
-    request_url = params['siblings']['ginHttp'] + 'api/v1/repos/search?id=' + repo_id
-    res = requests.get(request_url)
-    res_data = res.json()
+    pr = parse.urlparse(params['siblings']['ginHttp'])
+    res_data = repos_search_by_repo_id(pr.scheme, pr.netloc, repo_id)
     ssh_url = res_data["data"][0]["ssh_url"]
     http_url = res_data["data"][0]["html_url"] + '.git'
     api.siblings(action='configure', name='gin', url=ssh_url)

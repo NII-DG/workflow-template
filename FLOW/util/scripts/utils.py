@@ -1,12 +1,15 @@
+from .... utils.gin_api import api as gin_api
+from datalad import api
+from http import HTTPStatus
+import requests
+import getpass
+from IPython.display import clear_output
+from urllib import parse
+import glob
 import json
 import os
-import glob
-from urllib import parse
-from IPython.display import clear_output
-import getpass
-import requests
-from http import HTTPStatus
-from datalad import api
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
 def fetch_param_file_path() -> str:
@@ -201,8 +204,11 @@ def update_repo_url():
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
     request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
     res = requests.get(request_url)
+    pr = parse.urlparse(params['siblings']['ginHttp'])
     res_data = res.json()
     ssh_url = res_data["data"][0]["ssh_url"]
     http_url = res_data["data"][0]["html_url"] + '.git'
     api.siblings(action='configure', name='gin', url=ssh_url)
     api.siblings(action='configure', name='origin', url=http_url)
+    res = gin_api.repos_search_by_repo_id(pr.scheme, pr.netloc, repo_id)
+    print(res.json())

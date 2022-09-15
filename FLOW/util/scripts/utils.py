@@ -1,14 +1,10 @@
-from pathlib import Path
-from .... except_class import query_err
 import json
 import os
 import glob
 from IPython.display import clear_output
 import getpass
 import requests
-from requests.auth import HTTPBasicAuth
 from http import HTTPStatus
-from urllib import parse
 from datalad import api
 
 

@@ -9,7 +9,7 @@ import glob
 import json
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
 def fetch_param_file_path() -> str:
@@ -202,13 +202,12 @@ def update_repo_url():
     f.close()
 
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
-    request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
-    res = requests.get(request_url)
+    # request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
+    # res = requests.get(request_url)
     pr = parse.urlparse(params['siblings']['ginHttp'])
+    res = gin_api.repos_search_by_repo_id(pr.scheme, pr.netloc, repo_id)
     res_data = res.json()
     ssh_url = res_data["data"][0]["ssh_url"]
     http_url = res_data["data"][0]["html_url"] + '.git'
     api.siblings(action='configure', name='gin', url=ssh_url)
     api.siblings(action='configure', name='origin', url=http_url)
-    res = gin_api.repos_search_by_repo_id(pr.scheme, pr.netloc, repo_id)
-    print(res.json())

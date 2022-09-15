@@ -8,7 +8,7 @@ import requests
 from http import HTTPStatus
 from datalad import api
 from pathlib import Path
-from ....utils.gin_api.api import repos_search_by_repo_id
+from .... utils.gin_api.api import repos_search_by_repo_id
 
 
 def fetch_param_file_path() -> str:

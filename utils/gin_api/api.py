@@ -2,6 +2,7 @@
 GIN frok APIの通信メソッド群
 """
 
+from pathlib import Path
 from urllib import parse
 import requests
 
@@ -48,5 +49,6 @@ def repos(scheme, domain, onner_repo_nm):
     ---------------
     接続の確立不良 : requests.exceptions.RequestException
     """
-    api_url = parse.urlunparse((scheme, domain, "api/v1/repos" + onner_repo_nm, "", "", ""))
+    sub_url = str(Path("api/v1/repos", onner_repo_nm))
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     return requests.get(api_url)

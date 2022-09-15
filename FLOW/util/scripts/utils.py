@@ -1,6 +1,7 @@
 import json
 import os
 import glob
+from urllib import parse
 from IPython.display import clear_output
 import getpass
 import requests
@@ -140,10 +141,18 @@ def write_mdx_config(mode, mdxDomain, name_mdx):
 
 
 def config_GIN(ginHttp):
+    """リポジトリホスティングサーバのURLからドメイン名を抽出してコンテナに対してSHH通信を信頼させるメソッド
+        この時、/home/jovyan/.ssh/configファイルに設定値を書き込みいく。
+    ARG
+    ---------------------------
+    ginHttp : str
+        Description : リポジトリホスティングサーバのURL ex : http://dg01.dg.rcos.nii.ac.jp
+    """
     # SSHホスト（＝GIN）を信頼する設定
     path = fetch_ssh_config_path()
     s = ''
-    ginDomain = ginHttp.split('/')[-2]
+    pr = parse.urlparse(ginHttp)
+    ginDomain = pr.netloc
     if os.path.exists(path):
         with open(path, 'r') as f:
             s = f.read()

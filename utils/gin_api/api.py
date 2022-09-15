@@ -4,6 +4,7 @@ GIN frok APIの通信メソッド群
 
 from pathlib import Path
 from urllib import parse
+import os
 import requests
 
 
@@ -31,7 +32,7 @@ def repos_search_by_repo_id(scheme, domain, repo_id):
     return requests.get(request_url)
 
 
-def repos(scheme, domain, onner_repo_nm):
+def repos(scheme, domain, owner_repo_nm):
     """GIN_API : api/v1/repos/$repoOwnerNm/$repoNm リクエストメソッド
     ARG
     ---------------
@@ -49,6 +50,6 @@ def repos(scheme, domain, onner_repo_nm):
     ---------------
     接続の確立不良 : requests.exceptions.RequestException
     """
-    sub_url = str(Path("api/v1/repos", onner_repo_nm))
+    sub_url = str(os.path.join("api/v1/repos", owner_repo_nm))
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     return requests.get(api_url)

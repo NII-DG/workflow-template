@@ -67,7 +67,7 @@ def verify_GIN_user():
         # refs: https://docs.python-requests.org/en/master/user/authentication/
 
         # 既存のトークンがあるか確認する
-        baseURL = str(Path(params['siblings']['ginHttp'], 'api/v1/users/'))
+        baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
         response = requests.get(baseURL + name + '/tokens', auth=(name, password))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
             print("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。")
@@ -191,7 +191,7 @@ def update_repo_url():
     f.close()
 
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
-    request_url = str(Path(params['siblings']['ginHttp'], 'api/v1/repos/search')) + "?id=" + repo_id
+    request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
     res = requests.get(request_url)
     res_data = res.json()
     ssh_url = res_data["data"][0]["ssh_url"]

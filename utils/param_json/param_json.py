@@ -57,4 +57,4 @@ def update_param_url(remote_origin_url):
                 display_util.display_err("データガバナンス機能から正しいデータが取得できませんでした。システム担当者にご連絡ください")
                 flg = False
             else:
-                owner_repo_nm = repos_search.get_new_user_repo_nm(pr.scheme, pr.netloc)
+                owner_repo_nm = repos_search.get_new_user_repo_name(pr.scheme, pr.netloc)

@@ -7,7 +7,7 @@ from ...except_class import query_err
 from ..gin_api import api
 
 
-def get_new_user_repo_nm(scheme, domain):
+def get_new_user_repo_name(scheme, domain):
     """リポジトリIDからGIN fork上の現在のuserNm/repoNmの値を取得する。
     ARG
     ---------------

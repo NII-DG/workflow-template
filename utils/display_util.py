@@ -1,6 +1,8 @@
+"""
+HTMMを生成して任意のメッセージを表示されるモジュール
+jupyterNotebookのセルの実行結果に表示させることを前提としている。
+"""
 from IPython.display import display, HTML
-
-# HTMMを生成して
 
 
 def creat_html_msg(msg='', fore=None, back=None, tag='h1'):
@@ -36,6 +38,8 @@ def creat_html_msg(msg='', fore=None, back=None, tag='h1'):
 
 
 default_tag = "h2"
+"""メソッド : display_info()、display_err()、display_warm()のデフォルトのHTMLタグ種
+"""
 
 
 def display_info(msg=''):

@@ -1,12 +1,14 @@
 import json
 import os
 import glob
-from IPython.display import clear_output
+from IPython.display import clear_output, HTML, display
 import getpass
 import requests
 from requests.auth import HTTPBasicAuth
 from http import HTTPStatus
 from datalad import api
+import traceback
+
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
@@ -188,3 +190,75 @@ def update_repo_url():
     http_url = res_data["data"][0]["html_url"] + '.git'
     api.siblings(action='configure', name='gin', url=ssh_url)
     api.siblings(action='configure', name='origin', url=http_url)
+
+DATALAD_MESSAGE = ''
+DATALAD_ERROR = ''
+CONNECT_REPO_ERROR = 'リポジトリに接続できません。リポジトリが存在しているか確認してください。'
+CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を解決してください。'
+PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
+SUCCESS = 'データ同期が完了しました。次の処理にお進みください。'
+SIBLING = 'gin'
+
+# リポジトリと同期する
+def syncs_with_repo(git_path, gitannex_path, message):
+    datalad_message = ''
+    datalad_error = ''
+    try:
+        save(git_path, gitannex_path, message)
+        update()
+    except:
+        datalad_error = traceback.format_exc()
+        # リモートへの接続エラーが発生している場合は回復を試す
+        if 'Repository does not exist:' in datalad_error:
+            try:
+                # リモートリポジトリのURLを最新化する
+                update_repo_url()
+            except:
+                # リポジトリ自体が無いときなど
+                datalad_message = CONNECT_REPO_ERROR
+            else:
+                datalad_error = ''
+                try:
+                    update()
+                except:
+                    datalad_error = traceback.format_exc()
+                    datalad_message = CONFLICT_ERROR
+                else:
+                    try:
+                        push()
+                    except:
+                        datalad_error = traceback.format_exc()
+                        datalad_message = PUSH_ERROR
+                    else:
+                        if gitannex_path != None:
+                            os.chdir(os.environ['HOME'])
+                            os.system('git annex unlock')
+                        datalad_message = SUCCESS
+        else:
+            datalad_message = CONFLICT_ERROR
+    else:
+        try:
+            push()
+        except:
+            datalad_error = traceback.format_exc()
+            datalad_message = PUSH_ERROR
+        else:
+            if gitannex_path != None:
+                os.chdir(os.environ['HOME'])
+                os.system('git annex unlock')
+            datalad_message = SUCCESS
+    finally:
+        display(HTML("<p>" + datalad_message + "</p>"))
+        display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
+
+def save(git_path, gitannex_path, message):
+    if gitannex_path != None:
+        api.save(message=message + ' (git-annex)', path=gitannex_path)
+    api.save(message=message + ' (git)', path=git_path, to_git=True)
+
+def update():
+    api.update(sibling=SIBLING, how='merge')
+
+def push():
+    api.push(to=SIBLING)
+    

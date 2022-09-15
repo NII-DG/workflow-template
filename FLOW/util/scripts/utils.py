@@ -6,7 +6,6 @@ import getpass
 import requests
 from http import HTTPStatus
 from datalad import api
-from pathlib import Path
 
 
 def fetch_param_file_path() -> str:

@@ -142,7 +142,7 @@ def write_mdx_config(mode, mdxDomain, name_mdx):
 
 def config_GIN(ginHttp):
     """リポジトリホスティングサーバのURLからドメイン名を抽出してコンテナに対してSHH通信を信頼させるメソッド
-        この時、/home/jovyan/.ssh/configファイルに設定値を書き込みいく。
+        この時、/home/jovyan/.ssh/configファイルに設定値を出力する。
     ARG
     ---------------------------
     ginHttp : str

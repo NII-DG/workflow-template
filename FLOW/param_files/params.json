@@ -1,7 +1,7 @@
 {
     "siblings": {
-        "ginHttp": "http://dg02.dg.rcos.nii.ac.jp/",
-        "ginSsh": "ssh://root@dg02.dg.rcos.nii.ac.jp:3001/",
+        "ginHttp": "",
+        "ginSsh": "",
         "gitHugibHttp": "https://github.com/",
         "gitHubSsh": "git@github.com:"
     },

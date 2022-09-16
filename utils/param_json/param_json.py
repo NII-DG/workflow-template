@@ -49,7 +49,7 @@ def update_param_url(remote_origin_url):
             with open(param_file_path, 'w') as f:
                 json.dump(df, f, indent=4)
 
-            display_util.display_info("データガバナンス機能のサーバ情報を更新が完了しまいた。次の進んでください")
+            display_util.display_info("データガバナンス機能のサーバ情報の更新が完了しました。次の進んでください")
 
         elif response.status_code == HTTPStatus.NOT_FOUND:
             retry_num -= 1

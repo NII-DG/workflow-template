@@ -273,7 +273,8 @@ def syncs_with_repo(git_path, gitannex_path, message):
 def save(git_path, gitannex_path, message):
     if gitannex_path != None:
         api.save(message=message + ' (git-annex)', path=gitannex_path)
-    api.save(message=message + ' (git)', path=git_path, to_git=True)
+    if git_path != None:
+        api.save(message=message + ' (git)', path=git_path, to_git=True)
 
 def update():
     api.update(sibling=SIBLING, how='merge')

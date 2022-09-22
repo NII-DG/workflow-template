@@ -59,6 +59,7 @@ def verify_GIN_user():
     # 正常に認証が終わるまで繰り返し
     global tokens
     global access_token
+    clear_output()
     while True:
         print("ユーザー情報を入力後、Enterキーを押下してください。")
         name = input("ユーザー名：")

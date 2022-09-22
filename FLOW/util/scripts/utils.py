@@ -266,7 +266,7 @@ def syncs_with_repo(git_path, gitannex_path, message):
                 os.system('git annex unlock')
             datalad_message = SUCCESS
     finally:
-        clear_output()
+        # clear_output() ※一時的に
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
 
@@ -280,5 +280,5 @@ def update():
     api.update(sibling=SIBLING, how='merge')
 
 def push():
-    api.push(to=SIBLING)
+    api.push(to=SIBLING, data='auto')
     

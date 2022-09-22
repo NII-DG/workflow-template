@@ -3,7 +3,6 @@ import os
 import glob
 from IPython.display import clear_output, HTML, display
 from urllib import parse
-from IPython.display import clear_output
 import getpass
 import requests
 from http import HTTPStatus
@@ -267,13 +266,15 @@ def syncs_with_repo(git_path, gitannex_path, message):
                 os.system('git annex unlock')
             datalad_message = SUCCESS
     finally:
+        clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
 
 def save(git_path, gitannex_path, message):
     if gitannex_path != None:
         api.save(message=message + ' (git-annex)', path=gitannex_path)
-    api.save(message=message + ' (git)', path=git_path, to_git=True)
+    if git_path != None:
+        api.save(message=message + ' (git)', path=git_path, to_git=True)
 
 def update():
     api.update(sibling=SIBLING, how='merge')

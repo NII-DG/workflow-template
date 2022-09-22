@@ -8,6 +8,8 @@ import requests
 from http import HTTPStatus
 from datalad import api
 import traceback
+import subprocess
+from subprocess import PIPE
 
 
 
@@ -206,11 +208,15 @@ def update_repo_url():
     request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
     res = requests.get(request_url)
     res_data = res.json()
-    ssh_url = res_data["data"][0]["ssh_url"]
-    http_url = res_data["data"][0]["html_url"] + '.git'
-    api.siblings(action='configure', name='gin', url=ssh_url)
-    api.siblings(action='configure', name='origin', url=http_url)
+    ssh_url = res_data['data'][0]['ssh_url']
+    http_url = res_data['data'][0]['html_url'] + '.git'
+    update_list = [['gin', ssh_url],['origin', http_url]]
+    for update_target in update_list:
+        result = subprocess.run('git remote set-url ' + update_target[0] + ' ' + update_target[1], shell=True, stdout=PIPE, stderr=PIPE, text=True)
+        if 'No such remote' in result.stderr:
+            subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
+        
 DATALAD_MESSAGE = ''
 DATALAD_ERROR = ''
 CONNECT_REPO_ERROR = 'リポジトリに接続できません。リポジトリが存在しているか確認してください。'
@@ -224,6 +230,9 @@ def syncs_with_repo(git_path, gitannex_path, message):
     datalad_message = ''
     datalad_error = ''
     try:
+        # lock状態でないとS3データが同期されてしまう
+        os.chdir(os.environ['HOME'])
+        os.system('git annex lock')
         save(git_path, gitannex_path, message)
         update()
     except:
@@ -282,5 +291,5 @@ def update():
     api.update(sibling=SIBLING, how='merge')
 
 def push():
-    api.push(to=SIBLING)
+    api.push(to=SIBLING, data='auto')
     

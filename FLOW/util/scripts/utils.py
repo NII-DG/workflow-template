@@ -228,6 +228,9 @@ def syncs_with_repo(git_path, gitannex_path, message):
     datalad_message = ''
     datalad_error = ''
     try:
+        # lock状態でないとS3データが同期されてしまう
+        os.chdir(os.environ['HOME'])
+        os.system('git annex lock')
         save(git_path, gitannex_path, message)
         update()
     except:
@@ -286,5 +289,5 @@ def update():
     api.update(sibling=SIBLING, how='merge')
 
 def push():
-    api.push(to=SIBLING)
+    api.push(to=SIBLING, data='auto')
     

@@ -269,7 +269,7 @@ def syncs_with_repo(git_path, gitannex_path, message):
                 os.system('git annex unlock')
             datalad_message = SUCCESS
     finally:
-        # clear_output() ※一時的に
+        clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
 

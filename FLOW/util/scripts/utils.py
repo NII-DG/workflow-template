@@ -259,9 +259,8 @@ def syncs_with_repo(git_path, gitannex_path, message):
                         datalad_error = traceback.format_exc()
                         datalad_message = PUSH_ERROR
                     else:
-                        if gitannex_path != None:
-                            os.chdir(os.environ['HOME'])
-                            os.system('git annex unlock')
+                        os.chdir(os.environ['HOME'])
+                        os.system('git annex unlock')
                         datalad_message = SUCCESS
         else:
             datalad_message = CONFLICT_ERROR
@@ -272,9 +271,8 @@ def syncs_with_repo(git_path, gitannex_path, message):
             datalad_error = traceback.format_exc()
             datalad_message = PUSH_ERROR
         else:
-            if gitannex_path != None:
-                os.chdir(os.environ['HOME'])
-                os.system('git annex unlock')
+            os.chdir(os.environ['HOME'])
+            os.system('git annex unlock')
             datalad_message = SUCCESS
     finally:
         clear_output()

@@ -290,4 +290,21 @@ def update():
 
 def push():
     api.push(to=SIBLING, data='auto')
+
+
+# 研究名と実験名を表示する関数
+def show_name(color='black', EXPERIMENT_TITLE=None):
+    # リモートリポジトリのURLを最新化する
+    update_repo_url()
+    os.chdir(os.environ['HOME'])
+
+    # 研究リポジトリ名表示
+    RESEARCH_TITLE = subprocess.getoutput('git config --get remote.origin.url').split('/')[-1].replace('.git', '')
+    res_text = "<h1 style='color:" + color + "'>研究リポジトリ名：" + RESEARCH_TITLE + "</h1>" 
+    clear_output()
+    display(HTML(res_text))
     
+    if EXPERIMENT_TITLE is not None:
+        #実験パッケージ名表示
+        exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>" 
+        display(HTML(exp_text))

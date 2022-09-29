@@ -63,7 +63,7 @@ def verify_GIN_user():
     global access_token
     clear_output()
     while True:
-        print("ユーザー情報を入力後、Enterキーを押下してください。")
+        print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
         name = input("ユーザー名：")
         password = getpass.getpass("パスワード：")
         email = input("メールアドレス：")

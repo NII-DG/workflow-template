@@ -10,7 +10,8 @@ from datalad import api
 import traceback
 import subprocess
 from subprocess import PIPE
-
+import mimetypes
+import hashlib
 
 
 def fetch_param_file_path() -> str:
@@ -226,14 +227,14 @@ SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
 
 # リポジトリと同期する
-def syncs_with_repo(git_path, gitannex_path, message):
+def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_message = ''
     datalad_error = ''
     try:
         # lock状態でないとS3データが同期されてしまう
         os.chdir(os.environ['HOME'])
         os.system('git annex lock')
-        save(git_path, gitannex_path, message)
+        save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
         update()
     except:
         datalad_error = traceback.format_exc()
@@ -279,9 +280,21 @@ def syncs_with_repo(git_path, gitannex_path, message):
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
 
-def save(git_path, gitannex_path, message):
+def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message):
+    # save後に、git annex管理の場合はメタデータを付与する
     if gitannex_path != None:
         api.save(message=message + ' (git-annex)', path=gitannex_path)
+        # git annex管理の場合は、content_size, sha256, mime_typeのメタデータを付与する
+        for file in gitannex_files:
+            # メタデータを生成する
+            mime_type,encoding = mimetypes.guess_type(file)
+            with open(file, 'rb') as f:
+                binary_data = f.read()
+                sha256 = hashlib.sha3_256(binary_data).hexdigest()
+            content_size = os.path.getsize(file)
+            # メタデータを付与する
+            os.system(f'git annex metadata {file} -s mime_type={mime_type} -s sha256={sha256} -s content_size={str(content_size)}')
+
     if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
 

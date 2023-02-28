@@ -227,25 +227,47 @@ PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
 
-# リポジトリと同期する
 def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
+    """synchronize with the repository
+    ARG
+    ---------------
+    git_path : str or list(str)
+        Description : Define directories and files to be managed by git.
+    gitannex_path : str or list(str)
+        Description : Define directories and files to be managed by git-annex.
+    gitannex_files : str or list(str) or None
+        Description : Specify the file to which metadata(content_size, sha256, mime_type) is to be added. Specify None if metadata is not to be added.
+    message : str
+        Description : Commit message
+
+    RETURN
+    ---------------
+    Returns nothing, but outputs a message.
+
+    EXCEPTION
+    ---------------
+    CONNECT_REPO_ERROR
+    CONFLICT_ERROR
+    PUSH_ERROR
+    """
+
     datalad_message = ''
     datalad_error = ''
     try:
-        # lock状態でないとS3データが同期されてしまう
         os.chdir(os.environ['HOME'])
+        # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
         os.system('git annex lock')
         save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
         update()
     except:
         datalad_error = traceback.format_exc()
-        # リモートへの接続エラーが発生している場合は回復を試す
+        # if there is a connection error to the remote, try recovery
         if 'Repository does not exist:' in datalad_error:
             try:
-                # リモートリポジトリのURLを最新化する
+                # update URLs of remote repositories
                 update_repo_url()
             except:
-                # リポジトリ自体が無いときなど
+                # repository may not exist
                 datalad_message = CONNECT_REPO_ERROR
             else:
                 datalad_error = ''
@@ -282,20 +304,37 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
 
 def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message):
-    # ※git annex add済みのファイルにしか、git annex metadataコマンドを実行できない
-    # datalad saveとgit annex管理ファイルへのメタデータを付与を行う
+    """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
+    ARG
+    ---------------
+    git_path : str or list(str)
+        Description : Define directories and files to be managed by git.
+    gitannex_path : str or list(str)
+        Description : Define directories and files to be managed by git-annex.
+    gitannex_files : str or list(str) or None
+        Description : Specify the file to which metadata(content_size, sha256, mime_type) is to be added. Specify None if metadata is not to be added.
+    message : str
+        Description : Commit message
+
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
+
+    # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
     if gitannex_path != None:
         api.save(message=message + ' (git-annex)', path=gitannex_path)
-        # gitannex_filesに対してcontent_size, sha256, mime_typeのメタデータを付与する
+        # register metadata for gitannex_files
         if type(gitannex_files) == str:
-            # メタデータを生成・付与する
             register_metadata_for_annexdata(gitannex_files)
         elif type(gitannex_files) == list:
             for file in gitannex_files:
-                # メタデータを生成・付与する
                 register_metadata_for_annexdata(file)
         else:
-            # gitannex_filesが単一ファイルパス(str)もしくは複数ファイルパス(list)以外の場合はメタデータを付与しない。
+            # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
 
     if git_path != None:
@@ -306,21 +345,46 @@ def update():
 
 def push():
     api.push(to=SIBLING, data='auto')
-    
+  
 def register_metadata_for_annexdata(file_path):
-    # メタデータを生成する
+    """register_metadata(content_size, sha256, mime_type) for specified file
+    ARG
+    ---------------
+    file_path : str
+        Description : File path to which metadata is to be added.
+
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
+    # generate metadata
     mime_type,encoding = mimetypes.guess_type(file_path)
     with open(file_path, 'rb') as f:
         binary_data = f.read()
         sha256 = hashlib.sha3_256(binary_data).hexdigest()
     content_size = os.path.getsize(file_path)
     
-    # file_pathに対してメタデータを付与する
+    # register_metadata
     os.chdir(os.environ['HOME'])
     os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
     
 def register_metadata_for_downloaded_annexdata(file_path):
-    # 外部からダウンロードされたファイルに対して、ダウンロード日時(sdDatepublished)のメタデータを付与する
+    """register metadata(sd_date_published)for the specified file
+    ARG
+    ---------------
+    file_path : str
+        Description : File path to which metadata is to be added.
+
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
     t_delta = datetime.timedelta(hours=9)
     JST = datetime.timezone(t_delta, 'JST')
     current_time = datetime.datetime.now(JST)

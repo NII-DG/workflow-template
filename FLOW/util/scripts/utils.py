@@ -12,6 +12,7 @@ import subprocess
 from subprocess import PIPE
 import mimetypes
 import hashlib
+import datetime
 
 
 def fetch_param_file_path() -> str:
@@ -281,29 +282,50 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
 
 def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message):
-    # save後に、git annex管理の場合はメタデータを付与する
+    # ※git annex add済みのファイルにしか、git annex metadataコマンドを実行できない
+    # datalad saveとgit annex管理ファイルへのメタデータを付与を行う
     if gitannex_path != None:
         api.save(message=message + ' (git-annex)', path=gitannex_path)
-        # git annex管理の場合は、content_size, sha256, mime_typeのメタデータを付与する
-        for file in gitannex_files:
-            # メタデータを生成する
-            mime_type,encoding = mimetypes.guess_type(file)
-            with open(file, 'rb') as f:
-                binary_data = f.read()
-                sha256 = hashlib.sha3_256(binary_data).hexdigest()
-            content_size = os.path.getsize(file)
-            # メタデータを付与する
-            os.system(f'git annex metadata {file} -s mime_type={mime_type} -s sha256={sha256} -s content_size={str(content_size)}')
+        # gitannex_filesに対してcontent_size, sha256, mime_typeのメタデータを付与する
+        if type(gitannex_files) == str:
+            # メタデータを生成・付与する
+            register_metadata_for_annexdata(gitannex_files)
+        elif type(gitannex_files) == list:
+            for file in gitannex_files:
+                # メタデータを生成・付与する
+                register_metadata_for_annexdata(file)
+        else:
+            # gitannex_filesが単一ファイルパス(str)もしくは複数ファイルパス(list)以外の場合はメタデータを付与しない。
+            pass
 
     if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
-
+        
 def update():
     api.update(sibling=SIBLING, how='merge')
 
 def push():
     api.push(to=SIBLING, data='auto')
-
+    
+def register_metadata_for_annexdata(file_path):
+    # メタデータを生成する
+    mime_type,encoding = mimetypes.guess_type(file_path)
+    with open(file_path, 'rb') as f:
+        binary_data = f.read()
+        sha256 = hashlib.sha3_256(binary_data).hexdigest()
+    content_size = os.path.getsize(file_path)
+    
+    # file_pathに対してメタデータを付与する
+    os.chdir(os.environ['HOME'])
+    os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+    
+def register_metadata_for_downloaded_annexdata(file_path):
+    # 外部からダウンロードされたファイルに対して、ダウンロード日時(sdDatepublished)のメタデータを付与する
+    t_delta = datetime.timedelta(hours=9)
+    JST = datetime.timezone(t_delta, 'JST')
+    current_time = datetime.datetime.now(JST)
+    sd_date_published = current_time.isoformat()
+    os.system(f'git annex metadata {file_path} -s sd_date_published={sd_date_published}')
 
 # 研究名と実験名を表示する関数
 def show_name(color='black', EXPERIMENT_TITLE=None):

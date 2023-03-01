@@ -19,9 +19,18 @@ def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
 
 
-def fetch_monitoring_param_file_path() -> str:
-    return '/home/jovyan/WORKFLOWS/FLOW/param_files/monitoring_params.json'
-
+def fetch_gin_monitoring_assigned_values():
+    # dmp.jsonからcontentSize, workflowIdentifier, datasetStructureの値を取得する
+    dmp_file_path = '/home/jovyan/dmp.json'
+    with open(dmp_file_path, mode='r') as f:
+         dmp_json = json.load(f)
+    assigned_values = {
+        'workflowIdentifier': dmp_json['workflowIdentifier'],
+        'contentSize': dmp_json['contentSize'],
+        'datasetStructure': dmp_json['datasetStructure']
+    }
+    return assigned_values
+    
 
 def verify_GIN_user():
     # 以下の認証の手順で用いる、

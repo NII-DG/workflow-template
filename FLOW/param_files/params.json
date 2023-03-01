@@ -5,19 +5,5 @@
         "gitHugibHttp": "https://github.com/",
         "gitHubSsh": "git@github.com:"
     },
-    "rcosBinderUrl": "https://jupyter.cs.rcos.nii.ac.jp",
-    "monitoring": {
-        "dataAmount": {
-            "name": "データ容量",
-            "path": "/home/jovyan/WORKFLOWS/FLOW/02_experimental_phase/base_monitor_data_size.ipynb"
-        },
-        "datasetStructure": {
-            "name": "データ構造",
-            "path": "/home/jovyan/WORKFLOWS/FLOW/02_experimental_phase/base_monitor_dataset_structure.ipynb"
-        },
-        "reproducibility": {
-            "name": "再現性",
-            "path": "/home/jovyan/WORKFLOWS/monitor_package.ipynb"
-        }
-    }
+    "rcosBinderUrl": "https://jupyter.cs.rcos.nii.ac.jp"
 }

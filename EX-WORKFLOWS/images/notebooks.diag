@@ -28,7 +28,6 @@
                     orientation = portrait;
                     color = "#fcdcb1";
                     "1. 実験準備"[label = "1. 実験準備", fontsize = 14];
-                    "enter_metadata";
                 }
             }
             group {

@@ -43,8 +43,7 @@
                     "2. experimental_phase"[label = "2. 実験", fontsize = 14];
                     "base_launch_an_experiment";
                     "dummy"[shape=none, width=1, height=1];
-                    "base_monitor_data_size";
-                    "base_monitor_dataset_structure";
+                    "base_validate_data_size_and_structure";
                 }
             }
             group {
@@ -74,5 +73,5 @@
         "0. prepare_for_workflow" -> "1. preparation_phase" -> "2. experimental_phase" -> "3. after_experiments_phase" -> "4. after_research";
         "base_launch_an_experiment" -> "base_launch_an_experiment";
         "base_launch_an_experiment" -> "dummy"[dir=none];
-        "dummy" -> "base_monitor_data_size", "base_monitor_dataset_structure";
+        "dummy" -> "base_validate_data_size_and_structure";
     }

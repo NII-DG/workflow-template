@@ -44,7 +44,7 @@
                     "2. experimental_phase"[label = "2. 実験", fontsize = 10];
                     "base_launch_an_experiment";
                     "dummy"[shape=none, width=1, height=1];
-                    "base_validate_data_size_and_structure";
+                    "base_validate_metadata";
                 }
             }
             group {
@@ -87,5 +87,5 @@
         "4. after_research" -> "dummy-1 to reduce size"[style=none];
         "base_launch_an_experiment" -> "base_launch_an_experiment";
         "base_launch_an_experiment" -> "dummy"[dir=none];
-        "dummy" -> "base_validate_data_size_and_structure";
+        "dummy" -> "base_validate_metadata";
     }

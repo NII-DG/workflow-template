@@ -364,10 +364,8 @@ def register_metadata_for_downloaded_annexdata(file_path):
     EXCEPTION
     ---------------
     """
-    t_delta = datetime.timedelta(hours=9)
-    JST = datetime.timezone(t_delta, 'JST')
-    current_time = datetime.datetime.now(JST)
-    sd_date_published = current_time.isoformat()
+    current_date = datetime.date.today()
+    sd_date_published = current_date.isoformat()
     os.system(f'git annex metadata {file_path} -s sd_date_published={sd_date_published}')
 
 # 研究名と実験名を表示する関数

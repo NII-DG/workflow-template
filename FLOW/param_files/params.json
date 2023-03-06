@@ -6,5 +6,8 @@
         "gitHubSsh": "git@github.com:"
     },
     "rcosBinderUrl": "https://jupyter.cs.rcos.nii.ac.jp",
-    "dgCoreNetloc": "core.dg.nii.ac.jp"
+    "dgCore" : {
+        "Scheme": "https",
+        "Netloc": "core.dg.nii.ac.jp"
+    }
 }

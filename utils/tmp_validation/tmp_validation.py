@@ -94,8 +94,8 @@ def save_verification_results(result):
         [result['results'], os.path.join(tmp_result_folder, RESULTS_FILE_NAME)]
     ]
     for file in tmp_files:
-        with open(file[1], 'w') as f:
-            json.dump(file[0], f, indent=4)
+        with open(file[1], 'w', encoding='utf-8') as f:
+            json.dump(file[0], f, indent=4, ensure_ascii=False)
             
 def operate_validation_results(need_sync):
     """If synchronizing verification results, move temporary verification results to VALIDATION_RESULTS_PATH and delete temporary verification-related files.

@@ -234,8 +234,6 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_error = ''
     try:
         os.chdir(os.environ['HOME'])
-        # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
-        os.system('git annex lock')
         save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
         update()
     except:
@@ -263,7 +261,6 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
                         datalad_message = PUSH_ERROR
                     else:
                         os.chdir(os.environ['HOME'])
-                        os.system('git annex unlock')
                         datalad_message = SUCCESS
         else:
             datalad_message = CONFLICT_ERROR
@@ -275,7 +272,6 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             datalad_message = PUSH_ERROR
         else:
             os.chdir(os.environ['HOME'])
-            os.system('git annex unlock')
             datalad_message = SUCCESS
     finally:
         clear_output()
@@ -305,7 +301,10 @@ def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
 
     # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
     if gitannex_path != None:
+        # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
+        os.system('git annex lock')
         api.save(message=message + ' (git-annex)', path=gitannex_path)
+        os.system('git annex unlock')
         # register metadata for gitannex_files
         if type(gitannex_files) == str:
             register_metadata_for_annexdata(gitannex_files)

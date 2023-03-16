@@ -10,7 +10,7 @@ from datalad import api
 import traceback
 import subprocess
 from subprocess import PIPE
-import mimetypes
+import magic
 import hashlib
 import datetime
 
@@ -340,7 +340,7 @@ def register_metadata_for_annexdata(file_path):
     ---------------
     """
     # generate metadata
-    mime_type,encoding = mimetypes.guess_type(file_path)
+    mime_type = magic.from_file(file_path, mime=True)
     with open(file_path, 'rb') as f:
         binary_data = f.read()
         sha256 = hashlib.sha3_256(binary_data).hexdigest()

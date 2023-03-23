@@ -17,7 +17,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffeed9";
-                    "0. prepare_for_workflow"[label = "0. ワークフロー機能の実行準備", fontsize = 10];
+                    "0. prepare_for_workflow"[label = "0. リサーチフロー機能の実行準備", fontsize = 10];
                     "base_required_every_time"[fontsize = 10];
                 }
             }

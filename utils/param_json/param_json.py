@@ -48,14 +48,11 @@ def update_param_url(remote_origin_url):
             df["siblings"]["ginHttp"] = parse.urlunparse((pr_http.scheme, pr_http.netloc, "", "", "", ""))
 
             # Create ssf url for gin-fork
-            # git@it1.dg.nii.ac.jp:/ivis-tsukioka/r1.git -> git@it1.dg.nii.ac.jp:
-            # ssh://git@dg01.dg.rcos.nii.ac.jp:3001/ivis-tsukioka/repo1.git -> ssh://git@dg01.dg.rcos.nii.ac.jp:3001
             ssh_url = response_data["ssh_url"]
             repo_slash_index = ssh_url.rfind("/")
             ssh_url = ssh_url[:repo_slash_index-1]
             user_slash_index = ssh_url.rfind("/")
             ssh_url = ssh_url[:user_slash_index-1]
-            print(ssh_url)
 
             df["siblings"]["ginSsh"] = ssh_url
 

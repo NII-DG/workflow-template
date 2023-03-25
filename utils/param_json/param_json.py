@@ -35,16 +35,29 @@ def update_param_url(remote_origin_url):
         response = api.repos(pr.scheme, pr.netloc, owner_repo_nm)
         if response.status_code == HTTPStatus.OK:
             flg = False
-            response_data = response.json()
-            pr_http = parse.urlparse(response_data["html_url"])
-            pr_ssh = parse.urlparse(response_data["ssh_url"])
+
 
             f = open(param_file_path, 'r')
             df = json.load(f)
             f.close()
 
+            response_data = response.json()
+
+            # Create http url for gin-fork
+            pr_http = parse.urlparse(response_data["html_url"])
             df["siblings"]["ginHttp"] = parse.urlunparse((pr_http.scheme, pr_http.netloc, "", "", "", ""))
-            df["siblings"]["ginSsh"] = parse.urlunparse((pr_ssh.scheme, pr_ssh.netloc, "", "", "", ""))
+
+            # Create ssf url for gin-fork
+            # git@it1.dg.nii.ac.jp:/ivis-tsukioka/r1.git -> git@it1.dg.nii.ac.jp:
+            # ssh://git@dg01.dg.rcos.nii.ac.jp:3001/ivis-tsukioka/repo1.git -> ssh://git@dg01.dg.rcos.nii.ac.jp:3001
+            ssh_url = response_data["ssh_url"]
+            repo_slash_index = ssh_url.rfind("/")
+            ssh_url = ssh_url[:repo_slash_index-1]
+            user_slash_index = ssh_url.rfind("/")
+            ssh_url = ssh_url[:user_slash_index-1]
+            print(ssh_url)
+
+            df["siblings"]["ginSsh"] = ssh_url
 
             with open(param_file_path, 'w') as f:
                 json.dump(df, f, indent=4)

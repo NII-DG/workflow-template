@@ -49,10 +49,13 @@ def update_param_url(remote_origin_url):
 
             # Create ssf url for gin-fork
             ssh_url = response_data["ssh_url"]
+            print(ssh_url)
             repo_slash_index = ssh_url.rfind("/")
             ssh_url = ssh_url[:repo_slash_index-1]
+            print(ssh_url)
             user_slash_index = ssh_url.rfind("/")
             ssh_url = ssh_url[:user_slash_index-1]
+            print(ssh_url)
 
             df["siblings"]["ginSsh"] = ssh_url
 

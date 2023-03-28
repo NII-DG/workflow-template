@@ -12,10 +12,10 @@ from itertools import chain, zip_longest
 from jinja2 import Template
 from datetime import datetime
 
-title_font_size = 12
-item_font_size = 9
-head_margin = 3
-text_margin = 2
+title_font_size = 10
+item_font_size = 7
+head_margin = 2
+text_margin = 1
 title_font_color = 'rgb(255,140,0)'
 text_font_color = 'rgb(0,0,0)'
 

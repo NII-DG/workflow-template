@@ -1,3 +1,5 @@
 .datalad/
 .gitattributes
 .ipynb_checkpoints/
+
+env*

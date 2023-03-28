@@ -10,46 +10,27 @@ from datalad import api
 import traceback
 import subprocess
 from subprocess import PIPE
-
+import magic
+import hashlib
+import datetime
 
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
 
 
-def fetch_monitoring_param_file_path() -> str:
-    return '/home/jovyan/WORKFLOWS/FLOW/param_files/monitoring_params.json'
-
-
-def reflect_monitoring_results(monitoring_item, isOK: bool, package_path) -> None:
-    # モニタリング観点名とnotebookへのパスとを取得
-    path_params = fetch_param_file_path()
-    params = {}
-    with open(path_params, 'r') as f:
-        params = json.load(f)
-
-    nb = params['monitoring'][monitoring_item]
-    # nb['name']: モニタリング観点名(str)
-    # nb['path']: Notebookへのパス(str)
-
-    nb['path'] = os.path.relpath(nb['path'], package_path)
-
-    # READMEの内容を取得する
-    readme_path = package_path + '/README.md'
-    with open(readme_path, "r") as f:
-        readme = f.read()
-    point1 = readme.find("| " + nb['name'] + " |")
-    output = readme[:point1]
-
-    # 該当する行を書き換え
-    output += "| " + nb['name'] + " | [" + ("OK" if isOK else "NG") + "](" + nb['path'] + ") |"
-
-    point2 = readme[point1:].find("\n")
-    output += readme[point1 + point2:]
-
-    with open(readme_path, "w") as f:
-        f.write(output)
-
+def fetch_gin_monitoring_assigned_values():
+    # dmp.jsonからcontentSize, workflowIdentifier, datasetStructureの値を取得する
+    dmp_file_path = '/home/jovyan/dmp.json'
+    with open(dmp_file_path, mode='r') as f:
+         dmp_json = json.load(f)
+    assigned_values = {
+        'workflowIdentifier': dmp_json['workflowIdentifier'],
+        'contentSize': dmp_json['contentSize'],
+        'datasetStructure': dmp_json['datasetStructure']
+    }
+    return assigned_values
+    
 
 def verify_GIN_user():
     # 以下の認証の手順で用いる、
@@ -225,25 +206,45 @@ PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
 
-# リポジトリと同期する
-def syncs_with_repo(git_path, gitannex_path, message):
+def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
+    """synchronize with the repository
+    ARG
+    ---------------
+    git_path : str or list(str)
+        Description : Define directories and files to be managed by git.
+    gitannex_path : str or list(str)
+        Description : Define directories and files to be managed by git-annex.
+    gitannex_files : str or list(str) or None
+        Description : Specify the file to which metadata(content_size, sha256, mime_type) is to be added. Specify None if metadata is not to be added.
+    message : str
+        Description : Commit message
+
+    RETURN
+    ---------------
+    Returns nothing, but outputs a message.
+
+    EXCEPTION
+    ---------------
+    CONNECT_REPO_ERROR
+    CONFLICT_ERROR
+    PUSH_ERROR
+    """
+
     datalad_message = ''
     datalad_error = ''
     try:
-        # lock状態でないとS3データが同期されてしまう
         os.chdir(os.environ['HOME'])
-        os.system('git annex lock')
-        save(git_path, gitannex_path, message)
+        save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
         update()
     except:
         datalad_error = traceback.format_exc()
-        # リモートへの接続エラーが発生している場合は回復を試す
+        # if there is a connection error to the remote, try recovery
         if 'Repository does not exist:' in datalad_error:
             try:
-                # リモートリポジトリのURLを最新化する
+                # update URLs of remote repositories
                 update_repo_url()
             except:
-                # リポジトリ自体が無いときなど
+                # repository may not exist
                 datalad_message = CONNECT_REPO_ERROR
             else:
                 datalad_error = ''
@@ -260,7 +261,6 @@ def syncs_with_repo(git_path, gitannex_path, message):
                         datalad_message = PUSH_ERROR
                     else:
                         os.chdir(os.environ['HOME'])
-                        os.system('git annex unlock')
                         datalad_message = SUCCESS
         else:
             datalad_message = CONFLICT_ERROR
@@ -272,25 +272,100 @@ def syncs_with_repo(git_path, gitannex_path, message):
             datalad_message = PUSH_ERROR
         else:
             os.chdir(os.environ['HOME'])
-            os.system('git annex unlock')
             datalad_message = SUCCESS
     finally:
         clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
 
-def save(git_path, gitannex_path, message):
+def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message):
+    """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
+    ARG
+    ---------------
+    git_path : str or list(str)
+        Description : Define directories and files to be managed by git.
+    gitannex_path : str or list(str)
+        Description : Define directories and files to be managed by git-annex.
+    gitannex_files : str or list(str) or None
+        Description : Specify the file to which metadata(content_size, sha256, mime_type) is to be added. Specify None if metadata is not to be added.
+    message : str
+        Description : Commit message
+
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
+
+    # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
     if gitannex_path != None:
+        # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
+        os.system('git annex lock')
         api.save(message=message + ' (git-annex)', path=gitannex_path)
+        os.system('git annex unlock')
+        # register metadata for gitannex_files
+        if type(gitannex_files) == str:
+            register_metadata_for_annexdata(gitannex_files)
+        elif type(gitannex_files) == list:
+            for file in gitannex_files:
+                register_metadata_for_annexdata(file)
+        else:
+            # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
+            pass
+
     if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
-
+        
 def update():
     api.update(sibling=SIBLING, how='merge')
 
 def push():
     api.push(to=SIBLING, data='auto')
+  
+def register_metadata_for_annexdata(file_path):
+    """register_metadata(content_size, sha256, mime_type) for specified file
+    ARG
+    ---------------
+    file_path : str
+        Description : File path to which metadata is to be added.
 
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
+    # generate metadata
+    mime_type = magic.from_file(file_path, mime=True)
+    with open(file_path, 'rb') as f:
+        binary_data = f.read()
+        sha256 = hashlib.sha3_256(binary_data).hexdigest()
+    content_size = os.path.getsize(file_path)
+    
+    # register_metadata
+    os.chdir(os.environ['HOME'])
+    os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+    
+def register_metadata_for_downloaded_annexdata(file_path):
+    """register metadata(sd_date_published)for the specified file
+    ARG
+    ---------------
+    file_path : str
+        Description : File path to which metadata is to be added.
+
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
+    current_date = datetime.date.today()
+    sd_date_published = current_date.isoformat()
+    os.system(f'git annex metadata {file_path} -s sd_date_published={sd_date_published}')
 
 # 研究名と実験名を表示する関数
 def show_name(color='black', EXPERIMENT_TITLE=None):

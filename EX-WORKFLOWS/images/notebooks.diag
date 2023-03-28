@@ -1,7 +1,8 @@
    blockdiag {
-    node_width = 230;
-    node_height = 145;
-    span_width = 40
+    node_width = 200;
+    node_height = 130;
+    span_width = 10;
+    span_height = 30;
 
         group {
             orientation = portrait;
@@ -15,8 +16,8 @@
                 group {
                     orientation = portrait;
                     color = "#ffeed9";
-                    "0. 実験ワークフロー実行準備"[label = "0. 実験ワークフロー実行準備", fontsize = 14];
-                    "required_every_time"[fontsize = 14];
+                    "0. 実験フロー実行準備"[label = "0. 実験フロー実行準備", fontsize = 10];
+                    "required_every_time"[fontsize = 10];
                 }
             }
 
@@ -27,8 +28,7 @@
                 group {
                     orientation = portrait;
                     color = "#fcdcb1";
-                    "1. 実験準備"[label = "1. 実験準備", fontsize = 14];
-                    "enter_metadata";
+                    "1. 実験準備"[label = "1. 実験準備", fontsize = 10];
                 }
             }
             group {
@@ -38,7 +38,7 @@
                 group {
                     color = "#ffd6a1";
                     orientation = portrait;
-                    "2. 実験"[label = "2. 実験", fontsize = 14];
+                    "2. 実験"[label = "2. 実験", fontsize = 10];
                     "prepare_input_and_source";
                     "save";
                     "prepare_parameter_experiment"
@@ -51,7 +51,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffb95c";
-                    "3. 実験データなどの整理"[label = "3. 実験データなどの整理", fontsize = 14];
+                    "3. 実験データなどの整理"[label = "3. 実験データなどの整理", fontsize = 10];
                 }
             }
             group {
@@ -61,7 +61,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffa329";
-                    "4. 実験を再現するためのSnakefileを記述"[label = "4. 実験を再現するためのSnakefileを記述", fontsize = 14];
+                    "4. 実験を再現するためのSnakefileを記述"[label = "4. 実験を再現するためのSnakefileを記述", fontsize = 10];
                 }
             }
             group {
@@ -71,12 +71,12 @@
                 group {
                     orientation = portrait;
                     color = "#ffa329";
-                    "5. 実験終了"[label = "5. 実験終了", fontsize = 14];
+                    "5. 実験終了"[label = "5. 実験終了", fontsize = 10];
                     "finish";
                 }
             }
         }
 
-        "0. 実験ワークフロー実行準備" -> "1. 実験準備" -> "2. 実験" -> "3. 実験データなどの整理" ->  "4. 実験を再現するためのSnakefileを記述" -> "5. 実験終了";
+        "0. 実験フロー実行準備" -> "1. 実験準備" -> "2. 実験" -> "3. 実験データなどの整理" ->  "4. 実験を再現するためのSnakefileを記述" -> "5. 実験終了";
 
     }

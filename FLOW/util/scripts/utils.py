@@ -235,13 +235,16 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     try:
         print("リポジトリの同期スタート")
         os.chdir(os.environ['HOME'])
+        print("update()")
         update()
+        print("save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)")
         save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
 
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist:' in datalad_error:
+        #if 'Repository does not exist:' in datalad_error:
+        if 'Repository does not exist' in datalad_error:
             print("リポジトリ名がないアップデートする。")
             try:
                 # update URLs of remote repositories

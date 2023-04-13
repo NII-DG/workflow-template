@@ -242,6 +242,8 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
 
     except:
         datalad_error = traceback.format_exc()
+        print("datalad_error")
+        print(datalad_error)
         # if there is a connection error to the remote, try recovery
         #if 'Repository does not exist:' in datalad_error:
         if 'Repository does not exist' in datalad_error:

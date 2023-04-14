@@ -314,8 +314,10 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_error = ''
     os.chdir(os.environ['HOME'])
     try:
-        print("[debug log] save_and_register_metadata 実行")
-        save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
+        print("[debug log] save_annex_and_register_metadata() 実行")
+        save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        print("[debug log] save_git() 実行")
+        save_git(git_path, message)
     except:
         datalad_error = traceback.format_exc()
         print("[debug log] エラーの出力")
@@ -342,10 +344,11 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         print("[debug log] エラーの出力")
         print(datalad_error)
         print("========================================")
+        return
 
 
 
-def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message):
+def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
     ARG
     ---------------
@@ -382,6 +385,7 @@ def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
 
+def save_git(git_path, message):
     if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
 

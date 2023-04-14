@@ -204,7 +204,7 @@ CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を�
 PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
-# ★
+
 def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     """synchronize with the repository
     ARG
@@ -233,22 +233,15 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_error = ''
     try:
         os.chdir(os.environ['HOME'])
-        print("[DEBUG LOG] : save_annex_and_register_metadata 実行")
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
-        print("[DEBUG LOG] : save_git 実行")
         save_git(git_path, message)
-        print("[DEBUG LOG] : update 実行")
         update()
     except:
         datalad_error = traceback.format_exc()
-        print("[DEBUG LOG] : エラー出力")
-        print(datalad_error)
-        print("==================================================================================================================")
         # if there is a connection error to the remote, try recovery
         if 'Repository does not exist:' in datalad_error:
             try:
                 # update URLs of remote repositories
-                print("[DEBUG LOG] : update_repo_url 実行")
                 update_repo_url()
             except:
                 # repository may not exist
@@ -256,23 +249,15 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             else:
                 datalad_error = ''
                 try:
-                    print("[DEBUG LOG] : update 実行")
                     update()
                 except:
                     datalad_error = traceback.format_exc()
-                    print("[DEBUG LOG] : エラー出力")
-                    print(datalad_error)
-                    print("==================================================================================================================")
                     datalad_message = CONFLICT_ERROR
                 else:
                     try:
-                        print("[DEBUG LOG] : push 実行")
                         push()
                     except:
                         datalad_error = traceback.format_exc()
-                        print("[DEBUG LOG] : エラー出力")
-                        print(datalad_error)
-                        print("==================================================================================================================")
                         datalad_message = PUSH_ERROR
                     else:
                         os.chdir(os.environ['HOME'])
@@ -285,15 +270,12 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             push()
         except:
             datalad_error = traceback.format_exc()
-            print("[DEBUG LOG] : エラー出力")
-            print(datalad_error)
-            print("==================================================================================================================")
             datalad_message = PUSH_ERROR
         else:
             os.chdir(os.environ['HOME'])
             datalad_message = SUCCESS
     finally:
-        # clear_output()
+        clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
         if datalad_message == SUCCESS:
@@ -339,7 +321,7 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
         else:
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
-# ★
+
 def save_git(git_path, message):
     if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)

@@ -312,10 +312,18 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
 
     datalad_message = ''
     datalad_error = ''
+    os.chdir(os.environ['HOME'])
     try:
-        os.chdir(os.environ['HOME'])
         print("[debug log] save_and_register_metadata 実行")
         save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
+    except:
+        datalad_error = traceback.format_exc()
+        print("[debug log] エラーの出力")
+        print(datalad_error)
+        print("========================================")
+        return
+
+    try:
         print("[debug log] update() 実行")
         update()
     except:
@@ -323,49 +331,17 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         print("[debug log] エラーの出力")
         print(datalad_error)
         print("========================================")
-        # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist:' in datalad_error:
-            try:
-                # update URLs of remote repositories
-                print("[debug log] update_repo_url() 実行")
-                update_repo_url()
-            except:
-                # repository may not exist
-                datalad_message = CONNECT_REPO_ERROR
-            else:
-                datalad_error = ''
-                try:
-                    print("[debug log] Repository does not exist update() 実行")
-                    update()
-                except:
-                    datalad_error = traceback.format_exc()
-                    datalad_message = CONFLICT_ERROR
-                else:
-                    try:
-                        print("[debug log] Repository does not exist push() 実行")
-                        push()
-                    except:
-                        datalad_error = traceback.format_exc()
-                        datalad_message = PUSH_ERROR
-                    else:
-                        os.chdir(os.environ['HOME'])
-                        datalad_message = SUCCESS
-        else:
-            datalad_message = CONFLICT_ERROR
-    else:
-        try:
-            print("[debug log] push() 実行")
-            push()
-        except:
-            datalad_error = traceback.format_exc()
-            datalad_message = PUSH_ERROR
-        else:
-            os.chdir(os.environ['HOME'])
-            datalad_message = SUCCESS
-    finally:
-        # clear_output()
-        display(HTML("<p>" + datalad_message + "</p>"))
-        display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
+        return
+
+
+    try:
+        print("[debug log] push() 実行")
+        push()
+    except:
+        datalad_error = traceback.format_exc()
+        print("[debug log] エラーの出力")
+        print(datalad_error)
+        print("========================================")
 
 
 

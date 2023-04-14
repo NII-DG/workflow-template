@@ -323,15 +323,15 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         print("========================================")
         return
 
-    try:
-        print("[debug log] update() 実行")
-        update()
-    except:
-        datalad_error = traceback.format_exc()
-        print("[debug log] エラーの出力")
-        print(datalad_error)
-        print("========================================")
-        return
+    # try:
+    #     print("[debug log] update() 実行")
+    #     update()
+    # except:
+    #     datalad_error = traceback.format_exc()
+    #     print("[debug log] エラーの出力")
+    #     print(datalad_error)
+    #     print("========================================")
+    #     return
 
 
     try:

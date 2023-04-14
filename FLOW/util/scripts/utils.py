@@ -204,7 +204,7 @@ CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を�
 PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
-
+# ★
 def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     """synchronize with the repository
     ARG
@@ -296,6 +296,10 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         # clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
+        if datalad_message == SUCCESS:
+            return True
+        else
+            return False
 
 
 
@@ -335,7 +339,7 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
         else:
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
-
+# ★
 def save_git(git_path, message):
     if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)

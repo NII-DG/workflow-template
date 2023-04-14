@@ -314,12 +314,10 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_error = ''
     try:
         os.chdir(os.environ['HOME'])
-
-        print("[debug log] update() 実行")
-        update()
-
         print("[debug log] save_and_register_metadata 実行")
         save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
+        print("[debug log] update() 実行")
+        update()
     except:
         datalad_error = traceback.format_exc()
         print("[debug log] エラーの出力")

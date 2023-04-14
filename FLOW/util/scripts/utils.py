@@ -298,7 +298,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
         if datalad_message == SUCCESS:
             return True
-        else
+        else:
             return False
 
 

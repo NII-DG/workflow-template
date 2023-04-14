@@ -97,7 +97,6 @@ def save_verification_results(result):
         with open(file[1], 'w', encoding='utf-8') as f:
             json.dump(file[0], f, indent=4, ensure_ascii=False)
 
-# ★
 def operate_validation_results(need_sync):
     """If synchronizing verification results, move temporary verification results to VALIDATION_RESULTS_PATH and delete temporary verification-related files.
     If not synchronizing, delete the temporary validation-related files.
@@ -112,9 +111,7 @@ def operate_validation_results(need_sync):
         if not os.path.exists(VALIDATION_RESULTS_PATH):
             os.makedirs(VALIDATION_RESULTS_PATH)
         for file in os.listdir(src):
-            print("一時検証ファイルパス")
             print(os.path.join(src, file))
-            print("TO リポジトリパス")
             print(os.path.join(dst, file))
             shutil.copyfile(os.path.join(src, file), os.path.join(dst, file))
 

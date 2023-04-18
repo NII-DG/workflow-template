@@ -30,7 +30,7 @@ def fetch_gin_monitoring_assigned_values():
         'datasetStructure': dmp_json['datasetStructure']
     }
     return assigned_values
-    
+
 
 def verify_GIN_user():
     # 以下の認証の手順で用いる、
@@ -197,7 +197,6 @@ def update_repo_url():
         if 'No such remote' in result.stderr:
             subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
-        
 DATALAD_MESSAGE = ''
 DATALAD_ERROR = ''
 CONNECT_REPO_ERROR = 'リポジトリに接続できません。リポジトリが存在しているか確認してください。'
@@ -234,7 +233,8 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_error = ''
     try:
         os.chdir(os.environ['HOME'])
-        save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
+        save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        save_git(git_path, message)
         update()
     except:
         datalad_error = traceback.format_exc()
@@ -266,6 +266,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             datalad_message = CONFLICT_ERROR
     else:
         try:
+            print("[DEBUG LOG] : push 実行")
             push()
         except:
             datalad_error = traceback.format_exc()
@@ -277,8 +278,14 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
+        if datalad_message == SUCCESS:
+            return True
+        else:
+            return False
 
-def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message):
+
+
+def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
     ARG
     ---------------
@@ -315,15 +322,16 @@ def save_and_register_metadata(git_path, gitannex_path, gitannex_files, message)
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
 
+def save_git(git_path, message):
     if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
-        
+
 def update():
     api.update(sibling=SIBLING, how='merge')
 
 def push():
     api.push(to=SIBLING, data='auto')
-  
+
 def register_metadata_for_annexdata(file_path):
     """register_metadata(content_size, sha256, mime_type) for specified file
     ARG
@@ -344,11 +352,11 @@ def register_metadata_for_annexdata(file_path):
         binary_data = f.read()
         sha256 = hashlib.sha3_256(binary_data).hexdigest()
     content_size = os.path.getsize(file_path)
-    
+
     # register_metadata
     os.chdir(os.environ['HOME'])
     os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
-    
+
 def register_metadata_for_downloaded_annexdata(file_path):
     """register metadata(sd_date_published)for the specified file
     ARG
@@ -375,11 +383,11 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
 
     # 研究リポジトリ名表示
     RESEARCH_TITLE = subprocess.getoutput('git config --get remote.origin.url').split('/')[-1].replace('.git', '')
-    res_text = "<h1 style='color:" + color + "'>研究リポジトリ名：" + RESEARCH_TITLE + "</h1>" 
+    res_text = "<h1 style='color:" + color + "'>研究リポジトリ名：" + RESEARCH_TITLE + "</h1>"
     clear_output()
     display(HTML(res_text))
-    
+
     if EXPERIMENT_TITLE is not None:
         #実験パッケージ名表示
-        exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>" 
+        exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>"
         display(HTML(exp_text))

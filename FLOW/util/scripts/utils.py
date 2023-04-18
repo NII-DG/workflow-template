@@ -205,6 +205,7 @@ PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
 
+# ★
 def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     """synchronize with the repository
     ARG

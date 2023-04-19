@@ -233,8 +233,8 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_error = ''
     try:
         os.chdir(os.environ['HOME'])
-        save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
         save_git(git_path, message)
+        save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
         update()
     except:
         datalad_error = traceback.format_exc()

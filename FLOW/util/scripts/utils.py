@@ -266,7 +266,6 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             datalad_message = CONFLICT_ERROR
     else:
         try:
-            print("[DEBUG LOG] : push 実行")
             push()
         except:
             datalad_error = traceback.format_exc()

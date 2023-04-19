@@ -314,9 +314,11 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
         # register metadata for gitannex_files
         if type(gitannex_files) == str:
             register_metadata_for_annexdata(gitannex_files)
+            os.system('git annex lock')
         elif type(gitannex_files) == list:
             for file in gitannex_files:
                 register_metadata_for_annexdata(file)
+            os.system('git annex lock')
         else:
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
@@ -330,6 +332,7 @@ def update():
 
 def push():
     api.push(to=SIBLING, data='auto')
+    os.system('git annex unlock')
 
 def register_metadata_for_annexdata(file_path):
     """register_metadata(content_size, sha256, mime_type) for specified file

@@ -274,7 +274,6 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         try:
             print("[DEBUG LOG] : push 実行")
             push()
-            update()
         except:
             datalad_error = traceback.format_exc()
             datalad_message = PUSH_ERROR

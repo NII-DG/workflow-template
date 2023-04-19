@@ -252,18 +252,19 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             else:
                 datalad_error = ''
                 try:
-                    print("[Debug Log] update")
-                    update()
+                    print("[Debug Log] push")
+                    push()
+
                 except:
                     datalad_error = traceback.format_exc()
-                    datalad_message = CONFLICT_ERROR
+                    datalad_message = PUSH_ERROR
                 else:
                     try:
-                        print("[Debug Log] push")
-                        push()
+                        print("[Debug Log] update")
+                        update()
                     except:
                         datalad_error = traceback.format_exc()
-                        datalad_message = PUSH_ERROR
+                        datalad_message = CONFLICT_ERROR
                     else:
                         os.chdir(os.environ['HOME'])
                         datalad_message = SUCCESS
@@ -273,12 +274,20 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         try:
             print("[DEBUG LOG] : push 実行")
             push()
+            update()
         except:
             datalad_error = traceback.format_exc()
             datalad_message = PUSH_ERROR
         else:
-            os.chdir(os.environ['HOME'])
-            datalad_message = SUCCESS
+            try:
+                print("[Debug Log] update")
+                update()
+            except:
+                datalad_error = traceback.format_exc()
+                datalad_message = CONFLICT_ERROR
+            else:
+                os.chdir(os.environ['HOME'])
+                datalad_message = SUCCESS
     finally:
         #clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))

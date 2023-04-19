@@ -233,15 +233,18 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_error = ''
     try:
         os.chdir(os.environ['HOME'])
+        print("[Debug Log] save_annex_and_register_metadata")
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        print("[Debug Log] save_git")
         save_git(git_path, message)
-        update()
+        #update()
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery
         if 'Repository does not exist:' in datalad_error:
             try:
                 # update URLs of remote repositories
+                print("[Debug Log] update_repo_url")
                 update_repo_url()
             except:
                 # repository may not exist
@@ -249,12 +252,14 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             else:
                 datalad_error = ''
                 try:
+                    print("[Debug Log] update")
                     update()
                 except:
                     datalad_error = traceback.format_exc()
                     datalad_message = CONFLICT_ERROR
                 else:
                     try:
+                        print("[Debug Log] push")
                         push()
                     except:
                         datalad_error = traceback.format_exc()
@@ -275,7 +280,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             os.chdir(os.environ['HOME'])
             datalad_message = SUCCESS
     finally:
-        clear_output()
+        #clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
         if datalad_message == SUCCESS:
@@ -326,8 +331,11 @@ def save_git(git_path, message):
     if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
 
+# def update():
+#     api.update(sibling=SIBLING, how='merge')
+
 def update():
-    api.update(sibling=SIBLING, how='merge')
+    api.update(sibling=SIBLING)
 
 def push():
     api.push(to=SIBLING, data='auto')

@@ -52,7 +52,7 @@ def get_tmp_result_folder_path():
     """
     tmp_result_folder_path = os.path.join(TMP_VALIDATION_PATH, get_request_id())
     return tmp_result_folder_path
-    
+
 def save_request_id(request_id):
     """write the request ID
     RETURN
@@ -64,7 +64,7 @@ def save_request_id(request_id):
         os.makedirs(TMP_VALIDATION_PATH)
     with open(file_path, 'w') as f:
         f.write(request_id)
-    
+
 def get_request_id():
     """get request ID
     RETURN
@@ -96,7 +96,7 @@ def save_verification_results(result):
     for file in tmp_files:
         with open(file[1], 'w', encoding='utf-8') as f:
             json.dump(file[0], f, indent=4, ensure_ascii=False)
-            
+
 def operate_validation_results(need_sync):
     """If synchronizing verification results, move temporary verification results to VALIDATION_RESULTS_PATH and delete temporary verification-related files.
     If not synchronizing, delete the temporary validation-related files.
@@ -111,8 +111,9 @@ def operate_validation_results(need_sync):
         if not os.path.exists(VALIDATION_RESULTS_PATH):
             os.makedirs(VALIDATION_RESULTS_PATH)
         for file in os.listdir(src):
-            shutil.move(os.path.join(src, file), os.path.join(dst, file))
-        delete_verification_results_and_request_id()
+            print(os.path.join(src, file))
+            print(os.path.join(dst, file))
+            shutil.copyfile(os.path.join(src, file), os.path.join(dst, file))
 
 def delete_verification_results_and_request_id():
     """delete temporary validation-related files(.tmp/validation/{request_id}/*, .tmp/request_id.txt)
@@ -127,4 +128,3 @@ def delete_verification_results_and_request_id():
     request_id_file_path = fetch_request_id_file_path()
     if os.path.exists(request_id_file_path):
         os.remove(request_id_file_path)
-    

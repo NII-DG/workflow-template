@@ -231,58 +231,44 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
 
     datalad_message = ''
     datalad_error = ''
+    os.chdir(os.environ['HOME'])
+
     try:
-        os.chdir(os.environ['HOME'])
-        save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
-        save_git(git_path, message)
-        update()
+        # git-annex (add + commit + register_metadata + force push)
+        print("[Debug Log] save_annex_and_register_metadata")
+        err, err_msg = save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        if err != '':
+            raise Exception(err)
+
+        # git (add + commit)
+        print("[Debug Log] save_git")
+        err, err_msg = save_git(git_path, message)
+        if err != '':
+            raise Exception(err)
+        
+        # update conflict occur
+        print("[Debug Log] update")
+        err, err_msg = update()
+        if err != '':
+            raise Exception(err)
+
+        # push
+        print("[Debug Log] push")
+        err, err_msg = push()
+        if err != '':
+            raise Exception(err)
+        
     except:
-        datalad_error = traceback.format_exc()
-        # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist:' in datalad_error:
-            try:
-                # update URLs of remote repositories
-                update_repo_url()
-            except:
-                # repository may not exist
-                datalad_message = CONNECT_REPO_ERROR
-            else:
-                datalad_error = ''
-                try:
-                    update()
-                except:
-                    datalad_error = traceback.format_exc()
-                    datalad_message = CONFLICT_ERROR
-                else:
-                    try:
-                        push()
-                    except:
-                        datalad_error = traceback.format_exc()
-                        datalad_message = PUSH_ERROR
-                    else:
-                        os.chdir(os.environ['HOME'])
-                        datalad_message = SUCCESS
-        else:
-            datalad_message = CONFLICT_ERROR
+        display(HTML("<p>" + err_msg + "</p>"))
+        display(HTML("<p><font color='red'>" + err + "</font></p>"))
     else:
-        try:
-            push()
-        except:
-            datalad_error = traceback.format_exc()
-            datalad_message = PUSH_ERROR
-        else:
-            os.chdir(os.environ['HOME'])
-            datalad_message = SUCCESS
+        display(HTML("<p>正常終了しました。</p>"))
     finally:
-        clear_output()
-        display(HTML("<p>" + datalad_message + "</p>"))
-        display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
-        if datalad_message == SUCCESS:
+        #clear_output()
+        if err == '':
             return True
         else:
             return False
-
-
 
 def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
@@ -304,35 +290,81 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
     EXCEPTION
     ---------------
     """
-
-    # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
-    if gitannex_path != None:
-        # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
-        os.system('git annex lock')
-        api.save(message=message + ' (git-annex)', path=gitannex_path)
-        os.system('git annex unlock')
-        # register metadata for gitannex_files
-        if type(gitannex_files) == str:
-            register_metadata_for_annexdata(gitannex_files)
-        elif type(gitannex_files) == list:
-            for file in gitannex_files:
-                register_metadata_for_annexdata(file)
-        else:
-            # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
-            pass
+    err=''
+    err_msg=''
+    try:
+        # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
+        if gitannex_path != None:
+            # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
+            os.system('git annex lock')
+            api.save(message=message + ' (git-annex)', path=gitannex_path)
+            os.system('git annex unlock')
+            # register metadata for gitannex_files
+            if type(gitannex_files) == str:
+                register_metadata_for_annexdata(gitannex_files)
+            elif type(gitannex_files) == list:
+                for file in gitannex_files:
+                    register_metadata_for_annexdata(file)
+            else:
+                # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
+                pass
+        api.push(to=SIBLING, data='auto', path=gitannex_path, force='all')   
+    except:
+        err = traceback.format_exc()
+        err_msg = "git-annex管理ファイルの同期に失敗しました。"
+    finally:
+        return err, err_msg
 
 def save_git(git_path, message):
-    if git_path != None:
-        api.save(message=message + ' (git)', path=git_path, to_git=True)
+    err=''
+    err_msg=''
+    try:
+        if git_path != None:
+            api.save(message=message + ' (git)', path=git_path, to_git=True)
+    except:
+        err = traceback.format_exc()
+        err_msg = "git管理ファイルのコミットとメタデータ登録で失敗しました。"
+    finally:
+        return err, err_msg
 
 def update():
-    os.system('git annex lock')
-    api.update(sibling=SIBLING, how='merge')
-
+    err=''
+    err_msg=''
+    try:
+        os.system('git annex lock')
+        api.update(sibling=SIBLING, how='merge')
+    except:
+        print("=update failed=")
+        err = traceback.format_exc()
+        err_msg = "リモートのプルに失敗"
+        print(err)
+        # if there is a connection error to the remote, try recovery
+        if 'Repository does not exist:' in err:
+            try:
+                # update URLs of remote repositories
+                print("[Debug Log] update_repo_url")
+                update_repo_url()
+                api.update(sibling=SIBLING, how='merge')
+            except:
+                err = traceback.format_exc()
+            else:
+                err_msg = ""
+    finally:
+        return err, err_msg
+    
+    
 def push():
-    api.push(to=SIBLING, data='auto')
-    os.system('git annex unlock')
-
+    err=''
+    err_msg=''
+    try:
+        api.push(to=SIBLING, data='auto')
+    except:
+        err = traceback.format_exc()
+        err_msg = "リモートへのプッシュに失敗"
+    finally:
+        os.system('git annex unlock')
+        return err, err_msg
+    
 def register_metadata_for_annexdata(file_path):
     """register_metadata(content_size, sha256, mime_type) for specified file
     ARG

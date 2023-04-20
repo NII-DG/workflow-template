@@ -306,7 +306,8 @@ def force_push_annex_content(gitannex_path, gitannex_files, message):
             else:
                 # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
                 pass
-        api.push(to=SIBLING, data='auto', path=gitannex_path, force='all')   
+        os.system('git annex sync gin --only-annex --no-pull --force --debug')
+        #api.push(to=SIBLING, data='auto', path=gitannex_path, force='all')   
     except:
         err = traceback.format_exc()
         err_msg = "git-annex管理ファイルの同期に失敗しました。"

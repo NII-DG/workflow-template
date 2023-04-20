@@ -235,10 +235,12 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_message = ''
     datalad_error = ''
     try:
-
         os.chdir(os.environ['HOME'])
+        print('[Debug : {}]'.format('実行 : save_annex_and_register_metadata'))
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        print('[Debug : {}]'.format('実行 : save_git'))
         save_git(git_path, message)
+        print('[Debug : {}]'.format('実行 : update'))
         update()
     except:
         datalad_error = traceback.format_exc()
@@ -270,6 +272,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             datalad_message = CONFLICT_ERROR
     else:
         try:
+            print('[Debug : {}]'.format('実行 : push'))
             push()
         except:
             datalad_error = traceback.format_exc()
@@ -313,13 +316,16 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
     if gitannex_path != None:
         # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
         os.system('git annex lock')
+        print('[Debug : {}]'.format('実行 : save'))
         api.save(message=message + ' (git-annex)', path=gitannex_path)
         os.system('git annex unlock')
         # register metadata for gitannex_files
         if type(gitannex_files) == str:
+            print('[Debug : {}]'.format('実行 : register_metadata_for_annexdata'))
             register_metadata_for_annexdata(gitannex_files)
         elif type(gitannex_files) == list:
             for file in gitannex_files:
+                print('[Debug : {}]'.format('実行 : register_metadata_for_annexdata'))
                 register_metadata_for_annexdata(file)
         else:
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
@@ -327,14 +333,19 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
 
 def save_git(git_path, message):
     if git_path != None:
+        print('[Debug : {}]'.format('実行 : save'))
         api.save(message=message + ' (git)', path=git_path, to_git=True)
 
 def update():
+    print('[Debug : {}]'.format('実行 : git annex lock'))
     os.system('git annex lock')
+    print('[Debug : {}]'.format('実行 : update'))
     api.update(sibling=SIBLING, how='merge')
 
 def push():
+    print('[Debug : {}]'.format('実行 :push'))
     api.push(to=SIBLING, data='auto')
+    print('[Debug : {}]'.format('実行 :git annex unlock'))
     os.system('git annex unlock')
 
 def register_metadata_for_annexdata(file_path):

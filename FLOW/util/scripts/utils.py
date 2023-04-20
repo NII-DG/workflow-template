@@ -232,10 +232,12 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     datalad_message = ''
     datalad_error = ''
     try:
+
         os.chdir(os.environ['HOME'])
+        update()
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
         save_git(git_path, message)
-        update()
+
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery

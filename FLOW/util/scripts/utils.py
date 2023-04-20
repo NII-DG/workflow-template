@@ -197,8 +197,6 @@ def update_repo_url():
         if 'No such remote' in result.stderr:
             subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
-DATALAD_MESSAGE = ''
-DATALAD_ERROR = ''
 CONNECT_REPO_ERROR = 'リポジトリに接続できません。リポジトリが存在しているか確認してください。'
 CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を解決してください。'
 PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
@@ -235,8 +233,8 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
 
     try:
         # git-annex (add + commit + register_metadata + force push)
-        print("[Debug Log] save_annex_and_register_metadata")
-        err, err_msg = save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        print("[Debug Log] force_push_annex_content")
+        err, err_msg = force_push_annex_content(gitannex_path, gitannex_files, message)
         if err != '':
             raise Exception(err)
 
@@ -270,7 +268,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
         else:
             return False
 
-def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
+def force_push_annex_content(gitannex_path, gitannex_files, message):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
     ARG
     ---------------
@@ -312,6 +310,7 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
     except:
         err = traceback.format_exc()
         err_msg = "git-annex管理ファイルの同期に失敗しました。"
+        # エラーのキャッチ処理が必要
     finally:
         return err, err_msg
 
@@ -323,7 +322,7 @@ def save_git(git_path, message):
             api.save(message=message + ' (git)', path=git_path, to_git=True)
     except:
         err = traceback.format_exc()
-        err_msg = "git管理ファイルのコミットとメタデータ登録で失敗しました。"
+        err_msg = "git管理ファイルのコミットで失敗しました。"
     finally:
         return err, err_msg
 
@@ -334,9 +333,8 @@ def update():
         os.system('git annex lock')
         api.update(sibling=SIBLING, how='merge')
     except:
-        print("=update failed=")
         err = traceback.format_exc()
-        err_msg = "リモートのプルに失敗"
+        err_msg = "リモートのプルに失敗しました。"
         print(err)
         # if there is a connection error to the remote, try recovery
         if 'Repository does not exist:' in err:
@@ -360,7 +358,7 @@ def push():
         api.push(to=SIBLING, data='auto')
     except:
         err = traceback.format_exc()
-        err_msg = "リモートへのプッシュに失敗"
+        err_msg = "リモートへのプッシュに失敗しました"
     finally:
         os.system('git annex unlock')
         return err, err_msg

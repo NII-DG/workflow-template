@@ -307,7 +307,7 @@ def force_push_annex_content(gitannex_path, gitannex_files, message):
                 # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
                 pass
         os.system('git annex lock')
-        os.system('git annex sync gin --only-annex --no-pull --force --debug')
+        os.system('git annex sync gin --only-annex --no-pull --force --debug --content')
         #api.push(to=SIBLING, data='auto', path=gitannex_path, force='all')   
     except:
         err = traceback.format_exc()

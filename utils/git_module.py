@@ -1,5 +1,5 @@
 import json
-from ..utils import common
+import common
 
 def exec_git_status():
     """execute 'git status' commands

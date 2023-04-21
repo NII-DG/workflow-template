@@ -31,6 +31,10 @@ def fetch_gin_monitoring_assigned_values():
     }
     return assigned_values
 
+def get_datasetStructure():
+    assigned_values = fetch_gin_monitoring_assigned_values()
+    return assigned_values['datasetStructure']
+
 
 def verify_GIN_user():
     # 以下の認証の手順で用いる、

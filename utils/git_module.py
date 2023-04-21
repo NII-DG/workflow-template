@@ -1,5 +1,5 @@
 import json
-import cmd
+from ..utils import common
 
 def exec_git_status():
     """execute 'git status' commands
@@ -12,12 +12,12 @@ def exec_git_status():
     ---------------
 
     """
-    stdout, stderr, rt = cmd.exec_subprocess('git status')
+    stdout, stderr, rt = common.exec_subprocess('git status')
     result = stdout.decode('utf-8')
     return result
 
 def exec_git_annex_whereis():
-    stdout, stderr, rt = cmd.exec_subprocess('git annex whereis --json', False)
+    stdout, stderr, rt = common.exec_subprocess('git annex whereis --json', False)
     result = stdout.decode('utf-8')
     return result
 

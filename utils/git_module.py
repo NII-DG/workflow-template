@@ -1,6 +1,5 @@
 import json
-import os
-from ex_cmd import cmd
+import cmd
 
 def exec_git_status():
     """execute 'git status' commands

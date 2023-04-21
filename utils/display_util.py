@@ -36,8 +36,28 @@ def creat_html_msg(msg='', fore=None, back=None, tag='h1'):
     else:
         return "<" + tag + " style='" + style + "'>" + msg + "</" + tag + ">"
 
+def display_msg(msg='', fore=None, back=None, tag='h1'):
+    """HTMLを生成して表示するメソッド
+    ARG
+    ---------------
+    msg : str
+        Description : メッセージ文字列
+        Default : ''
+    fore : str
+        Description : 文字色
+        Default : None
+    back : str
+        Description : 背景色
+        Default : None
+    tag : str
+        Description : HTMLタグ
+        Default : 'h1'
+    """
+    html_text = creat_html_msg(msg, None, back, default_tag)
+    display(HTML(html_text))
 
-default_tag = "h2"
+
+default_tag = "p"
 """メソッド : display_info()、display_err()、display_warm()のデフォルトのHTMLタグ種
 """
 

@@ -21,6 +21,21 @@ def exec_git_annex_whereis():
     result = stdout.decode('utf-8')
     return result
 
+def git_annex_add(path:str):
+    stdout, stderr, rt = common.exec_subprocess('git annex add {}'.format(path), False)
+    result = stdout.decode('utf-8')
+    return result
+
+def git_add(path:str):
+    stdout, stderr, rt = common.exec_subprocess('git add {}'.format(path), False)
+    result = stdout.decode('utf-8')
+    return result
+
+def git_commmit(msg:str):
+    stdout, stderr, rt = common.exec_subprocess('git commit -m "{}"'.format(msg), False)
+    result = stdout.decode('utf-8')
+    return result
+
 def get_conflict_filepaths() -> list[str]:
     """Get conflict paths in repo
 

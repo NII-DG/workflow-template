@@ -1,4 +1,5 @@
 import json
+import os
 from ..common import common
 
 def exec_git_status():
@@ -12,26 +13,31 @@ def exec_git_status():
     ---------------
 
     """
+    os.chdir(os.environ['HOME'])
     stdout, stderr, rt = common.exec_subprocess('git status')
     result = stdout.decode('utf-8')
     return result
 
 def exec_git_annex_whereis():
+    os.chdir(os.environ['HOME'])
     stdout, stderr, rt = common.exec_subprocess('git annex whereis --json', False)
     result = stdout.decode('utf-8')
     return result
 
 def git_annex_add(path:str):
+    os.chdir(os.environ['HOME'])
     stdout, stderr, rt = common.exec_subprocess('git annex add {}'.format(path), False)
     result = stdout.decode('utf-8')
     return result
 
 def git_add(path:str):
+    os.chdir(os.environ['HOME'])
     stdout, stderr, rt = common.exec_subprocess('git add {}'.format(path), False)
     result = stdout.decode('utf-8')
     return result
 
 def git_commmit(msg:str):
+    os.chdir(os.environ['HOME'])
     stdout, stderr, rt = common.exec_subprocess('git commit -m "{}"'.format(msg), False)
     result = stdout.decode('utf-8')
     return result

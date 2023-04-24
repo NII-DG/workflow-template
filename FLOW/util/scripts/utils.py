@@ -311,9 +311,12 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
     EXCEPTION
     ---------------
     """
+    if len(gitannex_path) == 0:
+        gitannex_path = None
+
 
     # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
-    if gitannex_path != None or len(gitannex_path) > 0:
+    if gitannex_path != None:
         # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
         os.system('git annex lock')
         api.save(message=message + ' (git-annex)', path=gitannex_path)
@@ -328,7 +331,9 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
             pass
 
 def save_git(git_path, message):
-    if git_path != None or len(git_path) > 0:
+    if len(git_path) == 0:
+        git_path = None
+    if git_path != None:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
 
 def update():

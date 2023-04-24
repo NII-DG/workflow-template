@@ -379,6 +379,7 @@ def register_metadata_for_downloaded_annexdata(file_path):
     EXCEPTION
     ---------------
     """
+    os.system('git annex unlock')
     current_date = datetime.date.today()
     sd_date_published = current_date.isoformat()
     os.system(f'git annex metadata {file_path} -s sd_date_published={sd_date_published}')

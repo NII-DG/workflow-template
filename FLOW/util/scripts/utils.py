@@ -317,7 +317,6 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
         # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
         os.system('git annex lock')
         api.save(message=message + ' (git-annex)', path=gitannex_path)
-        os.system('git annex unlock')
         # register metadata for gitannex_files
         if type(gitannex_files) == str:
             register_metadata_for_annexdata(gitannex_files)
@@ -355,6 +354,7 @@ def register_metadata_for_annexdata(file_path):
     ---------------
     """
     # generate metadata
+    os.system('git annex unlock')
     mime_type = magic.from_file(file_path, mime=True)
     with open(file_path, 'rb') as f:
         binary_data = f.read()

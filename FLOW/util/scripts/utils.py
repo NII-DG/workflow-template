@@ -209,7 +209,7 @@ PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
 
-def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
+def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str):
     """synchronize with the repository
     ARG
     ---------------
@@ -291,7 +291,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
 
 
 
-def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
+def save_annex_and_register_metadata(gitannex_path :list[str], gitannex_files:list[str], message:str):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
     ARG
     ---------------
@@ -311,12 +311,9 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
     EXCEPTION
     ---------------
     """
-    if len(gitannex_path) == 0:
-        gitannex_path = None
-
 
     # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
-    if gitannex_path != None:
+    if len(gitannex_path) > 0:
         # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
         os.system('git annex lock')
         api.save(message=message + ' (git-annex)', path=gitannex_path)
@@ -330,10 +327,8 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
 
-def save_git(git_path, message):
-    if len(git_path) == 0:
-        git_path = None
-    if git_path != None:
+def save_git(git_path:list[str], message:str):
+    if len(git_path) > 0:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
 
 def update():

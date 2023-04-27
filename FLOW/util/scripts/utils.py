@@ -245,7 +245,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         os.system('git annex lock')
         print('[INFO] Save git-annex content and Register metadata')
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
-        print('[INFO] Uhlock git-annex content')
+        print('[INFO] Uulock git-annex content')
         os.system('git annex unlock')
         print('[INFO] Save git content')
         save_git(git_path, message)

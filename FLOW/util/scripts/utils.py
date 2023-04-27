@@ -245,6 +245,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         os.system('git annex lock')
         print('[INFO] Save git-annex content and Register metadata')
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        os.system('git annex lock')
         print('[INFO] Save git content')
         save_git(git_path, message)
         print('[INFO] Lock git-annex content')
@@ -328,6 +329,7 @@ def save_annex_and_register_metadata(gitannex_path :list[str], gitannex_files:li
     # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
     if len(gitannex_path) > 0:
         # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
+
         api.save(message=message + ' (git-annex)', path=gitannex_path)
         # register metadata for gitannex_files
         if type(gitannex_files) == str:

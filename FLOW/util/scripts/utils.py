@@ -325,12 +325,14 @@ def save_annex_and_register_metadata(gitannex_path :list[str], gitannex_files:li
 
     EXCEPTION
     ---------------
+
+    NOTE
+    ----------------
+        in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
     """
 
     # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
     if len(gitannex_path) > 0:
-        # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
-
         api.save(message=message + ' (git-annex)', path=gitannex_path)
         # register metadata for gitannex_files
         if type(gitannex_files) == str:

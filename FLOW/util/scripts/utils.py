@@ -239,11 +239,17 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     datalad_message = ''
     datalad_error = ''
     try:
+
         os.chdir(os.environ['HOME'])
+        print('[INFO] Lock git-annex content')
         os.system('git annex lock')
+        print('[INFO] Save git-annex content and Register metadata')
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        print('[INFO] Save git content')
         save_git(git_path, message)
+        print('[INFO] Lock git-annex content')
         os.system('git annex lock')
+        print('[INFO] Update and Merge Repository')
         update()
     except:
         datalad_error = traceback.format_exc()
@@ -277,7 +283,9 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             datalad_message = CONFLICT_ERROR
     else:
         try:
+            print('[INFO] Push to Remote Repository')
             push()
+            print('[INFO] Unlock git-annex content')
             os.system('git annex unlock')
         except:
             datalad_error = traceback.format_exc()

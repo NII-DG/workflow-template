@@ -1,6 +1,7 @@
 import json
 import os
 from ..common import common
+from datalad import api
 
 def exec_git_status():
     """execute 'git status' commands
@@ -68,3 +69,6 @@ def get_annex_content_file_paht_list():
         data_json = json.loads(data)
         annex_path_list.append(data_json['file'])
     return annex_path_list
+
+def get_variant_info():
+    api.

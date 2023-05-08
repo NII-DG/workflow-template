@@ -70,5 +70,17 @@ def get_annex_content_file_paht_list():
         annex_path_list.append(data_json['file'])
     return annex_path_list
 
-def get_variant_info():
-    api.
+def get_remote_annex_variant_path(conflict_paths : list[str])-> list[str]:
+    result = exec_git_status()
+    lines = result.split('\n')
+    remote_variant_paths = list[str]()
+    for l in lines:
+        if 'new file' in l:
+            path = l.split(' ')[4]
+            for conflict_path in conflict_paths:
+                dirpath = os.path.dirname(conflict_path)
+                filename_no_extension = os.path.splitext(os.path.basename(conflict_path))[0]
+                target_path = '{}/{}.variant-'.format(dirpath, filename_no_extension)
+                if path.startswith(target_path):
+                    remote_variant_paths.append(path)
+    return remote_variant_paths

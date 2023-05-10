@@ -83,7 +83,12 @@ def get_delete_filepaths() -> list[str]:
             delete_filepaths.append(path)
     return delete_filepaths
 
-def get_annex_content_file_paht_list():
+def get_annex_content_file_paht_list()->list[str]:
+    """Get git-annex content filepaths
+
+    Returns:
+        list: git-annex content filepaths
+    """
     result = exec_git_annex_whereis()
     data_list = result.split("\n")
     print(data_list)
@@ -95,6 +100,11 @@ def get_annex_content_file_paht_list():
     return annex_path_list
 
 def get_remote_annex_variant_path(conflict_paths : list[str])-> list[str]:
+    """Get git-annex vatiants filepaths
+
+    Returns:
+        list: git-annex vatiants filepaths
+    """
     result = exec_git_status()
     lines = result.split('\n')
     remote_variant_paths = list[str]()

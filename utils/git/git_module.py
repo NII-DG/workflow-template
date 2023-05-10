@@ -44,7 +44,7 @@ def git_commmit(msg:str):
     return result
 
 def get_conflict_filepaths() -> list[str]:
-    """Get conflict paths in Changes not staged for commit from git status
+    """Get conflict paths in Unmerged paths for commit from git status
 
     Returns:
         list: conflict filepaths
@@ -54,7 +54,7 @@ def get_conflict_filepaths() -> list[str]:
     conflict_filepaths = list[str]()
     is_not_staged = False
     for l in lines:
-        if 'Changes not staged for commit:' in l:
+        if 'Unmerged paths:' in l:
             is_not_staged = True
             continue
         if 'both modified' in l and is_not_staged:
@@ -91,7 +91,6 @@ def get_annex_content_file_paht_list()->list[str]:
     """
     result = exec_git_annex_whereis()
     data_list = result.split("\n")
-    print(data_list)
     annex_path_list = list[str]()
     data_list = data_list[:-1]
     for data in data_list:

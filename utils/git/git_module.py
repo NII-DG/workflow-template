@@ -43,6 +43,12 @@ def git_commmit(msg:str):
     result = stdout.decode('utf-8')
     return result
 
+def git_mv(src :str, dest : str):
+    os.chdir(os.environ['HOME'])
+    stdout, stderr, rt = common.exec_subprocess('git mv {} {}'.format(src, dest), False)
+    result = stdout.decode('utf-8')
+    return result
+
 def get_conflict_filepaths() -> list[str]:
     """Get conflict paths in Unmerged paths for commit from git status
 

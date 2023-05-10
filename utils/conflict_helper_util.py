@@ -1,4 +1,5 @@
 import os
+from git import git_module
 
 # annex conflict options
 HEAD_REMAIN = 'HEADのファイルを残す'
@@ -41,7 +42,9 @@ def rename_file(base_filepath, future_name)->str:
     print(f'dirname : {dirname}')
     future_name_filepath = f'{dirname}/{future_name}'
     print(f'future_name_filepath : {future_name_filepath}')
-    os.rename(base_filepath, future_name_filepath)
+
+    # os.rename(base_filepath, future_name_filepath)
+    git_module.git_mv(base_filepath, future_name_filepath)
     return future_name_filepath
 
 def delete_file(file_path):

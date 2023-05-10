@@ -1,5 +1,5 @@
 import os
-from git import git_module
+from .git import git_module
 
 # annex conflict options
 HEAD_REMAIN = 'HEADのファイルを残す'

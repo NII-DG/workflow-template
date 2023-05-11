@@ -31,6 +31,10 @@ def fetch_gin_monitoring_assigned_values():
     }
     return assigned_values
 
+def get_datasetStructure():
+    assigned_values = fetch_gin_monitoring_assigned_values()
+    return assigned_values['datasetStructure']
+
 
 def verify_GIN_user():
     # 以下の認証の手順で用いる、
@@ -205,7 +209,7 @@ PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
 
-def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
+def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str):
     """synchronize with the repository
     ARG
     ---------------
@@ -227,14 +231,27 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
     CONNECT_REPO_ERROR
     CONFLICT_ERROR
     PUSH_ERROR
+
+    memo:
+        update()を最初にするとgit annex lockができない。addをする必要がある。
     """
 
     datalad_message = ''
     datalad_error = ''
     try:
+
         os.chdir(os.environ['HOME'])
+        print('[INFO] Lock git-annex content')
+        os.system('git annex lock')
+        print('[INFO] Save git-annex content and Register metadata')
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        print('[INFO] Uulock git-annex content')
+        os.system('git annex unlock')
+        print('[INFO] Save git content')
         save_git(git_path, message)
+        print('[INFO] Lock git-annex content')
+        os.system('git annex lock')
+        print('[INFO] Update and Merge Repository')
         update()
     except:
         datalad_error = traceback.format_exc()
@@ -249,6 +266,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             else:
                 datalad_error = ''
                 try:
+                    os.system('git annex lock')
                     update()
                 except:
                     datalad_error = traceback.format_exc()
@@ -256,6 +274,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
                 else:
                     try:
                         push()
+                        os.system('git annex unlock')
                     except:
                         datalad_error = traceback.format_exc()
                         datalad_message = PUSH_ERROR
@@ -266,7 +285,10 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
             datalad_message = CONFLICT_ERROR
     else:
         try:
+            print('[INFO] Push to Remote Repository')
             push()
+            print('[INFO] Unlock git-annex content')
+            os.system('git annex unlock')
         except:
             datalad_error = traceback.format_exc()
             datalad_message = PUSH_ERROR
@@ -284,7 +306,7 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
 
 
 
-def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
+def save_annex_and_register_metadata(gitannex_path :list[str], gitannex_files:list[str], message:str):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
     ARG
     ---------------
@@ -303,14 +325,15 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
 
     EXCEPTION
     ---------------
+
+    NOTE
+    ----------------
+        in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
     """
 
     # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
-    if gitannex_path != None:
-        # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
-        os.system('git annex lock')
+    if len(gitannex_path) > 0:
         api.save(message=message + ' (git-annex)', path=gitannex_path)
-        os.system('git annex unlock')
         # register metadata for gitannex_files
         if type(gitannex_files) == str:
             register_metadata_for_annexdata(gitannex_files)
@@ -321,17 +344,16 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
 
-def save_git(git_path, message):
-    if git_path != None:
+def save_git(git_path:list[str], message:str):
+    if len(git_path) > 0:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
 
 def update():
-    os.system('git annex lock')
     api.update(sibling=SIBLING, how='merge')
 
 def push():
     api.push(to=SIBLING, data='auto')
-    os.system('git annex unlock')
+
 
 def register_metadata_for_annexdata(file_path):
     """register_metadata(content_size, sha256, mime_type) for specified file
@@ -348,6 +370,7 @@ def register_metadata_for_annexdata(file_path):
     ---------------
     """
     # generate metadata
+    os.system('git annex unlock')
     mime_type = magic.from_file(file_path, mime=True)
     with open(file_path, 'rb') as f:
         binary_data = f.read()
@@ -372,6 +395,7 @@ def register_metadata_for_downloaded_annexdata(file_path):
     EXCEPTION
     ---------------
     """
+    os.system('git annex unlock')
     current_date = datetime.date.today()
     sd_date_published = current_date.isoformat()
     os.system(f'git annex metadata {file_path} -s sd_date_published={sd_date_published}')

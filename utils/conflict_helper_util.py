@@ -81,3 +81,10 @@ def copy_tmp_to_working(target_path:str):
     src_path = '{}/{}'.format(tmp_dir, target_path)
     print('src_path : {}'.format(src_path))
     shutil.copy(src_path, target_path)
+
+def copy_and_delete_tmpdir(target_paths:list[str]):
+    tmp_dir = get_TMP_CONFLICT_DIR()
+    for path in target_paths:
+        copy_tmp_to_working(path)
+    os.chdir(os.environ['HOME'])
+    shutil.rmtree(tmp_dir)

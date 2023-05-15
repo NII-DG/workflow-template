@@ -152,7 +152,7 @@ def get_local_object_hash_by_path(target_path:str) -> str:
     result = git_ls_files(target_path)
     lines = result.split('\n')
     hash = ''
-    for l in lines:
+    for l in lines[:-1]:
         s_line = re.split('[ \t]', l)
         if s_line[2] == '2':
             hash = s_line[1]

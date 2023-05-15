@@ -1,6 +1,7 @@
 import os
 from .git import git_module
 import shutil
+from ..except_class import rename_err, action_err
 
 # annex conflict options
 HEAD_REMAIN = 'HEADのファイルを残す'
@@ -88,3 +89,27 @@ def copy_and_delete_tmpdir(target_paths:list[str]):
         copy_tmp_to_working(path)
     os.chdir(os.environ['HOME'])
     shutil.rmtree(tmp_dir)
+
+def check_annex_resolve_info(info : dict[str, dict]) -> bool:
+    """If annex resolve info has action and action is BOTH_REMAIN, check that it has rename data.
+
+    Args:
+        info (dict[str, dict]): [description]
+
+    Returns:
+        bool: [description]
+    """
+    both_info = list[dict]()
+    for k, v in info.items():
+        action = v.get('action')
+        if action == None:
+            raise action_err.ActionError()
+        else:
+            if action == BOTH_REMAIN:
+                both_info.append(v)
+
+    for v in both_info:
+        rename_info = v.get('rename')
+        if rename_info == None:
+            raise rename_err.RenameError()
+    return True

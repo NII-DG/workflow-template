@@ -1,0 +1,2 @@
+class RenameError(Exception):
+    pass

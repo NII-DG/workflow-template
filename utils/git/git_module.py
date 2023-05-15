@@ -2,6 +2,7 @@ import json
 import os
 from ..common import common
 from datalad import api
+import re
 
 def exec_git_status():
     """execute 'git status' commands
@@ -46,6 +47,12 @@ def git_commmit(msg:str):
 def git_mv(src :str, dest : str):
     os.chdir(os.environ['HOME'])
     stdout, stderr, rt = common.exec_subprocess('git mv {} {}'.format(src, dest), False)
+    result = stdout.decode('utf-8')
+    return result
+
+def git_ls_files(path:str):
+    os.chdir(os.environ['HOME'])
+    stdout, stderr, rt = common.exec_subprocess('git ls-files -s {}'.format(path), False)
     result = stdout.decode('utf-8')
     return result
 
@@ -123,3 +130,41 @@ def get_remote_annex_variant_path(conflict_paths : list[str])-> list[str]:
                 if path.startswith(target_path):
                     remote_variant_paths.append(path)
     return remote_variant_paths
+
+def get_local_object_hash_by_path(target_path:str) -> str:
+    """Obtain the object hash value of a specific file locally in the event of a conflict.
+
+    Args:
+        target_path (str): [File Path of Getting object hash]
+
+    Returns:
+        str: [object hash]
+
+    Exsample:
+        output of git ls-files
+        100644 32fe2beffc6c2f6d1b3c92628c3478a538c37f3f 1	WORKFLOWS/EX-WORKFLOWS/save.ipynb
+        100644 3e8e574a7145ac462e592d806b26a207d8fe0690 2	WORKFLOWS/EX-WORKFLOWS/save.ipynb
+        100644 f3dfa3aae39cd7bdf959fa0b61704825c13dc44c 3	WORKFLOWS/EX-WORKFLOWS/save.ipynb
+
+        result:
+            3e8e574a7145ac462e592d806b26a207d8fe0690
+    """
+    result = git_ls_files(target_path)
+    lines = result.split('\n')
+    hash = ''
+    for l in lines:
+        s_line = re.split('[ \t]', l)
+        if s_line[2] == '2':
+            hash = s_line[1]
+
+    return hash
+
+
+def get_multi_local_object_hash_by_path(target_paths:list[str]) -> list[str]:
+
+    hash_list = list[str]()
+    for paht in target_paths:
+        hash = get_local_object_hash_by_path(paht)
+        hash_list.append(hash)
+
+    return hash_list

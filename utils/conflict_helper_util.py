@@ -1,10 +1,13 @@
 import os
 from .git import git_module
+import shutil
 
 # annex conflict options
 HEAD_REMAIN = 'HEADのファイルを残す'
 REMOTE_REMAIN = 'Remoteのファイルを残す'
 BOTH_REMAIN = '両方残す'
+
+
 
 def get_value_BOTH_REMAIN()->str:
     return BOTH_REMAIN
@@ -30,6 +33,12 @@ def is_more_than_both_remain(target : dict) -> bool:
             return True
     return False
 
+# Path
+TMP_CONFLICT_DIR = '.tmp/conflict'
+
+def get_TMP_CONFLICT_DIR()->str:
+    return TMP_CONFLICT_DIR
+
 # TODO : verify file name
 def verify_resolve_file_name(file_name:str)->bool:
     return False
@@ -51,3 +60,24 @@ def delete_file(file_path):
     print(f'delete file_path : {file_path}')
     os.chdir(os.environ['HOME'])
     os.remove(file_path)
+
+def copy_local_content_to_tmp(target_path:str):
+    tmp_dir = get_TMP_CONFLICT_DIR()
+    hash = git_module.get_local_object_hash_by_path(target_path)
+    to_copy_file_path = '{}/{}'.format(tmp_dir, target_path)
+    print('to_copy_file_path : {}'.format(to_copy_file_path))
+    os.chdir(os.environ['HOME'])
+    make_dir(os.path.dirname(to_copy_file_path))
+    os.system('git cat-file -p {} > {}'.format(hash, to_copy_file_path))
+
+def make_dir(target_dir:str):
+    os.chdir(os.environ['HOME'])
+    print('make dir : {}'.format(target_dir))
+    os.makedirs(target_dir, exist_ok=True)
+
+def copy_tmp_to_working(target_path:str):
+    os.chdir(os.environ['HOME'])
+    tmp_dir = get_TMP_CONFLICT_DIR()
+    src_path = '{}/{}'.format(tmp_dir, target_path)
+    print('src_path : {}'.format(src_path))
+    shutil.copy(src_path, target_path)

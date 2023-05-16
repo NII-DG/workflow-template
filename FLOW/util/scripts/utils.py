@@ -296,7 +296,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.chdir(os.environ['HOME'])
             datalad_message = SUCCESS
     finally:
-        # clear_output()
+        clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
         if datalad_message == SUCCESS:

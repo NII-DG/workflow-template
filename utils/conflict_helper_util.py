@@ -107,3 +107,18 @@ def check_annex_resolve_info(info : dict[str, dict]) -> bool:
         if rename_info == None:
             raise rename_err.RenameError()
     return True
+
+def is_rf_notebook(filepath : str)->bool:
+    return '.ipynb' in filepath and not (filepath.startswith('experiments/'))
+
+def divide_rf_notebook_or_non_file(filepaths : list[str]) -> tuple[list[str], list[str]]:
+    rf_notebook_filepaths = list[str]()
+    non_rf_notebook_filepaths = list[str]()
+    for path in filepaths:
+        if is_rf_notebook(path):
+            # only auto-resolve content path
+            rf_notebook_filepaths.append(path)
+        else:
+            #  only custom-resolve content path by user
+            non_rf_notebook_filepaths.append(path)
+    return rf_notebook_filepaths, non_rf_notebook_filepaths

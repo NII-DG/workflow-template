@@ -42,9 +42,7 @@ TMP_CONFLICT_DIR = '.tmp/conflict'
 def get_TMP_CONFLICT_DIR()->str:
     return TMP_CONFLICT_DIR
 
-# TODO : verify file name
-def verify_resolve_file_name(file_name:str)->bool:
-    return False
+
 
 def rename_file(base_filepath, future_name)->str:
     os.chdir(os.environ['HOME'])
@@ -122,3 +120,46 @@ def divide_rf_notebook_or_non_file(filepaths : list[str]) -> tuple[list[str], li
             #  only custom-resolve content path by user
             non_rf_notebook_filepaths.append(path)
     return rf_notebook_filepaths, non_rf_notebook_filepaths
+
+def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->tuple[list[str], list[str], list[str], list[str]]:
+
+    variant_names = list[str]()
+    for v in annex_rslv_info.values():
+        variant_names.append(v['HEAD'])
+        variant_names.append(v['remote'])
+
+    # excract creating file path list
+    create_file_paths = list[str]()
+    invalid_names = list[str]()
+    has_slash_file_names = list[str]()
+    for k, v in annex_rslv_info.items():
+        action = v['action']
+        if action == BOTH_REMAIN:
+            dir = os.path.dirname(k)
+            rename_info = v['rename']
+            for rename_key, rename_value in rename_info.items():
+                if rename_value in variant_names:
+                    invalid_names.append(rename_value)
+                elif '/' in rename_value:
+                    has_slash_file_names.append(rename_value)
+                else:
+                    remote_path = '{}/{}'.format(dir, rename_value)
+                    create_file_paths.append(remote_path)
+
+        elif action == REMOTE_REMAIN or action == HEAD_REMAIN:
+            create_file_paths.append(k)
+
+    # Check for duplicate names
+    duplicates_paths = list(set([x for x in create_file_paths if create_file_paths.count(x) > 1]))
+
+    # Check for files with the same name already in the working directory.
+    unique_file_paths = list(set(create_file_paths))
+
+    existence_file_paths = list[str]()
+
+    for path in unique_file_paths:
+        if os.path.isfile(path):
+            existence_file_paths.append(path)
+
+
+    return duplicates_paths, invalid_names, existence_file_paths, has_slash_file_names

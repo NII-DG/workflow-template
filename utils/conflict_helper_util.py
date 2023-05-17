@@ -121,7 +121,7 @@ def divide_rf_notebook_or_non_file(filepaths : list[str]) -> tuple[list[str], li
             non_rf_notebook_filepaths.append(path)
     return rf_notebook_filepaths, non_rf_notebook_filepaths
 
-def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->tuple[list[str], list[str], list[str], list[str]]:
+def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
 
     variant_names = list[str]()
     for v in annex_rslv_info.values():
@@ -161,5 +161,28 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->tuple[list[str], 
         if os.path.isfile(path):
             existence_file_paths.append(path)
 
+    # Create a message
+    msg = ''
+    if len(duplicates_paths)>0 or len(invalid_names)>0 or len(existence_file_paths)>0 or len(has_slash_file_names):
+        msg = msg + '不正な値が入力されました。再度、『3-3. ≪両方を残す≫が選択されたファイルに名前をつける。』を実行し正しいファイル名をしてください。<br>'
+    if len(invalid_names)>0:
+        msg = msg + 'バリアント名を指定されています。以下のバリアント名は指定しないでください。<br>'
+        for invalid_name in invalid_names:
+            msg = msg + '・ {}<br>'.format(invalid_name)
 
-    return duplicates_paths, invalid_names, existence_file_paths, has_slash_file_names
+    if len(duplicates_paths)>0:
+        msg = msg + '重複しているファイル名が指定されています。<br>'
+        for duplicates_path in duplicates_paths:
+            msg = msg + '・ {}<br>'.format(duplicates_path)
+
+    if len(existence_file_paths)>0:
+        msg = msg + '既に存在しているファイル名で指定されています。<br>'
+        for existence_file_path in existence_file_paths:
+            msg = msg + '・ {}<br>'.format(existence_file_path)
+
+    if len(has_slash_file_names)>0:
+        msg = msg + 'ファイル名のみ入力してください。(ディレクトリの変更はできません)<br>'
+        for has_slash_file_name in has_slash_file_names:
+             msg = msg + '・ {}<br>'.format(has_slash_file_name)
+
+    return msg

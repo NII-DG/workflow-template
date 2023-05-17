@@ -5,7 +5,7 @@ import shutil
 # annex conflict options
 HEAD_REMAIN = 'HEADのファイルを残す'
 REMOTE_REMAIN = 'Remoteのファイルを残す'
-BOTH_REMAIN = '両方残す'
+BOTH_REMAIN = '両方を残す'
 
 
 

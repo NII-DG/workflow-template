@@ -61,7 +61,6 @@ def get_conflict_filepaths() -> list[str]:
 def get_annex_content_file_paht_list():
     result = exec_git_annex_whereis()
     data_list = result.split("\n")
-    print(data_list)
     annex_path_list = list[str]()
     data_list = data_list[:-1]
     for data in data_list:

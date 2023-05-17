@@ -55,6 +55,11 @@ def delete_file(file_path):
     os.remove(file_path)
 
 def copy_local_content_to_tmp(target_path:str):
+    """Copy locale version contents under .tmp/conflict
+
+    Args:
+        target_path (str): [destination file path]
+    """
     tmp_dir = get_TMP_CONFLICT_DIR()
     hash = git_module.get_local_object_hash_by_path(target_path)
     to_copy_file_path = '{}/{}'.format(tmp_dir, target_path)
@@ -63,16 +68,31 @@ def copy_local_content_to_tmp(target_path:str):
     os.system('git cat-file -p {} > {}'.format(hash, to_copy_file_path))
 
 def make_dir(target_dir:str):
+    """Create a folder
+
+    Args:
+        target_dir (str): [Path to create folder]
+    """
     os.chdir(os.environ['HOME'])
     os.makedirs(target_dir, exist_ok=True)
 
 def copy_tmp_to_working(target_path:str):
+    """Copy target files under .tmp/conflict
+
+    Args:
+        target_path (str): [Copy target file path under .tmp/conflict]
+    """
     os.chdir(os.environ['HOME'])
     tmp_dir = get_TMP_CONFLICT_DIR()
     src_path = '{}/{}'.format(tmp_dir, target_path)
     shutil.copy2(src_path, target_path)
 
 def copy_and_delete_tmpdir(target_paths:list[str]):
+    """Delete files to be deleted under .tmp/conflict.
+
+    Args:
+        target_paths (list[str]): [File paths to be deleted under .tmp/conflict]
+    """
     tmp_dir = get_TMP_CONFLICT_DIR()
     for path in target_paths:
         copy_tmp_to_working(path)
@@ -116,9 +136,26 @@ def has_action_annex_resolve_info(info : dict[str, dict]) -> bool:
     return True
 
 def is_rf_notebook(filepath : str)->bool:
+    """Method to determine if the given file path is a DG RF Notebook file
+
+    Args:
+        filepath (str): [target file path]
+
+    Returns:
+        bool: [True : target file path is RF notebook, False : target file path is not RF notebook]
+    """
     return '.ipynb' in filepath and not (filepath.startswith('experiments/'))
 
 def divide_rf_notebook_or_non_file(filepaths : list[str]) -> tuple[list[str], list[str]]:
+    """Method to separate DG RF Notebook files from non-DG RF Notebook files with a given file path list
+
+    Args:
+        filepaths (list[str]): [target file path list]
+
+    Returns:
+        tuple[list[str], list[str]]: [The first return value is the RF Notebook file path list, the second is any other file path list.]
+    """
+
     rf_notebook_filepaths = list[str]()
     non_rf_notebook_filepaths = list[str]()
     for path in filepaths:

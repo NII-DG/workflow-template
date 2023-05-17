@@ -171,8 +171,8 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
 
     variant_names = list[str]()
     for v in annex_rslv_info.values():
-        variant_names.append(v['HEAD'])
-        variant_names.append(v['remote'])
+        variant_names.append(os.path.basename(v['HEAD']))
+        variant_names.append(os.path.basename(v['remote']))
 
     # excract creating file path list
     create_file_paths = list[str]()

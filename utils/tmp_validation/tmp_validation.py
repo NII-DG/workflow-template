@@ -111,8 +111,6 @@ def operate_validation_results(need_sync):
         if not os.path.exists(VALIDATION_RESULTS_PATH):
             os.makedirs(VALIDATION_RESULTS_PATH)
         for file in os.listdir(src):
-            print(os.path.join(src, file))
-            print(os.path.join(dst, file))
             shutil.copyfile(os.path.join(src, file), os.path.join(dst, file))
 
 def delete_verification_results_and_request_id():

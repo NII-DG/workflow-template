@@ -1,5 +1,4 @@
 import subprocess
-import os
 
 
 def get_AND_elements(list_a, list_b :list)->list:
@@ -19,7 +18,6 @@ def exec_subprocess(cmd: str, raise_error=True):
     return stdout, stderr, rt
 
 def is_should_annex_content_path(file_path : str)->bool:
-    os.chdir(os.environ['HOME'])
     path_factor = file_path.split('/')
     if path_factor[0] == 'experiments':
         if len(path_factor) >= 3 and (path_factor[2]=='input_data' or path_factor[2]=='output_data'):

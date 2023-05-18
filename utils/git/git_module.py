@@ -73,6 +73,6 @@ def is_conflict() -> bool:
     result = exec_git_status()
     lines = result.split('\n')
     for l in lines:
-        if 'both modified' in l:
+        if 'both modified' in l or 'both add' in l:
             return True
     return False

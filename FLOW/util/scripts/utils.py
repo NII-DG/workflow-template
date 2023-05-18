@@ -377,7 +377,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist:' in datalad_error:
+        if 'Repository does not exist' in datalad_error:
             try:
                 # update URLs of remote repositories
                 update_repo_url()
@@ -396,15 +396,25 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             elif 'Your local changes to the following' in err_key_info:
                 s_info = err_key_info.split()
                 file_paths = s_info[16:]
-            os.chdir(os.environ['HOME'])
-            os.system('git annex lock')
+
+            add_git_paths = list[str]()
+            add_annex_paths = list[str]()
             for path in file_paths:
                 if common.is_should_annex_content_path(path):
-                    os.system('git add {}'.format(path))
+                    add_annex_paths.append(path)
                 else:
-                    os.system('git annex add {}'.format(path))
-            commit_msg = '{}(auto adjustment)'.format(message)
-            os.system('git commit -m {}'.format(commit_msg))
+                    add_git_paths.append(path)
+            print('[INFO] git add. path : {}'.format(add_git_paths))
+            print('[INFO] git annex add. path : {}'.format(add_annex_paths))
+
+            git_commit_msg = '{}(auto adjustment)'.format(message)
+            os.chdir(os.environ['HOME'])
+            os.system('git annex lock')
+            print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
+            save_annex_and_register_metadata(add_annex_paths, add_annex_paths, git_commit_msg)
+            os.system('git annex unlock')
+            print('[INFO] Save git content(auto adjustment)')
+            save_git(git_path, message)
             datalad_message = RESYNC_BY_OVERWRITE
         else:
             # check both modified
@@ -426,7 +436,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.chdir(os.environ['HOME'])
             datalad_message = SUCCESS
     finally:
-        clear_output()
+        # clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
         if datalad_message == SUCCESS:

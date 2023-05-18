@@ -396,8 +396,9 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             elif 'Your local changes to the following' in err_key_info:
                 s_info = err_key_info.split()
                 file_paths = s_info[16:]
+            os.chdir(os.environ['HOME'])
+            os.system('git annex lock')
             for path in file_paths:
-                os.chdir(os.environ['HOME'])
                 os.system('git add {}'.format(path))
             commit_msg = '{}(auto adjustment)'.format(message)
             os.system('git commit -m {}'.format(commit_msg))
@@ -405,7 +406,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         else:
             # check both modified
             if git_module.is_conflict():
-                print('[INFO] Detect conflicts')
+                print('[INFO] Files would be overwritten by merge')
                 datalad_message = CONFLICT_ERROR
             else:
                 datalad_message = UNEXPECTED_ERROR

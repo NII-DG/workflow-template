@@ -13,6 +13,10 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
+import re
+import sys
+sys.path.append('../../../utils/git')
+import git_module
 
 
 def fetch_param_file_path() -> str:
@@ -209,6 +213,123 @@ PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
 
+# def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str):
+#     """synchronize with the repository
+#     ARG
+#     ---------------
+#     git_path : str or list(str)
+#         Description : Define directories and files to be managed by git.
+#     gitannex_path : str or list(str)
+#         Description : Define directories and files to be managed by git-annex.
+#     gitannex_files : str or list(str) or None
+#         Description : Specify the file to which metadata(content_size, sha256, mime_type) is to be added. Specify None if metadata is not to be added.
+#     message : str
+#         Description : Commit message
+
+#     RETURN
+#     ---------------
+#     Returns nothing, but outputs a message.
+
+#     EXCEPTION
+#     ---------------
+#     CONNECT_REPO_ERROR
+#     CONFLICT_ERROR
+#     PUSH_ERROR
+
+#     memo:
+#         update()を最初にするとgit annex lockができない。addをする必要がある。
+#     """
+
+#     datalad_message = ''
+#     datalad_error = ''
+#     try:
+
+#         os.chdir(os.environ['HOME'])
+#         print('[INFO] Lock git-annex content')
+#         os.system('git annex lock')
+#         print('[INFO] Save git-annex content and Register metadata')
+#         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+#         print('[INFO] Uulock git-annex content')
+#         os.system('git annex unlock')
+#         print('[INFO] Save git content')
+#         save_git(git_path, message)
+#         print('[INFO] Lock git-annex content')
+#         os.system('git annex lock')
+#         print('[INFO] Update and Merge Repository')
+#         update()
+#     except:
+#         datalad_error = traceback.format_exc()
+#         # if there is a connection error to the remote, try recovery
+#         if 'Repository does not exist:' in datalad_error:
+#             try:
+#                 # update URLs of remote repositories
+#                 update_repo_url()
+#             except:
+#                 # repository may not exist
+#                 datalad_message = CONNECT_REPO_ERROR
+#             else:
+#                 datalad_error = ''
+#                 try:
+#                     os.system('git annex lock')
+#                     update()
+#                 except:
+#                     datalad_error = traceback.format_exc()
+#                     datalad_message = CONFLICT_ERROR
+#                 else:
+#                     try:
+#                         push()
+#                         os.system('git annex unlock')
+#                     except:
+#                         datalad_error = traceback.format_exc()
+#                         datalad_message = PUSH_ERROR
+#                     else:
+#                         os.chdir(os.environ['HOME'])
+#                         datalad_message = SUCCESS
+#         elif 'files would be overwritten by merge:' in datalad_error:
+#             start_index = datalad_error.find("[") + 1
+#             end_index = datalad_error.rfind("]")
+#             err_info = datalad_error[start_index:end_index]
+#             start_index = err_info.find("{")
+#             end_index = err_info.find("}")
+#             err_detail_info = err_info[start_index:end_index+1]
+#             start_index = err_detail_info.find("[") + 1
+#             end_index= err_detail_info.find("]")
+#             err_key_info = err_detail_info[start_index:end_index]
+#             if 'The following untracked working tree' in err_key_info:
+#                 pattern = r"'\\t(.+?)\\n'"
+#                 file_paths = re.findall(pattern, err_key_info)
+#             if 'Your local changes to the following' in err_key_info:
+#                 s_info = err_key_info.split()
+#                 file_paths = s_info[16:]
+#         else:
+#             datalad_message = CONFLICT_ERROR
+#     else:
+#         try:
+#             print('[INFO] Push to Remote Repository')
+#             push()
+#             print('[INFO] Unlock git-annex content')
+#             os.system('git annex unlock')
+#         except:
+#             datalad_error = traceback.format_exc()
+#             datalad_message = PUSH_ERROR
+#         else:
+#             os.chdir(os.environ['HOME'])
+#             datalad_message = SUCCESS
+#     finally:
+#         clear_output()
+#         display(HTML("<p>" + datalad_message + "</p>"))
+#         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
+#         if datalad_message == SUCCESS:
+#             return True
+#         else:
+#             return False
+
+
+RESYNC_REPO_RENAME = '同期不良が発生しました(リモートリポジトリ名の変更)。自動調整が実行されたため、同セルを再実行してください。'
+RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)。自動調整が実行されため、同セルを再実行してください。'
+UNEXPECTED_ERROR = '想定外のエラーが発生しています。担当者に問い合わせください。'
+
+
 def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str):
     """synchronize with the repository
     ARG
@@ -260,122 +381,34 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             try:
                 # update URLs of remote repositories
                 update_repo_url()
-            except:
-                # repository may not exist
-                datalad_message = CONNECT_REPO_ERROR
-            else:
-                datalad_error = ''
-                try:
-                    os.system('git annex lock')
-                    update()
-                except:
-                    datalad_error = traceback.format_exc()
-                    datalad_message = CONFLICT_ERROR
-                else:
-                    try:
-                        push()
-                        os.system('git annex unlock')
-                    except:
-                        datalad_error = traceback.format_exc()
-                        datalad_message = PUSH_ERROR
-                    else:
-                        os.chdir(os.environ['HOME'])
-                        datalad_message = SUCCESS
-        else:
-            datalad_message = CONFLICT_ERROR
-    else:
-        try:
-            print('[INFO] Push to Remote Repository')
-            push()
-            print('[INFO] Unlock git-annex content')
-            os.system('git annex unlock')
-        except:
-            datalad_error = traceback.format_exc()
-            datalad_message = PUSH_ERROR
-        else:
-            os.chdir(os.environ['HOME'])
-            datalad_message = SUCCESS
-    finally:
-        clear_output()
-        display(HTML("<p>" + datalad_message + "</p>"))
-        display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
-        if datalad_message == SUCCESS:
-            return True
-        else:
-            return False
-
-
-RESYNC_REPO_RENAME = '同期不良が発生しました(リモートリポジトリ名の変更)。自動調整が実行されました。同セルを再実行してください。'
-
-def syncs_with_repo2(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str):
-    """synchronize with the repository
-    ARG
-    ---------------
-    git_path : str or list(str)
-        Description : Define directories and files to be managed by git.
-    gitannex_path : str or list(str)
-        Description : Define directories and files to be managed by git-annex.
-    gitannex_files : str or list(str) or None
-        Description : Specify the file to which metadata(content_size, sha256, mime_type) is to be added. Specify None if metadata is not to be added.
-    message : str
-        Description : Commit message
-
-    RETURN
-    ---------------
-    Returns nothing, but outputs a message.
-
-    EXCEPTION
-    ---------------
-    CONNECT_REPO_ERROR
-    CONFLICT_ERROR
-    PUSH_ERROR
-
-    memo:
-        update()を最初にするとgit annex lockができない。addをする必要がある。
-    """
-
-    datalad_message = ''
-    datalad_error = ''
-    try:
-
-        os.chdir(os.environ['HOME'])
-        print('[INFO] Lock git-annex content')
-        os.system('git annex lock')
-        print('[INFO] Save git-annex content and Register metadata')
-        save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
-        print('[INFO] Uulock git-annex content')
-        os.system('git annex unlock')
-        print('[INFO] Save git content')
-        save_git(git_path, message)
-        print('[INFO] Lock git-annex content')
-        os.system('git annex lock')
-        print('[INFO] Update and Merge Repository')
-        update()
-    except:
-        datalad_error = traceback.format_exc()
-        # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist:' in datalad_error:
-            try:
-                # update URLs of remote repositories
-                update_repo_url()
+                print('[INFO] Update repository URL')
                 datalad_message = RESYNC_REPO_RENAME
             except:
                 # repository may not exist
                 datalad_message = CONNECT_REPO_ERROR
-        elif 'Your local changes to the following' in datalad_error:
-            start_index = datalad_error.index("[") + 1
-            end_index = datalad_error.index("]")
-            err_info = datalad_error[start_index:end_index]
-            print(err_info)
-            start_index = err_info.find("{")
-            end_index = err_info.find("}")
-            err_key_info = err_info[start_index:end_index+1]
-
-
-
-
+        elif 'files would be overwritten by merge:' in datalad_error:
+            print('[INFO] Files would be overwritten by merge')
+            err_key_info = extract_info_from_datalad_update_err(datalad_error)
+            file_paths = list[str]()
+            if 'The following untracked working tree' in err_key_info:
+                pattern = r"'\\t(.+?)\\n'"
+                file_paths = re.findall(pattern, err_key_info)
+            elif 'Your local changes to the following' in err_key_info:
+                s_info = err_key_info.split()
+                file_paths = s_info[16:]
+            for path in file_paths:
+                os.chdir(os.environ['HOME'])
+                os.system('git add {}'.format(path))
+            commit_msg = '{}(auto adjustment)'.format(message)
+            os.system('git commit -m {}'.format(commit_msg))
+            datalad_message = RESYNC_BY_OVERWRITE
         else:
-            datalad_message = CONFLICT_ERROR
+            # check both modified
+            if git_module.is_conflict():
+                print('[INFO] Detect conflicts')
+                datalad_message = CONFLICT_ERROR
+            else:
+                datalad_message = UNEXPECTED_ERROR
     else:
         try:
             print('[INFO] Push to Remote Repository')
@@ -389,13 +422,24 @@ def syncs_with_repo2(git_path:list[str], gitannex_path:list[str], gitannex_files
             os.chdir(os.environ['HOME'])
             datalad_message = SUCCESS
     finally:
-        clear_output()
+        # clear_output()
         display(HTML("<p>" + datalad_message + "</p>"))
         display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
         if datalad_message == SUCCESS:
             return True
         else:
             return False
+
+def extract_info_from_datalad_update_err(raw_msg:str)->str:
+    start_index = raw_msg.find("[") + 1
+    end_index = raw_msg.rfind("]")
+    err_info = raw_msg[start_index:end_index]
+    start_index = err_info.find("{")
+    end_index = err_info.find("}")
+    err_detail_info = err_info[start_index:end_index+1]
+    start_index = err_detail_info.find("[") + 1
+    end_index= err_detail_info.find("]")
+    return err_detail_info[start_index:end_index]
 
 
 

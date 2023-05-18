@@ -414,7 +414,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             save_annex_and_register_metadata(add_annex_paths, add_annex_paths, git_commit_msg)
             os.system('git annex unlock')
             print('[INFO] Save git content(auto adjustment)')
-            save_git(git_path, message)
+            save_git(add_git_paths, message)
             datalad_message = RESYNC_BY_OVERWRITE
         else:
             # check both modified

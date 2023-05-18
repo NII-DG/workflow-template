@@ -397,24 +397,24 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 s_info = err_key_info.split()
                 file_paths = s_info[16:]
 
-            add_git_paths = list[str]()
-            add_annex_paths = list[str]()
+            adjust_add_git_paths = list[str]()
+            adjust_add_annex_paths = list[str]()
             for path in file_paths:
                 if common.is_should_annex_content_path(path):
-                    add_annex_paths.append(path)
+                    adjust_add_annex_paths.append(path)
                 else:
-                    add_git_paths.append(path)
-            print('[INFO] git add. path : {}'.format(add_git_paths))
-            print('[INFO] git annex add. path : {}'.format(add_annex_paths))
+                    adjust_add_git_paths.append(path)
+            print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
+            print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
 
             git_commit_msg = '{}(auto adjustment)'.format(message)
             os.chdir(os.environ['HOME'])
             os.system('git annex lock')
             print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
-            save_annex_and_register_metadata(add_annex_paths, add_annex_paths, git_commit_msg)
+            save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
             os.system('git annex unlock')
             print('[INFO] Save git content(auto adjustment)')
-            save_git(add_git_paths, message)
+            save_git(adjust_add_git_paths, message)
             datalad_message = RESYNC_BY_OVERWRITE
         else:
             # check both modified

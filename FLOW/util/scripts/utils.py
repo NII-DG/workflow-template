@@ -16,6 +16,7 @@ import datetime
 import re
 os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
+from utils.common import common
 
 
 def fetch_param_file_path() -> str:
@@ -398,7 +399,10 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.chdir(os.environ['HOME'])
             os.system('git annex lock')
             for path in file_paths:
-                os.system('git add {}'.format(path))
+                if common.is_should_annex_content_path(path):
+                    os.system('git add {}'.format(path))
+                else:
+                    os.system('git annex add {}'.format(path))
             commit_msg = '{}(auto adjustment)'.format(message)
             os.system('git commit -m {}'.format(commit_msg))
             datalad_message = RESYNC_BY_OVERWRITE
@@ -553,38 +557,3 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
         #実験パッケージ名表示
         exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>"
         display(HTML(exp_text))
-
-
-def is_conflict() -> bool:
-    result = exec_git_status()
-    lines = result.split('\n')
-    for l in lines:
-        if 'both modified' in l:
-            return True
-    return False
-
-def exec_git_status():
-    """execute 'git status' commands
-
-    RETURN
-    ---------------
-    Returns output result
-
-    EXCEPTION
-    ---------------
-
-    """
-    os.chdir(os.environ['HOME'])
-    stdout, stderr, rt = exec_subprocess('git status')
-    result = stdout.decode('utf-8')
-    return result
-
-def exec_subprocess(cmd: str, raise_error=True):
-    child = subprocess.Popen(cmd, shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = child.communicate()
-    rt = child.returncode
-    if rt != 0 and raise_error:
-        raise Exception(f"command return code is not 0. got {rt}. stderr = {stderr}")
-
-    return stdout, stderr, rt

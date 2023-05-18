@@ -14,9 +14,7 @@ import magic
 import hashlib
 import datetime
 import re
-import sys
-sys.path.append('../../../utils/git')
-import git_module
+from utils.git import git_module
 
 
 def fetch_param_file_path() -> str:

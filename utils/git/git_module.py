@@ -70,7 +70,7 @@ def get_conflict_filepaths() -> list[str]:
         if 'Unmerged paths:' in l:
             is_not_staged = True
             continue
-        if 'both modified' in l and is_not_staged:
+        if is_not_staged and ('both modified' in l or 'both add' in l):
             # get conflict filepath
             path = l.split(' ')[4]
             conflict_filepaths.append(path)

@@ -14,6 +14,7 @@ import magic
 import hashlib
 import datetime
 import re
+os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
 
 
@@ -552,3 +553,38 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
         #実験パッケージ名表示
         exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>"
         display(HTML(exp_text))
+
+
+def is_conflict() -> bool:
+    result = exec_git_status()
+    lines = result.split('\n')
+    for l in lines:
+        if 'both modified' in l:
+            return True
+    return False
+
+def exec_git_status():
+    """execute 'git status' commands
+
+    RETURN
+    ---------------
+    Returns output result
+
+    EXCEPTION
+    ---------------
+
+    """
+    os.chdir(os.environ['HOME'])
+    stdout, stderr, rt = exec_subprocess('git status')
+    result = stdout.decode('utf-8')
+    return result
+
+def exec_subprocess(cmd: str, raise_error=True):
+    child = subprocess.Popen(cmd, shell=True,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = child.communicate()
+    rt = child.returncode
+    if rt != 0 and raise_error:
+        raise Exception(f"command return code is not 0. got {rt}. stderr = {stderr}")
+
+    return stdout, stderr, rt

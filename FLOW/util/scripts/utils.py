@@ -6,7 +6,7 @@ from urllib import parse
 import getpass
 import requests
 from http import HTTPStatus
-from datalad import api
+from datalad import api, utils as datalad_utils
 import traceback
 import subprocess
 from subprocess import PIPE
@@ -402,8 +402,14 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             adjust_add_annex_paths = list[str]()
             for path in file_paths:
                 if common.is_should_annex_content_path(path):
+                    print('====================================')
+                    print(datalad_utils.encode_filename(path))
+                    print(datalad_utils.escape_filename(path))
                     adjust_add_annex_paths.append(bytes(path, 'utf-8').decode('unicode_escape'))
                 else:
+                    print('====================================')
+                    print(datalad_utils.encode_filename(path))
+                    print(datalad_utils.escape_filename(path))
                     adjust_add_git_paths.append(bytes(path, 'utf-8').decode('unicode_escape'))
             print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
             print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))

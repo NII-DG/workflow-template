@@ -402,15 +402,9 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             adjust_add_annex_paths = list[str]()
             for path in file_paths:
                 if common.is_should_annex_content_path(path):
-                    print('====================================')
-                    print(datalad_utils.encode_filename(path))
-                    print(datalad_utils.escape_filename(path))
-                    adjust_add_annex_paths.append(bytes(path, 'utf-8').decode('unicode_escape'))
+                    adjust_add_annex_paths.append(datalad_utils.expandpath(path, force_absolute=False))
                 else:
-                    print('====================================')
-                    print(datalad_utils.encode_filename(path))
-                    print(datalad_utils.escape_filename(path))
-                    adjust_add_git_paths.append(bytes(path, 'utf-8').decode('unicode_escape'))
+                    adjust_add_git_paths.append(datalad_utils.expandpath(path, force_absolute=False))
             print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
             print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
 

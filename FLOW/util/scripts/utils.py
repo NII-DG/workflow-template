@@ -13,6 +13,11 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
+import re
+os.chdir('/home/jovyan/WORKFLOWS')
+from utils.git import git_module
+from utils.common import common
+
 
 
 def fetch_param_file_path() -> str:
@@ -208,6 +213,10 @@ CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を�
 PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
 SUCCESS = 'データ同期が完了しました。'
 SIBLING = 'gin'
+RESYNC_REPO_RENAME = '同期不良が発生しました(リモートリポジトリ名の変更)。自動調整が実行されたため、同セルを再実行してください。'
+RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)。自動調整が実行されため、同セルを再実行してください。'
+UNEXPECTED_ERROR = '想定外のエラーが発生しています。担当者に問い合わせください。'
+
 
 def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str):
     """synchronize with the repository
@@ -256,33 +265,52 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist:' in datalad_error:
+        if 'Repository does not exist' in datalad_error:
             try:
                 # update URLs of remote repositories
                 update_repo_url()
+                print('[INFO] Update repository URL')
+                datalad_message = RESYNC_REPO_RENAME
             except:
                 # repository may not exist
                 datalad_message = CONNECT_REPO_ERROR
-            else:
-                datalad_error = ''
-                try:
-                    os.system('git annex lock')
-                    update()
-                except:
-                    datalad_error = traceback.format_exc()
-                    datalad_message = CONFLICT_ERROR
-                else:
-                    try:
-                        push()
-                        os.system('git annex unlock')
-                    except:
-                        datalad_error = traceback.format_exc()
-                        datalad_message = PUSH_ERROR
+        elif 'files would be overwritten by merge:' in datalad_error:
+            print('[INFO] Files would be overwritten by merge')
+            git_commit_msg = '{}(auto adjustment)'.format(message)
+            err_key_info = extract_info_from_datalad_update_err(datalad_error)
+            file_paths = list[str]()
+            os.chdir(os.environ['HOME'])
+            os.system('git annex lock')
+            if 'The following untracked working tree' in err_key_info:
+                pattern = r"'\\t(.+?)\\n'"
+                file_paths = re.findall(pattern, err_key_info)
+                adjust_add_git_paths = list[str]()
+                adjust_add_annex_paths = list[str]()
+                for path in file_paths:
+                    if '\\u3000' in path:
+                        path = path.replace('\\u3000', '　')
+                    if common.is_should_annex_content_path(path):
+                        adjust_add_annex_paths.append(path)
                     else:
-                        os.chdir(os.environ['HOME'])
-                        datalad_message = SUCCESS
+                        adjust_add_git_paths.append(path)
+                print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
+                print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
+                print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
+                save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
+                os.system('git annex unlock')
+                print('[INFO] Save git content(auto adjustment)')
+                save_git(adjust_add_git_paths, message)
+            elif 'Your local changes to the following' in err_key_info:
+                result = git_module.git_commmit(git_commit_msg)
+                print(result)
+            datalad_message = RESYNC_BY_OVERWRITE
         else:
-            datalad_message = CONFLICT_ERROR
+            # check both modified
+            if git_module.is_conflict():
+                print('[INFO] Files would be overwritten by merge')
+                datalad_message = CONFLICT_ERROR
+            else:
+                datalad_message = UNEXPECTED_ERROR
     else:
         try:
             print('[INFO] Push to Remote Repository')
@@ -303,6 +331,17 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             return True
         else:
             return False
+
+def extract_info_from_datalad_update_err(raw_msg:str)->str:
+    start_index = raw_msg.find("[") + 1
+    end_index = raw_msg.rfind("]")
+    err_info = raw_msg[start_index:end_index]
+    start_index = err_info.find("{")
+    end_index = err_info.find("}")
+    err_detail_info = err_info[start_index:end_index+1]
+    start_index = err_detail_info.find("[") + 1
+    end_index= err_detail_info.find("]")
+    return err_detail_info[start_index:end_index]
 
 
 
@@ -369,17 +408,21 @@ def register_metadata_for_annexdata(file_path):
     EXCEPTION
     ---------------
     """
-    # generate metadata
-    os.system('git annex unlock')
-    mime_type = magic.from_file(file_path, mime=True)
-    with open(file_path, 'rb') as f:
-        binary_data = f.read()
-        sha256 = hashlib.sha3_256(binary_data).hexdigest()
-    content_size = os.path.getsize(file_path)
 
-    # register_metadata
-    os.chdir(os.environ['HOME'])
-    os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+    if os.path.isfile(file_path):
+        # generate metadata
+        os.system('git annex unlock')
+        mime_type = magic.from_file(file_path, mime=True)
+        with open(file_path, 'rb') as f:
+            binary_data = f.read()
+            sha256 = hashlib.sha3_256(binary_data).hexdigest()
+        content_size = os.path.getsize(file_path)
+
+        # register_metadata
+        os.chdir(os.environ['HOME'])
+        os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+    else:
+        pass
 
 def register_metadata_for_downloaded_annexdata(file_path):
     """register metadata(sd_date_published)for the specified file

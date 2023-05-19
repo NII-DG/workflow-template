@@ -1,4 +1,5 @@
 import subprocess
+import re
 
 
 def get_AND_elements(list_a, list_b :list)->list:
@@ -8,12 +9,6 @@ def get_AND_elements(list_a, list_b :list)->list:
 
 
 def exec_subprocess(cmd: str, raise_error=True):
-    '''
-    コマンドを同期実行し、
-    標準出力と標準エラー出力は最後にまとめて返却する
-    raise_errorがTrueかつリターンコードが0以外の場合は例外を出す
-    戻り値は3値のタプルで (標準出力(bytes型), 標準エラー出力(bytes型), リターンコード(int))
-    '''
     child = subprocess.Popen(cmd, shell=True,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = child.communicate()
@@ -22,3 +17,31 @@ def exec_subprocess(cmd: str, raise_error=True):
         raise Exception(f"command return code is not 0. got {rt}. stderr = {stderr}")
 
     return stdout, stderr, rt
+
+def is_should_annex_content_path(file_path : str)->bool:
+    path_factor = file_path.split('/')
+    if path_factor[0] == 'experiments':
+        if len(path_factor) >= 3 and (path_factor[2]=='input_data' or path_factor[2]=='output_data'):
+            if len(path_factor) >= 4 and path_factor[3] == '.gitkeep':
+                return False
+            else:
+                return True
+        elif len(path_factor) >= 3 and (path_factor[2]=='source' or path_factor[2]=='ci'):
+            return False
+        elif len(path_factor) >= 3:
+            if len(path_factor) >= 4 and path_factor[3] == 'output_data':
+                return True
+            else:
+                return False
+        else:
+            return False
+    else:
+        return False
+
+def has_unicode_escape(text:str)->bool:
+    pattern = r"\\u[0-9a-fA-F]{4}"
+    match = re.search(pattern, text)
+    if match:
+        return True
+    else:
+        return False

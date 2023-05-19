@@ -67,3 +67,11 @@ def get_annex_content_file_paht_list():
         data_json = json.loads(data)
         annex_path_list.append(data_json['file'])
     return annex_path_list
+
+def is_conflict() -> bool:
+    result = exec_git_status()
+    lines = result.split('\n')
+    for l in lines:
+        if 'both modified' in l or 'both add' in l:
+            return True
+    return False

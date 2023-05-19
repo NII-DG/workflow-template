@@ -1,4 +1,5 @@
 import subprocess
+import re
 
 
 def get_AND_elements(list_a, list_b :list)->list:
@@ -34,5 +35,13 @@ def is_should_annex_content_path(file_path : str)->bool:
                 return False
         else:
             return False
+    else:
+        return False
+
+def has_unicode_escape(text:str)->bool:
+    pattern = r"\\u[0-9a-fA-F]{4}"
+    match = re.search(pattern, text)
+    if match:
+        return True
     else:
         return False

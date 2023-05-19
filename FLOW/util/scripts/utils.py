@@ -401,7 +401,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             adjust_add_git_paths = list[str]()
             adjust_add_annex_paths = list[str]()
             for path in file_paths:
-                if '\\u' in path:
+                if common.has_unicode_escape(path):
                     path = path.encode('utf-8').decode('unicode-escape')
                 if common.is_should_annex_content_path(path):
                     adjust_add_annex_paths.append(path)

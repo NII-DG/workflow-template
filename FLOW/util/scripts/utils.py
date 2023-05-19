@@ -521,17 +521,21 @@ def register_metadata_for_annexdata(file_path):
     EXCEPTION
     ---------------
     """
-    # generate metadata
-    os.system('git annex unlock')
-    mime_type = magic.from_file(file_path, mime=True)
-    with open(file_path, 'rb') as f:
-        binary_data = f.read()
-        sha256 = hashlib.sha3_256(binary_data).hexdigest()
-    content_size = os.path.getsize(file_path)
 
-    # register_metadata
-    os.chdir(os.environ['HOME'])
-    os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+    if os.path.isfile(file_path):
+        # generate metadata
+        os.system('git annex unlock')
+        mime_type = magic.from_file(file_path, mime=True)
+        with open(file_path, 'rb') as f:
+            binary_data = f.read()
+            sha256 = hashlib.sha3_256(binary_data).hexdigest()
+        content_size = os.path.getsize(file_path)
+
+        # register_metadata
+        os.chdir(os.environ['HOME'])
+        os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+    else:
+        pass
 
 def register_metadata_for_downloaded_annexdata(file_path):
     """register metadata(sd_date_published)for the specified file

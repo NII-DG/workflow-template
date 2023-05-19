@@ -39,6 +39,14 @@ def is_should_annex_content_path(file_path : str)->bool:
         return False
 
 def has_unicode_escape(text:str)->bool:
+    """check has unicode escape
+
+    Args:
+        text (str):
+
+    Returns:
+        bool:
+    """
     pattern = r"\\u[0-9a-fA-F]{4}"
     match = re.search(pattern, text)
     if match:

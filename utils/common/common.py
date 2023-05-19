@@ -34,6 +34,5 @@ def is_should_annex_content_path(file_path : str)->bool:
                 return False
         else:
             return False
-
     else:
         return False

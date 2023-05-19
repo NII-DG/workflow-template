@@ -389,35 +389,36 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 datalad_message = CONNECT_REPO_ERROR
         elif 'files would be overwritten by merge:' in datalad_error:
             print('[INFO] Files would be overwritten by merge')
+            git_commit_msg = '{}(auto adjustment)'.format(message)
             err_key_info = extract_info_from_datalad_update_err(datalad_error)
             file_paths = list[str]()
+            os.chdir(os.environ['HOME'])
+            os.system('git annex lock')
             if 'The following untracked working tree' in err_key_info:
                 pattern = r"'\\t(.+?)\\n'"
                 file_paths = re.findall(pattern, err_key_info)
+                adjust_add_git_paths = list[str]()
+                adjust_add_annex_paths = list[str]()
+                for path in file_paths:
+                    if '\\u3000' in path:
+                        path = path.replace('\\u3000', '　')
+                    if common.is_should_annex_content_path(path):
+                        adjust_add_annex_paths.append(path)
+                    else:
+                        adjust_add_git_paths.append(path)
+                print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
+                print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
+
+
+
+                print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
+                save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
+                os.system('git annex unlock')
+                print('[INFO] Save git content(auto adjustment)')
+                save_git(adjust_add_git_paths, message)
             elif 'Your local changes to the following' in err_key_info:
-                s_info = err_key_info.split()
-                file_paths = s_info[16:]
-
-            adjust_add_git_paths = list[str]()
-            adjust_add_annex_paths = list[str]()
-            for path in file_paths:
-                if '\\u3000' in path:
-                    path = path.replace('\\u3000', '　')
-                if common.is_should_annex_content_path(path):
-                    adjust_add_annex_paths.append(path)
-                else:
-                    adjust_add_git_paths.append(path)
-            print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
-            print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
-
-            git_commit_msg = '{}(auto adjustment)'.format(message)
-            os.chdir(os.environ['HOME'])
-            os.system('git annex lock')
-            print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
-            save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
-            os.system('git annex unlock')
-            print('[INFO] Save git content(auto adjustment)')
-            save_git(adjust_add_git_paths, message)
+                result = git_module.git_commmit(git_commit_msg)
+                print(result)
             datalad_message = RESYNC_BY_OVERWRITE
         else:
             # check both modified

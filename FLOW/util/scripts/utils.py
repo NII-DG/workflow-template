@@ -408,9 +408,6 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                         adjust_add_git_paths.append(path)
                 print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
                 print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
-
-
-
                 print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
                 save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
                 os.system('git annex unlock')

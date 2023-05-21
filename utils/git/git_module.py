@@ -83,7 +83,7 @@ def get_conflict_filepaths() -> list[str]:
                 if path ==  '':
                     path = p
                 else:
-                    path = '{}　{}'.format(path, p)
+                    path = '{} {}'.format(path, p)
             conflict_filepaths.append(path)
         elif is_not_staged and 'both added:' in l:
             path_split = l.split(' ')[7:]
@@ -93,7 +93,7 @@ def get_conflict_filepaths() -> list[str]:
                 if path ==  '':
                     path = p
                 else:
-                    path = '{}　{}'.format(path, p)
+                    path = '{} {}'.format(path, p)
             conflict_filepaths.append(path)
     return conflict_filepaths
 

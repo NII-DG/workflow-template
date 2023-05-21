@@ -74,7 +74,7 @@ def get_conflict_filepaths() -> list[str]:
         if 'Unmerged paths:' in l:
             is_not_staged = True
             continue
-        if is_not_staged and ('both modified' in l or 'both add' in l):
+        if is_not_staged and ('both modified:' in l or 'both added:' in l):
             # get conflict filepath
             path = l.split(' ')[4]
             conflict_filepaths.append(path)
@@ -177,6 +177,6 @@ def is_conflict() -> bool:
     result = exec_git_status()
     lines = result.split('\n')
     for l in lines:
-        if 'both modified' in l or 'both add' in l:
+        if 'both modified:' in l or 'both added:' in l:
             return True
     return False

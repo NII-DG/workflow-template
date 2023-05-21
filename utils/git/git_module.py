@@ -113,7 +113,14 @@ def get_delete_filepaths() -> list[str]:
             continue
         if 'deleted' in l and is_not_staged:
             # get conflict filepath
-            path = l.split(' ')[4]
+            path_split = l.split(' ')[4:]
+            print(path_split)
+            path = ''
+            for p in path_split:
+                if path == '':
+                    path = p
+                else:
+                    path = '{} {}'.format(path, p)
             delete_filepaths.append(path)
     return delete_filepaths
 
@@ -143,7 +150,15 @@ def get_remote_annex_variant_path(conflict_paths : list[str])-> list[str]:
     remote_variant_paths = list[str]()
     for l in lines:
         if 'new file' in l:
-            path = l.split(' ')[4]
+            # get conflict filepath
+            path_split = l.split(' ')[4:]
+            print(path_split)
+            path = ''
+            for p in path_split:
+                if path == '':
+                    path = p
+                else:
+                    path = '{} {}'.format(path, p)
             for conflict_path in conflict_paths:
                 dirpath = os.path.dirname(conflict_path)
                 filename_no_extension = os.path.splitext(os.path.basename(conflict_path))[0]

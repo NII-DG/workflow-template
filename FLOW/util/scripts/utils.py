@@ -461,7 +461,7 @@ def register_metadata_for_downloaded_annexdata(file_path):
     os.system('git annex unlock')
     current_date = datetime.date.today()
     sd_date_published = current_date.isoformat()
-    os.system(f'git annex metadata {file_path} -s sd_date_published={sd_date_published}')
+    os.system(f'git annex metadata "{file_path}" -s sd_date_published={sd_date_published}')
 
 # 研究名と実験名を表示する関数
 def show_name(color='black', EXPERIMENT_TITLE=None):

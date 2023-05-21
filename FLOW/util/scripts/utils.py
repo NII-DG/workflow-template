@@ -13,6 +13,7 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
+import shutil
 import re
 os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
@@ -328,6 +329,12 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             # check both modified
             if git_module.is_conflict():
                 print('[INFO] Files would be overwritten by merge')
+                # master conflict file to ./WORKFLOWS/conflict_helper.ipynb
+                os.chdir(os.environ['HOME'])
+                src = 'WORKFLOWS/master_notebook/conflict_helper.ipynb'
+                dest = 'WORKFLOWS/conflict_helper.ipynb'
+                print('[INFO] copying confrlict helper {} to {}'.format(src, dest))
+                shutil.copyfile(src, dest)
                 datalad_message = CONFLICT_ERROR
             else:
                 datalad_message = UNEXPECTED_ERROR

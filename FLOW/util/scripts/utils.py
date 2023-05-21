@@ -218,7 +218,7 @@ RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)�
 UNEXPECTED_ERROR = '想定外のエラーが発生しています。担当者に問い合わせください。'
 
 
-def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str):
+def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str, get_paths:list[str]):
     """synchronize with the repository
     ARG
     ---------------
@@ -262,6 +262,8 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         os.system('git annex lock')
         print('[INFO] Update and Merge Repository')
         update()
+        if len(get_paths)>0:
+            api.get(path=get_paths)
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery

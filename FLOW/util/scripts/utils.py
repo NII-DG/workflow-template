@@ -440,7 +440,7 @@ def register_metadata_for_annexdata(file_path):
 
         # register_metadata
         os.chdir(os.environ['HOME'])
-        os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+        os.system(f'git annex metadata "{file_path}" -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
     else:
         pass
 

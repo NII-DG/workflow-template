@@ -178,6 +178,7 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
     create_file_paths = list[str]()
     invalid_names = list[str]()
     has_slash_file_names = list[str]()
+    empty_name_paths = list[str]()
     for k, v in annex_rslv_info.items():
         action = v['action']
         if action == BOTH_REMAIN:
@@ -188,6 +189,8 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
                     invalid_names.append(rename_value)
                 elif '/' in rename_value:
                     has_slash_file_names.append(rename_value)
+                elif rename_value == '':
+                    empty_name_paths.append(rename_key)
                 else:
                     remote_path = '{}/{}'.format(dir, rename_value)
                     create_file_paths.append(remote_path)
@@ -230,5 +233,10 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
         msg = msg + 'ファイル名のみ入力してください。(ディレクトリの変更はできません)<br>'
         for has_slash_file_name in has_slash_file_names:
              msg = msg + '・ {}<br>'.format(has_slash_file_name)
+
+    if len(empty_name_paths)>0:
+        msg = msg + 'ファイル名が入力されいないデータがあります<br>'
+        for empty_name_path in empty_name_paths:
+             msg = msg + '・ {}<br>'.format(empty_name_path)
 
     return msg

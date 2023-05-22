@@ -77,7 +77,6 @@ def get_conflict_filepaths() -> list[str]:
         if is_not_staged and 'both modified:' in l:
             # get conflict filepath
             path_split = l.split(' ')[4:]
-            print(path_split)
             path = ''
             for p in path_split:
                 if path ==  '':
@@ -87,7 +86,6 @@ def get_conflict_filepaths() -> list[str]:
             conflict_filepaths.append(path)
         elif is_not_staged and 'both added:' in l:
             path_split = l.split(' ')[7:]
-            print(path_split)
             path = ''
             for p in path_split:
                 if path ==  '':
@@ -114,7 +112,6 @@ def get_delete_filepaths() -> list[str]:
         if 'deleted' in l and is_not_staged:
             # get conflict filepath
             path_split = l.split(' ')[4:]
-            print(path_split)
             path = ''
             for p in path_split:
                 if path == '':
@@ -152,7 +149,6 @@ def get_remote_annex_variant_path(conflict_paths : list[str])-> list[str]:
         if 'new file' in l:
             # get conflict filepath
             path_split = l.split(' ')[4:]
-            print(path_split)
             path = ''
             for p in path_split:
                 if path == '':

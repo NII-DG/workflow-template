@@ -13,6 +13,7 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
+import shutil
 import re
 os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
@@ -218,7 +219,7 @@ RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)�
 UNEXPECTED_ERROR = '想定外のエラーが発生しています。担当者に問い合わせください。'
 
 
-def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str):
+def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str, get_paths:list[str]):
     """synchronize with the repository
     ARG
     ---------------
@@ -262,6 +263,8 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         os.system('git annex lock')
         print('[INFO] Update and Merge Repository')
         update()
+        if len(get_paths)>0:
+            api.get(path=get_paths)
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery
@@ -282,8 +285,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.chdir(os.environ['HOME'])
             os.system('git annex lock')
             if 'The following untracked working tree' in err_key_info:
-                pattern = r"'\\t(.+?)\\n'"
-                file_paths = re.findall(pattern, err_key_info)
+                file_paths = common.get_filepaths_from_dalalad_error(err_key_info)
                 adjust_add_git_paths = list[str]()
                 adjust_add_annex_paths = list[str]()
                 for path in file_paths:
@@ -301,13 +303,38 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 print('[INFO] Save git content(auto adjustment)')
                 save_git(adjust_add_git_paths, message)
             elif 'Your local changes to the following' in err_key_info:
-                result = git_module.git_commmit(git_commit_msg)
-                print(result)
+                if 'Please commit your changes or stash them before you merge' in err_key_info:
+                    file_paths = common.get_filepaths_from_dalalad_error(err_key_info)
+                    adjust_add_git_paths = list[str]()
+                    adjust_add_annex_paths = list[str]()
+                    for path in file_paths:
+                        if '\\u3000' in path:
+                            path = path.replace('\\u3000', '　')
+                        if common.is_should_annex_content_path(path):
+                            adjust_add_annex_paths.append(path)
+                        else:
+                            adjust_add_git_paths.append(path)
+                    print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
+                    print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
+                    print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
+                    save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
+                    os.system('git annex unlock')
+                    print('[INFO] Save git content(auto adjustment)')
+                    save_git(adjust_add_git_paths, message)
+                else:
+                    result = git_module.git_commmit(git_commit_msg)
+                    print(result)
             datalad_message = RESYNC_BY_OVERWRITE
         else:
             # check both modified
             if git_module.is_conflict():
                 print('[INFO] Files would be overwritten by merge')
+                # master conflict file to ./WORKFLOWS/conflict_helper.ipynb
+                os.chdir(os.environ['HOME'])
+                src = 'WORKFLOWS/master_notebook/conflict_helper.ipynb'
+                dest = 'WORKFLOWS/conflict_helper.ipynb'
+                print('[INFO] copying confrlict helper {} to {}'.format(src, dest))
+                shutil.copyfile(src, dest)
                 datalad_message = CONFLICT_ERROR
             else:
                 datalad_message = UNEXPECTED_ERROR
@@ -420,7 +447,7 @@ def register_metadata_for_annexdata(file_path):
 
         # register_metadata
         os.chdir(os.environ['HOME'])
-        os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+        os.system(f'git annex metadata "{file_path}" -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
     else:
         pass
 
@@ -441,7 +468,7 @@ def register_metadata_for_downloaded_annexdata(file_path):
     os.system('git annex unlock')
     current_date = datetime.date.today()
     sd_date_published = current_date.isoformat()
-    os.system(f'git annex metadata {file_path} -s sd_date_published={sd_date_published}')
+    os.system(f'git annex metadata "{file_path}" -s sd_date_published={sd_date_published}')
 
 # 研究名と実験名を表示する関数
 def show_name(color='black', EXPERIMENT_TITLE=None):

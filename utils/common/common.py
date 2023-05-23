@@ -45,3 +45,7 @@ def has_unicode_escape(text:str)->bool:
         return True
     else:
         return False
+
+def get_filepaths_from_dalalad_error(err_info: str):
+    pattern = r"'\\t(.+?)\\n'"
+    return re.findall(pattern, err_info)

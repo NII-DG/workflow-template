@@ -235,7 +235,7 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
              msg = msg + '・ {}<br>'.format(has_slash_file_name)
 
     if len(empty_name_paths)>0:
-        msg = msg + 'ファイル名が入力されいないデータがあります<br>'
+        msg = msg + 'ファイル名が入力されていないデータがあります<br>'
         for empty_name_path in empty_name_paths:
              msg = msg + '・ {}<br>'.format(empty_name_path)
 

@@ -62,6 +62,7 @@
                     orientation = portrait;
                     color = "#ffa329";
                     "4. 実験を再現するためのSnakefileを記述"[label = "4. 実験を再現するためのSnakefileを記述", fontsize = 10];
+                    "describe_snakefile";
                 }
             }
             group {

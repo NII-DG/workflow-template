@@ -41,7 +41,7 @@
                     "2. 実験"[label = "2. 実験", fontsize = 10];
                     "prepare_input_and_source";
                     "save";
-                    "prepare_parameter_experiment"
+                    "prepare_parameter_experiment";
                 }
             }
             group {
@@ -52,6 +52,7 @@
                     orientation = portrait;
                     color = "#ffb95c";
                     "3. 実験データなどの整理"[label = "3. 実験データなどの整理", fontsize = 10];
+                    "describe_experiment";
                 }
             }
             group {

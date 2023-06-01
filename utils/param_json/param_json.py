@@ -67,19 +67,3 @@ def update_param_url(remote_origin_url):
                 flg = False
             else:
                 owner_repo_nm = repos_search.get_new_user_repo_name(pr.scheme, pr.netloc)
-
-def get_lib_install_token()->str:
-    params = {}
-    with open(param_file_path, mode='r') as f:
-        params = json.load(f)
-    return params['libInstallToken']
-
-user_name = 'NII-DG'
-
-def install_sdk_url()->str:
-    token = get_lib_install_token()
-    return 'https://' + user_name + ':' + token + '@github.com/NII-DG/nii-dg.git'
-
-def install_packager_url()->str:
-    token = get_lib_install_token()
-    return 'https://' + user_name + ':' + token + '@github.com/NII-DG/dg-packager.git'

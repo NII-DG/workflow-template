@@ -480,3 +480,20 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
         #実験パッケージ名表示
         exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>"
         display(HTML(exp_text))
+
+""" パッケージインストールヘルパー
+"""
+def get_lib_install_token()->str:
+    params = {}
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+    return params['libInstallToken']
+
+user_name = 'NII-DG'
+
+def install_sdk_url()->str:
+    return 'https://github.com/NII-DG/nii-dg.git'
+
+def install_packager_url()->str:
+    token = get_lib_install_token()
+    return 'https://' + user_name + ':' + token + '@github.com/NII-DG/dg-packager.git'

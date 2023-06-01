@@ -9,5 +9,6 @@
     "dgCore" : {
         "Scheme": "https",
         "Netloc": "core.dg.nii.ac.jp"
-    }
+    },
+    "libInstallToken" : "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"
 }

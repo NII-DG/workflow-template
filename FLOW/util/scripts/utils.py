@@ -513,7 +513,7 @@ def getPipList():
 def hasNiiDGLib():
     result = getPipList()
     lines = result.split('\n')[2:]
-    modules = [line.split()[0] for line in lines]
+    modules = [line.split()[0] for line in lines[:-1]]
     for line in modules:
         print('check : nii-dg : {}'.format(line))
         if line == 'nii-dg':
@@ -523,7 +523,7 @@ def hasNiiDGLib():
 def hasDgPkgLib():
     result = getPipList()
     lines = result.split('\n')[2:]
-    modules = [line.split()[0] for line in lines]
+    modules = [line.split()[0] for line in lines[:-1]]
     for line in modules:
         print('check : packager-dg : {}'.format(line))
         if line == 'dg-packager':

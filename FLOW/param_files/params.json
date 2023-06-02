@@ -10,8 +10,5 @@
         "Scheme": "https",
         "Netloc": "core.dg.nii.ac.jp"
     },
-    "libInstallToken" : [
-        "github_pat_11ATRJFMY0pjhtmggjwmwV_OGBXAyA89U3QpXGj",
-        "YL6Nd5uGogqOtbB803TScOeHDuRIQNQ6ITY9l4sZAea"
-    ]
+    "libInstallToken" : "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"
 }

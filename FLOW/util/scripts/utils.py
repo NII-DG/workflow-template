@@ -497,3 +497,29 @@ def install_sdk_url()->str:
 def install_packager_url()->str:
     token = get_lib_install_token()
     return 'https://' + user_name + ':' + token + '@github.com/NII-DG/dg-packager.git'
+
+
+def getPipList():
+    os.chdir('/home/jovyan')
+    cmd = 'pip list'
+    child = subprocess.Popen(cmd, shell=True,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = child.communicate()
+    rt = child.returncode
+    if rt != 0 :
+        raise Exception(f"command return code is not 0. got {rt}. stderr = {stderr}")
+    return stdout.decode('utf-8')
+
+def hasNiiDGLib():
+    result = getPipList()
+    for line in result.split('\n'):
+        if line == 'nii-dg':
+            return True
+    return False
+
+def hasDgPkgLib():
+    result = getPipList()
+    for line in result.split('\n'):
+        if line == 'dg-packager':
+            return True
+    return False

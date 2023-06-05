@@ -58,12 +58,17 @@ def verify_GIN_user():
         while True:
             name = input("ユーザー名：")
             if len(name) <= 0:
+                clear_output()
+                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
                 print("ユーザー名が入力されていません。ユーザー名を入力してください。")
             else:
                 break
         while True:
             password = getpass.getpass("パスワード：")
             if len(password) <= 0:
+                clear_output()
+                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+                print("ユーザー名："+ name)
                 print("パスワードが入力されていません。パスワードを入力してください。")
             else:
                 break
@@ -71,8 +76,16 @@ def verify_GIN_user():
         while True:
             email = input("メールアドレス：")
             if len(email) <= 0:
+                clear_output()
+                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+                print("ユーザー名："+ name)
+                print("パスワード：········")
                 print("メールアドレスが入力されていません。メールアドレスを入力してください。")
             elif not validation.fullmatch(email):
+                clear_output()
+                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+                print("ユーザー名："+ name)
+                print("パスワード：········")
                 print("メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。")
             else:
                 break

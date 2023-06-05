@@ -61,6 +61,10 @@ def verify_GIN_user():
                 clear_output()
                 print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
                 print("ユーザー名が入力されていません。ユーザー名を入力してください。")
+            elif ' ' in name or '　' in name:
+                clear_output()
+                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+                print("ユーザー名には半角スペースおよび全角スペースは使用できません。恐れ入りますがもう一度ご入力ください。")
             else:
                 break
         while True:

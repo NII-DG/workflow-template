@@ -55,9 +55,27 @@ def verify_GIN_user():
     clear_output()
     while True:
         print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-        name = input("ユーザー名：")
-        password = getpass.getpass("パスワード：")
-        email = input("メールアドレス：")
+        while True:
+            name = input("ユーザー名：")
+            if len(name) <= 0:
+                print("ユーザー名が入力されていません。ユーザー名を入力してください。")
+            else:
+                break
+        while True:
+            password = getpass.getpass("パスワード：")
+            if len(password) <= 0:
+                print("パスワードが入力されていません。パスワードを入力してください。")
+            else:
+                break
+        validation = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        while True:
+            email = input("メールアドレス：")
+            if len(email) <= 0:
+                print("メールアドレスが入力されていません。メールアドレスを入力してください。")
+            elif not validation.fullmatch(email):
+                print("メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。")
+            else:
+                break
         clear_output()
 
         # GIN API Basic Authentication

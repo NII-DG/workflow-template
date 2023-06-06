@@ -18,7 +18,7 @@ import re
 os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
 from utils.common import common
-
+from utils import display_util
 
 
 def fetch_param_file_path() -> str:
@@ -55,26 +55,27 @@ def verify_GIN_user():
     clear_output()
     while True:
         warn = ''
+        validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
         while True:
-            print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
             if len(warn) > 0:
-                print(warn)
+                display_util.display_warm(warn)
             name = input("ユーザー名：")
             if len(name) <= 0:
                 warn = "ユーザー名が入力されていません。ユーザー名を入力してください。"
                 clear_output()
-            elif ' ' in name or '　' in name:
-                warn = "ユーザー名には半角スペースおよび全角スペースは使用できません。恐れ入りますがもう一度ご入力ください。"
+            elif not validation.fullmatch(name):
+                warn = 'ユーザ―名は英数字および"-", "_", "."のみで入力してください。'
                 clear_output()
             else:
                 break
         warn = ''
         while True:
             clear_output()
-            print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-            print("ユーザー名："+ name)
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            display_util.display_msg("ユーザー名："+ name)
             if len(warn) > 0:
-                print(warn)
+                display_util.display_warm(warn)
             password = getpass.getpass("パスワード：")
             if len(password) <= 0:
                 warn = "パスワードが入力されていません。パスワードを入力してください。"
@@ -84,11 +85,11 @@ def verify_GIN_user():
         warn = ''
         while True:
             clear_output()
-            print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-            print("ユーザー名："+ name)
-            print("パスワード：········")
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            display_util.display_msg("ユーザー名："+ name)
+            display_util.display_msg("パスワード：········")
             if len(warn) > 0:
-                print(warn)
+                display_util.display_warm(warn)
             email = input("メールアドレス：")
             if len(email) <= 0:
                 warn = "メールアドレスが入力されていません。メールアドレスを入力してください。"
@@ -105,7 +106,7 @@ def verify_GIN_user():
         baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
         response = requests.get(baseURL + name + '/tokens', auth=(name, password))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
-            print("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。\n")
+            display_util.display_warm("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。\n")
             continue
 
         tokens = response.json()

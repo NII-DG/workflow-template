@@ -1,0 +1,20 @@
+{
+    "command": "whereis",
+    "note": "0 copies\nThe following untrusted locations may also have copies:\n\t0788dfa6-e57a-4233-856d-4c8fb1306b79 -- jovyan@jupyter-ivis-5fdai-5ftsukioka-40rdm-2enii-2eac-2ejp--ivis-2dtsu:~/ [here]\n",
+    "success": false,
+    "input": [
+        "experiments/ex_1/input_data/terminal/INPUT_TERMINAL_日本語　全角.variant-03bb"
+    ],
+    "untrusted": [
+        {
+            "here": true,
+            "uuid": "0788dfa6-e57a-4233-856d-4c8fb1306b79",
+            "urls": [],
+            "description": "jovyan@jupyter-ivis-5fdai-5ftsukioka-40rdm-2enii-2eac-2ejp--ivis-2dtsu:~/"
+        }
+    ],
+    "key": "MD5E-s57--24285cbe641d79d8152b612d27ab93a5",
+    "whereis": [],
+    "error-messages": [],
+    "file": "experiments/ex_1/input_data/terminal/INPUT_TERMINAL_日本語　全角.variant-03bb"
+}

@@ -54,43 +54,46 @@ def verify_GIN_user():
     global access_token
     clear_output()
     while True:
-        print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+        warn = ''
         while True:
+            print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            if len(warn) > 0:
+                print(warn)
             name = input("ユーザー名：")
             if len(name) <= 0:
+                warn = "ユーザー名が入力されていません。ユーザー名を入力してください。"
                 clear_output()
-                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-                print("ユーザー名が入力されていません。ユーザー名を入力してください。")
             elif ' ' in name or '　' in name:
+                warn = "ユーザー名には半角スペースおよび全角スペースは使用できません。恐れ入りますがもう一度ご入力ください。"
                 clear_output()
-                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-                print("ユーザー名には半角スペースおよび全角スペースは使用できません。恐れ入りますがもう一度ご入力ください。")
             else:
                 break
+        warn = ''
         while True:
+            clear_output()
+            print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            print("ユーザー名："+ name)
+            if len(warn) > 0:
+                print(warn)
             password = getpass.getpass("パスワード：")
             if len(password) <= 0:
-                clear_output()
-                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-                print("ユーザー名："+ name)
-                print("パスワードが入力されていません。パスワードを入力してください。")
+                warn = "パスワードが入力されていません。パスワードを入力してください。"
             else:
                 break
         validation = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        warn = ''
         while True:
+            clear_output()
+            print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            print("ユーザー名："+ name)
+            print("パスワード：········")
+            if len(warn) > 0:
+                print(warn)
             email = input("メールアドレス：")
             if len(email) <= 0:
-                clear_output()
-                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-                print("ユーザー名："+ name)
-                print("パスワード：········")
-                print("メールアドレスが入力されていません。メールアドレスを入力してください。")
+                warn = "メールアドレスが入力されていません。メールアドレスを入力してください。"
             elif not validation.fullmatch(email):
-                clear_output()
-                print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-                print("ユーザー名："+ name)
-                print("パスワード：········")
-                print("メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。")
+                warn = "メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。"
             else:
                 break
         clear_output()

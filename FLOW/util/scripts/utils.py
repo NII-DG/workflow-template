@@ -106,7 +106,7 @@ def verify_GIN_user():
         baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
         response = requests.get(baseURL + name + '/tokens', auth=(name, password))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
-            display_util.display_warm("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。\n")
+            print("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。\n")
             continue
 
         tokens = response.json()

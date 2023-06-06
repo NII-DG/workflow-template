@@ -179,6 +179,7 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
     invalid_names = list[str]()
     has_slash_file_names = list[str]()
     empty_name_paths = list[str]()
+    different_extentions = list[str]()
     for k, v in annex_rslv_info.items():
         action = v['action']
         if action == BOTH_REMAIN:
@@ -191,6 +192,8 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
                     has_slash_file_names.append(rename_value)
                 elif rename_value == '':
                     empty_name_paths.append(rename_key)
+                elif os.path.splitext(rename_value)[1] != os.path.splitext(rename_key)[1]:
+                    different_extentions.append(rename_value)
                 else:
                     remote_path = '{}/{}'.format(dir, rename_value)
                     create_file_paths.append(remote_path)
@@ -239,4 +242,9 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
         for empty_name_path in empty_name_paths:
              msg = msg + '・ {}<br>'.format(empty_name_path)
 
+    if len(different_extentions)>0:
+        msg = msg + '拡張子が元のファイルと異なるファイルがあります<br>'
+        for different_extention in different_extentions:
+             msg = msg + '・ {}<br>'.format(different_extention)
+    
     return msg

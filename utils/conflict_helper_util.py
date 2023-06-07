@@ -192,7 +192,7 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
                     has_slash_file_names.append(rename_value)
                 elif rename_value == '':
                     empty_name_paths.append(rename_key)
-                elif os.path.splitext(rename_value)[1] != os.path.splitext(rename_key)[1]:
+                elif os.path.splitext(rename_value)[1] != os.path.splitext(k)[1]:
                     different_extentions.append(rename_value)
                 else:
                     remote_path = '{}/{}'.format(dir, rename_value)
@@ -215,7 +215,7 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
 
     # Create a message
     msg = ''
-    if len(duplicates_paths)>0 or len(invalid_names)>0 or len(existence_file_paths)>0 or len(has_slash_file_names):
+    if len(duplicates_paths)>0 or len(invalid_names)>0 or len(existence_file_paths)>0 or len(has_slash_file_names) or len(empty_name_paths)>0 or len(different_extentions)>0:
         msg = msg + '不正な値が入力されました。再度、『3-3. ≪両方を残す≫が選択されたファイルに名前をつける。』を実行し正しいファイル名をしてください。<br>'
     if len(invalid_names)>0:
         msg = msg + 'バリアント名を指定されています。以下のバリアント名は指定しないでください。<br>'
@@ -246,5 +246,5 @@ def verify_resolve_file_name(annex_rslv_info:dict[str, dict])->str:
         msg = msg + '拡張子が元のファイルと異なるファイルがあります<br>'
         for different_extention in different_extentions:
              msg = msg + '・ {}<br>'.format(different_extention)
-    
+
     return msg

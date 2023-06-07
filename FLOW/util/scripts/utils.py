@@ -329,7 +329,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         else:
             # check both modified
             if git_module.is_conflict():
-                print('[INFO] Files would be overwritten by merge')
+                print('[INFO] Files is CONFLICT')
                 error_message = CONFLICT_ERROR
             else:
                 error_message = UNEXPECTED_ERROR

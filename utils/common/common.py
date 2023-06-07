@@ -1,5 +1,6 @@
 import subprocess
 import re
+import os
 
 
 def get_AND_elements(list_a, list_b :list)->list:
@@ -49,3 +50,13 @@ def has_unicode_escape(text:str)->bool:
 def get_filepaths_from_dalalad_error(err_info: str):
     pattern = r"'\\t(.+?)\\n'"
     return re.findall(pattern, err_info)
+
+def get_AND_dirpaths(paths:list[str])->list[str]:
+    dirpaths = []
+    for path in paths:
+        dir = os.path.dirname(path)
+        if dir in dirpaths:
+            continue
+        else:
+            dirpaths.append(dir)
+    return dirpaths

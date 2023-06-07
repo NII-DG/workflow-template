@@ -19,7 +19,6 @@ from utils.common import common
 from utils import display_util
 
 
-
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
 
@@ -53,10 +52,49 @@ def verify_GIN_user():
     global access_token
     clear_output()
     while True:
-        display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-        name = input("ユーザー名：")
-        password = getpass.getpass("パスワード：")
-        email = input("メールアドレス：")
+        warn = ''
+        validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
+        while True:
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            if len(warn) > 0:
+                display_util.display_err(warn)
+            name = input("ユーザー名：")
+            if len(name) <= 0:
+                warn = "ユーザー名が入力されていません。ユーザー名を入力してください。"
+                clear_output()
+            elif not validation.fullmatch(name):
+                warn = 'ユーザ―名は英数字および"-", "_", "."のみで入力してください。'
+                clear_output()
+            else:
+                break
+        warn = ''
+        while True:
+            clear_output()
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            display_util.display_msg("ユーザー名："+ name)
+            if len(warn) > 0:
+                display_util.display_err(warn)
+            password = getpass.getpass("パスワード：")
+            if len(password) <= 0:
+                warn = "パスワードが入力されていません。パスワードを入力してください。"
+            else:
+                break
+        validation = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        warn = ''
+        while True:
+            clear_output()
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            display_util.display_msg("ユーザー名："+ name)
+            display_util.display_msg("パスワード：········")
+            if len(warn) > 0:
+                display_util.display_err(warn)
+            email = input("メールアドレス：")
+            if len(email) <= 0:
+                warn = "メールアドレスが入力されていません。メールアドレスを入力してください。"
+            elif not validation.fullmatch(email):
+                warn = "メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。"
+            else:
+                break
         clear_output()
 
         # GIN API Basic Authentication

@@ -13,8 +13,6 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
-import shutil
-import re
 os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
 from utils.common import common
@@ -106,7 +104,7 @@ def verify_GIN_user():
         baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
         response = requests.get(baseURL + name + '/tokens', auth=(name, password))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
-            print("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。\n")
+            display_util.display_err("ユーザ名、またはパスワードが間違っています。<br>恐れ入りますがもう一度ご入力ください。<br>")
             continue
 
         tokens = response.json()
@@ -246,15 +244,14 @@ def update_repo_url():
         if 'No such remote' in result.stderr:
             subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
-DATALAD_MESSAGE = ''
-DATALAD_ERROR = ''
+
+SIBLING = 'gin'
+SUCCESS = 'データ同期が完了しました。'
+RESYNC_REPO_RENAME = '同期不良が発生しました(リモートリポジトリ名の変更)。自動調整が実行されたため、同セルを再実行してください。'
+RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)。自動調整が実行されため、同セルを再実行してください。'
 CONNECT_REPO_ERROR = 'リポジトリに接続できません。リポジトリが存在しているか確認してください。'
 CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を解決してください。'
 PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
-SUCCESS = 'データ同期が完了しました。'
-SIBLING = 'gin'
-RESYNC_REPO_RENAME = '同期不良が発生しました(リモートリポジトリ名の変更)。自動調整が実行されたため、同セルを再実行してください。'
-RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)。自動調整が実行されため、同セルを再実行してください。'
 UNEXPECTED_ERROR = '想定外のエラーが発生しています。担当者に問い合わせください。'
 
 
@@ -273,7 +270,8 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
 
     RETURN
     ---------------
-    Returns nothing, but outputs a message.
+    bool
+        Description : 同期の成功判定
 
     EXCEPTION
     ---------------
@@ -285,7 +283,9 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         update()を最初にするとgit annex lockができない。addをする必要がある。
     """
 
-    datalad_message = ''
+    success_message = ''
+    warm_message = ''
+    error_message = ''
     datalad_error = ''
     try:
 
@@ -312,10 +312,10 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 # update URLs of remote repositories
                 update_repo_url()
                 print('[INFO] Update repository URL')
-                datalad_message = RESYNC_REPO_RENAME
+                warm_message = RESYNC_REPO_RENAME
             except:
                 # repository may not exist
-                datalad_message = CONNECT_REPO_ERROR
+                error_message = CONNECT_REPO_ERROR
         elif 'files would be overwritten by merge:' in datalad_error:
             print('[INFO] Files would be overwritten by merge')
             git_commit_msg = '{}(auto adjustment)'.format(message)
@@ -363,14 +363,14 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 else:
                     result = git_module.git_commmit(git_commit_msg)
                     print(result)
-            datalad_message = RESYNC_BY_OVERWRITE
+            warm_message = RESYNC_BY_OVERWRITE
         else:
             # check both modified
             if git_module.is_conflict():
-                print('[INFO] Files would be overwritten by merge')
-                datalad_message = CONFLICT_ERROR
+                print('[INFO] Files is CONFLICT')
+                error_message = CONFLICT_ERROR
             else:
-                datalad_message = UNEXPECTED_ERROR
+                error_message = UNEXPECTED_ERROR
     else:
         try:
             print('[INFO] Push to Remote Repository')
@@ -379,18 +379,21 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.system('git annex unlock')
         except:
             datalad_error = traceback.format_exc()
-            datalad_message = PUSH_ERROR
+            error_message = PUSH_ERROR
         else:
             os.chdir(os.environ['HOME'])
-            datalad_message = SUCCESS
+            success_message = SUCCESS
     finally:
         clear_output()
-        display(HTML("<p>" + datalad_message + "</p>"))
-        display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
-        if datalad_message == SUCCESS:
+        if success_message:
+            display_util.display_info(success_message)
             return True
         else:
+            display_util.display_warm(warm_message)
+            display_util.display_err(error_message)
+            display_util.display_log(datalad_error)
             return False
+
 
 def extract_info_from_datalad_update_err(raw_msg:str)->str:
     start_index = raw_msg.find("[") + 1

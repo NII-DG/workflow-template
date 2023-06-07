@@ -59,7 +59,7 @@ def verify_GIN_user():
         while True:
             display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
             if len(warn) > 0:
-                display_util.display_warm(warn)
+                display_util.display_err(warn)
             name = input("ユーザー名：")
             if len(name) <= 0:
                 warn = "ユーザー名が入力されていません。ユーザー名を入力してください。"
@@ -75,7 +75,7 @@ def verify_GIN_user():
             display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
             display_util.display_msg("ユーザー名："+ name)
             if len(warn) > 0:
-                display_util.display_warm(warn)
+                display_util.display_err(warn)
             password = getpass.getpass("パスワード：")
             if len(password) <= 0:
                 warn = "パスワードが入力されていません。パスワードを入力してください。"
@@ -89,7 +89,7 @@ def verify_GIN_user():
             display_util.display_msg("ユーザー名："+ name)
             display_util.display_msg("パスワード：········")
             if len(warn) > 0:
-                display_util.display_warm(warn)
+                display_util.display_err(warn)
             email = input("メールアドレス：")
             if len(email) <= 0:
                 warn = "メールアドレスが入力されていません。メールアドレスを入力してください。"

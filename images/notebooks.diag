@@ -65,7 +65,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffa329";
-                    "4. after_research"[label = "4. 研究終了後", fontsize = 10];
+                    "4. after_research"[label = "4. 研究終了", fontsize = 10];
                     "base_finish_research";
                 }
             }

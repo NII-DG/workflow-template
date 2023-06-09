@@ -13,7 +13,11 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
-
+import re
+os.chdir('/home/jovyan/WORKFLOWS')
+from utils.git import git_module
+from utils.common import common
+from utils import display_util
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
@@ -31,6 +35,10 @@ def fetch_gin_monitoring_assigned_values():
     }
     return assigned_values
 
+def get_datasetStructure():
+    assigned_values = fetch_gin_monitoring_assigned_values()
+    return assigned_values['datasetStructure']
+
 
 def verify_GIN_user():
     # 以下の認証の手順で用いる、
@@ -44,10 +52,49 @@ def verify_GIN_user():
     global access_token
     clear_output()
     while True:
-        print("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-        name = input("ユーザー名：")
-        password = getpass.getpass("パスワード：")
-        email = input("メールアドレス：")
+        warn = ''
+        validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
+        while True:
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            if len(warn) > 0:
+                display_util.display_err(warn)
+            name = input("ユーザー名：")
+            if len(name) <= 0:
+                warn = "ユーザー名が入力されていません。ユーザー名を入力してください。"
+                clear_output()
+            elif not validation.fullmatch(name):
+                warn = 'ユーザ―名は英数字および"-", "_", "."のみで入力してください。'
+                clear_output()
+            else:
+                break
+        warn = ''
+        while True:
+            clear_output()
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            display_util.display_msg("ユーザー名："+ name)
+            if len(warn) > 0:
+                display_util.display_err(warn)
+            password = getpass.getpass("パスワード：")
+            if len(password) <= 0:
+                warn = "パスワードが入力されていません。パスワードを入力してください。"
+            else:
+                break
+        validation = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        warn = ''
+        while True:
+            clear_output()
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            display_util.display_msg("ユーザー名："+ name)
+            display_util.display_msg("パスワード：········")
+            if len(warn) > 0:
+                display_util.display_err(warn)
+            email = input("メールアドレス：")
+            if len(email) <= 0:
+                warn = "メールアドレスが入力されていません。メールアドレスを入力してください。"
+            elif not validation.fullmatch(email):
+                warn = "メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。"
+            else:
+                break
         clear_output()
 
         # GIN API Basic Authentication
@@ -57,7 +104,7 @@ def verify_GIN_user():
         baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
         response = requests.get(baseURL + name + '/tokens', auth=(name, password))
         if response.status_code == HTTPStatus.UNAUTHORIZED:
-            print("ユーザ名、またはパスワードが間違っています。\n恐れ入りますがもう一度ご入力ください。\n")
+            display_util.display_err("ユーザ名、またはパスワードが間違っています。<br>恐れ入りますがもう一度ご入力ください。<br>")
             continue
 
         tokens = response.json()
@@ -197,15 +244,18 @@ def update_repo_url():
         if 'No such remote' in result.stderr:
             subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
-DATALAD_MESSAGE = ''
-DATALAD_ERROR = ''
+
+SIBLING = 'gin'
+SUCCESS = 'データ同期が完了しました。'
+RESYNC_REPO_RENAME = '同期不良が発生しました(リモートリポジトリ名の変更)。自動調整が実行されたため、同セルを再実行してください。'
+RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)。自動調整が実行されため、同セルを再実行してください。'
 CONNECT_REPO_ERROR = 'リポジトリに接続できません。リポジトリが存在しているか確認してください。'
 CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を解決してください。'
 PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
-SUCCESS = 'データ同期が完了しました。'
-SIBLING = 'gin'
+UNEXPECTED_ERROR = '想定外のエラーが発生しています。担当者に問い合わせください。'
 
-def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
+
+def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str, get_paths:list[str]):
     """synchronize with the repository
     ARG
     ---------------
@@ -220,71 +270,145 @@ def syncs_with_repo(git_path, gitannex_path, gitannex_files, message):
 
     RETURN
     ---------------
-    Returns nothing, but outputs a message.
+    bool
+        Description : 同期の成功判定
 
     EXCEPTION
     ---------------
     CONNECT_REPO_ERROR
     CONFLICT_ERROR
     PUSH_ERROR
+
+    memo:
+        update()を最初にするとgit annex lockができない。addをする必要がある。
     """
 
-    datalad_message = ''
+    success_message = ''
+    warm_message = ''
+    error_message = ''
     datalad_error = ''
     try:
+
         os.chdir(os.environ['HOME'])
+        print('[INFO] Lock git-annex content')
+        os.system('git annex lock')
+        print('[INFO] Save git-annex content and Register metadata')
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
+        print('[INFO] Uulock git-annex content')
+        os.system('git annex unlock')
+        print('[INFO] Save git content')
         save_git(git_path, message)
+        print('[INFO] Lock git-annex content')
+        os.system('git annex lock')
+        print('[INFO] Update and Merge Repository')
         update()
+        if len(get_paths)>0:
+            api.get(path=get_paths)
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist:' in datalad_error:
+        if 'Repository does not exist' in datalad_error:
             try:
                 # update URLs of remote repositories
                 update_repo_url()
+                print('[INFO] Update repository URL')
+                warm_message = RESYNC_REPO_RENAME
             except:
                 # repository may not exist
-                datalad_message = CONNECT_REPO_ERROR
-            else:
-                datalad_error = ''
-                try:
-                    update()
-                except:
-                    datalad_error = traceback.format_exc()
-                    datalad_message = CONFLICT_ERROR
-                else:
-                    try:
-                        push()
-                    except:
-                        datalad_error = traceback.format_exc()
-                        datalad_message = PUSH_ERROR
+                error_message = CONNECT_REPO_ERROR
+        elif 'files would be overwritten by merge:' in datalad_error:
+            print('[INFO] Files would be overwritten by merge')
+            git_commit_msg = '{}(auto adjustment)'.format(message)
+            err_key_info = extract_info_from_datalad_update_err(datalad_error)
+            file_paths = list[str]()
+            os.chdir(os.environ['HOME'])
+            os.system('git annex lock')
+            if 'The following untracked working tree' in err_key_info:
+                file_paths = common.get_filepaths_from_dalalad_error(err_key_info)
+                adjust_add_git_paths = list[str]()
+                adjust_add_annex_paths = list[str]()
+                for path in file_paths:
+                    if '\\u3000' in path:
+                        path = path.replace('\\u3000', '　')
+                    if common.is_should_annex_content_path(path):
+                        adjust_add_annex_paths.append(path)
                     else:
-                        os.chdir(os.environ['HOME'])
-                        datalad_message = SUCCESS
+                        adjust_add_git_paths.append(path)
+                print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
+                print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
+                print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
+                save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
+                os.system('git annex unlock')
+                print('[INFO] Save git content(auto adjustment)')
+                save_git(adjust_add_git_paths, message)
+            elif 'Your local changes to the following' in err_key_info:
+                if 'Please commit your changes or stash them before you merge' in err_key_info:
+                    file_paths = common.get_filepaths_from_dalalad_error(err_key_info)
+                    adjust_add_git_paths = list[str]()
+                    adjust_add_annex_paths = list[str]()
+                    for path in file_paths:
+                        if '\\u3000' in path:
+                            path = path.replace('\\u3000', '　')
+                        if common.is_should_annex_content_path(path):
+                            adjust_add_annex_paths.append(path)
+                        else:
+                            adjust_add_git_paths.append(path)
+                    print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
+                    print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
+                    print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
+                    save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
+                    os.system('git annex unlock')
+                    print('[INFO] Save git content(auto adjustment)')
+                    save_git(adjust_add_git_paths, message)
+                else:
+                    result = git_module.git_commmit(git_commit_msg)
+                    print(result)
+            warm_message = RESYNC_BY_OVERWRITE
         else:
-            datalad_message = CONFLICT_ERROR
+            # check both modified
+            if git_module.is_conflict():
+                print('[INFO] Files is CONFLICT')
+                error_message = CONFLICT_ERROR
+            else:
+                error_message = UNEXPECTED_ERROR
     else:
         try:
+            print('[INFO] Push to Remote Repository')
             push()
+            print('[INFO] Unlock git-annex content')
+            os.system('git annex unlock')
         except:
             datalad_error = traceback.format_exc()
-            datalad_message = PUSH_ERROR
+            error_message = PUSH_ERROR
         else:
             os.chdir(os.environ['HOME'])
-            datalad_message = SUCCESS
+            success_message = SUCCESS
     finally:
         clear_output()
-        display(HTML("<p>" + datalad_message + "</p>"))
-        display(HTML("<p><font color='red'>" + datalad_error + "</font></p>"))
-        if datalad_message == SUCCESS:
+        if success_message:
+            display_util.display_info(success_message)
             return True
         else:
+            display_util.display_warm(warm_message)
+            display_util.display_err(error_message)
+            display_util.display_log(datalad_error)
             return False
 
 
+def extract_info_from_datalad_update_err(raw_msg:str)->str:
+    start_index = raw_msg.find("[") + 1
+    end_index = raw_msg.rfind("]")
+    err_info = raw_msg[start_index:end_index]
+    start_index = err_info.find("{")
+    end_index = err_info.find("}")
+    err_detail_info = err_info[start_index:end_index+1]
+    start_index = err_detail_info.find("[") + 1
+    end_index= err_detail_info.find("]")
+    return err_detail_info[start_index:end_index]
 
-def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
+
+
+def save_annex_and_register_metadata(gitannex_path :list[str], gitannex_files:list[str], message:str):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
     ARG
     ---------------
@@ -303,14 +427,15 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
 
     EXCEPTION
     ---------------
+
+    NOTE
+    ----------------
+        in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
     """
 
     # *The git annex metadata command can only be run on files that have already had a git annex add command run on them
-    if gitannex_path != None:
-        # *in the unlocked state, the entity of data downloaded from outside is also synchronized, so it should be locked.
-        os.system('git annex lock')
+    if len(gitannex_path) > 0:
         api.save(message=message + ' (git-annex)', path=gitannex_path)
-        os.system('git annex unlock')
         # register metadata for gitannex_files
         if type(gitannex_files) == str:
             register_metadata_for_annexdata(gitannex_files)
@@ -321,17 +446,16 @@ def save_annex_and_register_metadata(gitannex_path, gitannex_files, message):
             # if gitannex_files is not defined as a single file path (str) or multiple file paths (list), no metadata is given.
             pass
 
-def save_git(git_path, message):
-    if git_path != None:
+def save_git(git_path:list[str], message:str):
+    if len(git_path) > 0:
         api.save(message=message + ' (git)', path=git_path, to_git=True)
 
 def update():
-    os.system('git annex lock')
     api.update(sibling=SIBLING, how='merge')
 
 def push():
     api.push(to=SIBLING, data='auto')
-    os.system('git annex unlock')
+
 
 def register_metadata_for_annexdata(file_path):
     """register_metadata(content_size, sha256, mime_type) for specified file
@@ -347,16 +471,21 @@ def register_metadata_for_annexdata(file_path):
     EXCEPTION
     ---------------
     """
-    # generate metadata
-    mime_type = magic.from_file(file_path, mime=True)
-    with open(file_path, 'rb') as f:
-        binary_data = f.read()
-        sha256 = hashlib.sha3_256(binary_data).hexdigest()
-    content_size = os.path.getsize(file_path)
 
-    # register_metadata
-    os.chdir(os.environ['HOME'])
-    os.system(f'git annex metadata {file_path} -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+    if os.path.isfile(file_path):
+        # generate metadata
+        os.system('git annex unlock')
+        mime_type = magic.from_file(file_path, mime=True)
+        with open(file_path, 'rb') as f:
+            binary_data = f.read()
+            sha256 = hashlib.sha3_256(binary_data).hexdigest()
+        content_size = os.path.getsize(file_path)
+
+        # register_metadata
+        os.chdir(os.environ['HOME'])
+        os.system(f'git annex metadata "{file_path}" -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+    else:
+        pass
 
 def register_metadata_for_downloaded_annexdata(file_path):
     """register metadata(sd_date_published)for the specified file
@@ -372,9 +501,10 @@ def register_metadata_for_downloaded_annexdata(file_path):
     EXCEPTION
     ---------------
     """
+    os.system('git annex unlock')
     current_date = datetime.date.today()
     sd_date_published = current_date.isoformat()
-    os.system(f'git annex metadata {file_path} -s sd_date_published={sd_date_published}')
+    os.system(f'git annex metadata "{file_path}" -s sd_date_published={sd_date_published}')
 
 # 研究名と実験名を表示する関数
 def show_name(color='black', EXPERIMENT_TITLE=None):

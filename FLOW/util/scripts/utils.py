@@ -115,7 +115,7 @@ def submit_user_auth(event):
     os.chdir(os.environ['HOME'])
     common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
     common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
-    shutil.copyfile("~/.gitconfig", "~/WORKFLOWS/PACKAGE/.gitconfig")
+    shutil.copy("~/.gitconfig", "~/WORKFLOWS/PACKAGE/.gitconfig")
 
     submit_button_user_auth.button_type = 'success'
     submit_button_user_auth.name = '認証が正常に完了しました。次の手順へお進みください。'

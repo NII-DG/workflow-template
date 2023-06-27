@@ -41,84 +41,92 @@ def get_datasetStructure():
     assigned_values = fetch_gin_monitoring_assigned_values()
     return assigned_values['datasetStructure']
 
+# user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
+# password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
+# mail_address_form = pn.widgets.TextInput(name="メールアドレス", placeholder= "Enter email address here...", width=700)
 
-user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
-password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
-mail_address_form = pn.widgets.TextInput(name="メールアドレス", placeholder= "Enter email address here...", width=700)
-submit_button_user_auth = pn.widgets.Button(name= "入力を完了する", button_type= "primary")
+def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):
+    def callback(event):
+        user_name = user_auth_forms[0].value
+        password = user_auth_forms[1].value
+        mail_addres = user_auth_forms[2].value
+        # validate value
+        ## user name
+        if len(user_name) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンとクリックしてください。'
+            return
 
-def submit_user_auth(event):
-    user_name = user_name_form.value
-    password = password_form.value
-    mail_addres =mail_address_form.value
+        if not validate_format_username(user_name):
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'ユーザ―名は英数字および"-", "_", "."のみで入力し再度、ボタンとクリックしてください。V {}:{}:{}'.format(user_name, password, mail_addres)
+            return
 
-    # validate value
-    ## user name
-    if user_name is None:
-        submit_button_user_auth.button_type = 'danger'
-        submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンとクリックしてください。'
-        return
+        ## password
+        if len(password) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンとクリックしてください。'
+            return
 
-    if not validate_format_username(user_name):
-        submit_button_user_auth.button_type = 'danger'
-        submit_button_user_auth.name = 'ユーザ―名は英数字および"-", "_", "."のみで入力し再度、ボタンとクリックしてください。'
-        return
+        ## mail addres
+        if  len(mail_addres) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'メールアドレスが入力されていません。メールアドレスを入力し再度、ボタンとクリックしてください。'
+            return
 
-    ## password
-    if password is None:
-        submit_button_user_auth.button_type = 'danger'
-        submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンとクリックしてください。'
-        return
+        if not validate_format_mail_addres(mail_addres):
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'メールアドレスの形式が不正です。再度、入力しボタンとクリックしてください。'
+            return
 
-    ## mail addres
-    if mail_addres is None:
-        submit_button_user_auth.button_type = 'danger'
-        submit_button_user_auth.name = 'メールアドレスが入力されていません。メールアドレスを入力し再度、ボタンとクリックしてください。'
-        return
+        # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
+        # GIN API Basic Authentication
+        # refs: https://docs.python-requests.org/en/master/user/authentication/
+        try:
+            params = {}
+            with open(fetch_param_file_path(), mode='r') as f:
+                params = json.load(f)
 
-    if not validate_format_mail_addres(mail_addres):
-        submit_button_user_auth.button_type = 'danger'
-        submit_button_user_auth.name = 'メールアドレスの形式が不正です。再度、入力しボタンとクリックしてください。'
-        return
+            baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
+            response = requests.get(baseURL + user_name + '/tokens', auth=(user_name, password))
 
-    # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
-    # GIN API Basic Authentication
-    # refs: https://docs.python-requests.org/en/master/user/authentication/
-    params = {}
-    with open(fetch_param_file_path(), mode='r') as f:
-        params = json.load(f)
+            ## Unauthorized
+            if response.status_code == HTTPStatus.UNAUTHORIZED:
+                submit_button_user_auth.button_type = 'warning'
+                submit_button_user_auth.name = 'ユーザ名、またはパスワードが間違っています。再度、入力しボタンとクリックしてください。'
+                return
 
-    baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
-    response = requests.get(baseURL + user_name + '/tokens', auth=(user_name, password))
+            ## Check to see if there is an existing token
+            access_token = dict()
+            tokens = response.json()
+            if len(tokens) >= 1:
+                access_token = response.json()[-1]
+            elif len(tokens) < 1:
+                response = requests.post(baseURL + user_name + '/tokens', data={"name": "system-generated"}, auth=(user_name, password))
+                if response.status_code == HTTPStatus.CREATED:
+                    access_token = response.json()
 
-    ## Unauthorized
-    if response.status_code == HTTPStatus.UNAUTHORIZED:
-        submit_button_user_auth.button_type = 'danger'
-        submit_button_user_auth.name = 'ユーザ名、またはパスワードが間違っています。再度、入力しボタンとクリックしてください。'
-        return
+        # Write out the GIN-fork access token to /home/jovyan/.token.json.
 
-    ## Check to see if there is an existing token
-    access_token = dict()
-    tokens = response.json()
-    if len(tokens) >= 1:
-        access_token = response.json()[-1]
-    elif len(tokens) < 1:
-        response = requests.post(baseURL + user_name + '/tokens', data={"name": "system-generated"}, auth=(user_name, password))
-        if response.status_code == HTTPStatus.CREATED:
-            access_token = response.json()
+            token_dict = {"ginfork_token": access_token['sha1']}
+            with open('/home/jovyan/.token.json', 'w') as f:
+                json.dump(token_dict, f, indent=4)
 
-    # Write out the GIN-fork access token to /home/jovyan/.token.json.
-    token_dict = {"ginfork_token": access_token['sha1']}
-    with open('/home/jovyan/.token.json', 'w') as f:
-        json.dump(token_dict, f, indent=4)
+            os.chdir(os.environ['HOME'])
+            common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
+            common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
+        except Exception as e:
+            submit_button_user_auth.button_type = 'danger'
+            submit_button_user_auth.name = '予想外エラーが発生しました。担当者までご連絡ください。'
+            error_message.value = 'ERROR : {}'.format(str(e))
+            error_message.object = pn.pane.HTML(error_message.value)
+            return
+        else:
+            submit_button_user_auth.button_type = 'success'
+            submit_button_user_auth.name = '認証が正常に完了しました。次の手順へお進みください。'
+            return
+    return callback
 
-    os.chdir(os.environ['HOME'])
-    common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
-    common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
-    shutil.copy("~/.gitconfig", "~/WORKFLOWS/PACKAGE/.gitconfig")
-
-    submit_button_user_auth.button_type = 'success'
-    submit_button_user_auth.name = '認証が正常に完了しました。次の手順へお進みください。'
 
 def validate_format_username(user_name):
     validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
@@ -128,15 +136,30 @@ def validate_format_mail_addres(mail_addres):
     validation =     re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
     return validation.fullmatch(mail_addres)
 
-def create_user_auth_form()->pn.Column:
-    user_auth_columns = pn.Column()
-    user_auth_columns.append(user_name_form)
-    user_auth_columns.append(password_form)
-    user_auth_columns.append(mail_address_form)
-    button = pn.widgets.Button(name= "入力を完了する", button_type= "primary")
-    button.on_click(submit_user_auth)
-    user_auth_columns.append(button)
-    return user_auth_columns
+def create_user_auth_form():
+    pn.extension()
+    # user name form
+    user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
+    # password form
+    password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
+    # email address form
+    mail_address_form = pn.widgets.TextInput(name="メールアドレス", placeholder= "Enter email address here...", width=700)
+    user_auth_forms = [user_name_form, password_form, mail_address_form]
+
+    # Instance for exception messages
+    error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
+
+    button = pn.widgets.Button(name= "入力を完了する", button_type= "primary", width=700)
+
+
+    # Define processing after clicking the submit button
+    button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
+
+    clear_output()
+    for form in user_auth_forms:
+        display(form)
+    display(button)
+    display(error_message)
 
 
 

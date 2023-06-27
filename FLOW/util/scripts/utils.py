@@ -1,6 +1,7 @@
 import json
 import os
 import glob
+import shutil
 from IPython.display import clear_output, HTML, display
 from urllib import parse
 import getpass
@@ -14,6 +15,7 @@ import magic
 import hashlib
 import datetime
 import re
+import panel as pn
 os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
 from utils.common import common
@@ -38,6 +40,112 @@ def fetch_gin_monitoring_assigned_values():
 def get_datasetStructure():
     assigned_values = fetch_gin_monitoring_assigned_values()
     return assigned_values['datasetStructure']
+
+
+user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
+password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
+mail_address_form = pn.widgets.TextInput(name="メールアドレス", placeholder= "Enter email address here...", width=700)
+submit_button_user_auth = pn.widgets.Button(name= "入力を完了する", button_type= "primary")
+
+def submit_user_auth(event):
+    user_name = user_name_form.value
+    password = password_form.value
+    mail_addres =mail_address_form.value
+
+    # validate value
+    ## user name
+    if user_name is None:
+        submit_button_user_auth.button_type = 'danger'
+        submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンとクリックしてください。'
+        return
+
+    if not validate_format_username(user_name):
+        submit_button_user_auth.button_type = 'danger'
+        submit_button_user_auth.name = 'ユーザ―名は英数字および"-", "_", "."のみで入力し再度、ボタンとクリックしてください。'
+        return
+
+    ## password
+    if password is None:
+        submit_button_user_auth.button_type = 'danger'
+        submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンとクリックしてください。'
+        return
+
+    ## mail addres
+    if mail_addres is None:
+        submit_button_user_auth.button_type = 'danger'
+        submit_button_user_auth.name = 'メールアドレスが入力されていません。メールアドレスを入力し再度、ボタンとクリックしてください。'
+        return
+
+    if not validate_format_mail_addres(mail_addres):
+        submit_button_user_auth.button_type = 'danger'
+        submit_button_user_auth.name = 'メールアドレスの形式が不正です。再度、入力しボタンとクリックしてください。'
+        return
+
+    # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
+    # GIN API Basic Authentication
+    # refs: https://docs.python-requests.org/en/master/user/authentication/
+    params = {}
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+
+    baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
+    response = requests.get(baseURL + user_name + '/tokens', auth=(user_name, password))
+
+    ## Unauthorized
+    if response.status_code == HTTPStatus.UNAUTHORIZED:
+        submit_button_user_auth.button_type = 'danger'
+        submit_button_user_auth.name = 'ユーザ名、またはパスワードが間違っています。再度、入力しボタンとクリックしてください。'
+        return
+
+    ## Check to see if there is an existing token
+    access_token = dict()
+    tokens = response.json()
+    if len(tokens) >= 1:
+        access_token = response.json()[-1]
+    elif len(tokens) < 1:
+        response = requests.post(baseURL + user_name + '/tokens', data={"name": "system-generated"}, auth=(user_name, password))
+        if response.status_code == HTTPStatus.CREATED:
+            access_token = response.json()
+
+    # Write out the GIN-fork access token to /home/jovyan/.token.json.
+    token_dict = {"ginfork_token": access_token['sha1']}
+    with open('/home/jovyan/.token.json', 'w') as f:
+        json.dump(token_dict, f, indent=4)
+
+    os.chdir(os.environ['HOME'])
+    common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
+    common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
+    shutil.copyfile("~/.gitconfig", "~/WORKFLOWS/PACKAGE/.gitconfig")
+
+    submit_button_user_auth.button_type = 'success'
+    submit_button_user_auth.name = '認証が正常に完了しました。次の手順へお進みください。'
+
+def validate_format_username(user_name):
+    validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
+    return validation.fullmatch(user_name)
+
+def validate_format_mail_addres(mail_addres):
+    validation =     re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    return validation.fullmatch(mail_addres)
+
+def create_user_auth_form()->pn.Column:
+    user_auth_columns = pn.Column()
+    user_auth_columns.append(user_name_form)
+    user_auth_columns.append(password_form)
+    user_auth_columns.append(mail_address_form)
+    button = pn.widgets.Button(name= "入力を完了する", button_type= "primary")
+    button.on_click(submit_user_auth)
+    user_auth_columns.append(button)
+    return user_auth_columns
+
+
+
+
+
+
+
+
+
 
 
 def verify_GIN_user():

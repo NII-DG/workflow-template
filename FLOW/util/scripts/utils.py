@@ -18,6 +18,8 @@ os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
 from utils.common import common
 from utils import display_util
+from utils.token import token
+from utils.user_info import user_info
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
@@ -121,6 +123,59 @@ def verify_GIN_user():
                 break
     return tokens, access_token, name, email
 
+def verify_GIN_user_without_email():
+    # 以下の認証の手順で用いる、
+    # GINのドメイン名等をパラメタファイルから取得する
+    params = {}
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+
+    # 正常に認証が終わるまで繰り返し
+    clear_output()
+    while True:
+        warn = ''
+        validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
+        while True:
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            if len(warn) > 0:
+                display_util.display_err(warn)
+            name = input("ユーザー名：")
+            if len(name) <= 0:
+                warn = "ユーザー名が入力されていません。ユーザー名を入力してください。"
+                clear_output()
+            elif not validation.fullmatch(name):
+                warn = 'ユーザ―名は英数字および"-", "_", "."のみで入力してください。'
+                clear_output()
+            else:
+                break
+        warn = ''
+        while True:
+            clear_output()
+            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+            display_util.display_msg("ユーザー名："+ name)
+            if len(warn) > 0:
+                display_util.display_err(warn)
+            password = getpass.getpass("パスワード：")
+            if len(password) <= 0:
+                warn = "パスワードが入力されていません。パスワードを入力してください。"
+            else:
+                break
+
+        clear_output()
+
+        # GIN API Basic Authentication
+        # refs: https://docs.python-requests.org/en/master/user/authentication/
+
+        # 既存のトークンがあるか確認する
+        baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
+        response = requests.get(baseURL + name + '/tokens', auth=(name, password))
+        if response.status_code == HTTPStatus.UNAUTHORIZED:
+            display_util.display_err("ユーザ名、またはパスワードが間違っています。<br>恐れ入りますがもう一度ご入力ください。<br>")
+            continue
+        else:
+            break
+
+    return name, password
 
 def fetch_ssh_config_path():
     ssh_config_path = '/home/jovyan/.ssh/config'
@@ -236,6 +291,18 @@ def update_repo_url():
     request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
     res = requests.get(request_url)
     res_data = res.json()
+    if len(res_data['data']) == 0:
+        ginfork_token = token.get_ginfork_token()
+        uid = str(user_info.get_user_id())
+        request_url = params['siblings']['ginHttp'] + f'/api/v1/repos/search/user?id={repo_id}&uid={uid}&token={ginfork_token}' 
+        res = requests.get(request_url)
+        res_data = res.json()
+
+    is_new_private = dict()
+    if len(res_data['data']) == 0:
+        is_new_private['is_new'] = False
+        is_new_private['is_private'] = None
+        return is_new_private
     ssh_url = res_data['data'][0]['ssh_url']
     http_url = res_data['data'][0]['html_url'] + '.git'
     update_list = [['gin', ssh_url],['origin', http_url]]
@@ -243,7 +310,9 @@ def update_repo_url():
         result = subprocess.run('git remote set-url ' + update_target[0] + ' ' + update_target[1], shell=True, stdout=PIPE, stderr=PIPE, text=True)
         if 'No such remote' in result.stderr:
             subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
-
+    is_new_private['is_new'] = True
+    is_new_private['is_private'] = res_data['data'][0]['private']
+    return is_new_private
 
 SIBLING = 'gin'
 SUCCESS = 'データ同期が完了しました。'
@@ -387,6 +456,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         clear_output()
         if success_message:
             display_util.display_info(success_message)
+            patchContainer()
             return True
         else:
             display_util.display_warm(warm_message)
@@ -509,7 +579,8 @@ def register_metadata_for_downloaded_annexdata(file_path):
 # 研究名と実験名を表示する関数
 def show_name(color='black', EXPERIMENT_TITLE=None):
     # リモートリポジトリのURLを最新化する
-    update_repo_url()
+    is_new_private = update_repo_url()
+    
     os.chdir(os.environ['HOME'])
 
     # 研究リポジトリ名表示
@@ -522,3 +593,27 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
         #実験パッケージ名表示
         exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>"
         display(HTML(exp_text))
+    if not is_new_private['is_new']:
+        display_util.display_warm("最新のリポジトリ名でない可能性があります。<br>初期セットアップ後に再度実行してください。")
+
+def patchContainer():
+    uid = str(user_info.get_user_id())
+
+    file_path = os.environ['HOME'] + '/.repository_id'
+    with open(file_path, 'r') as f:
+        repo_id = f.read()
+
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+
+    with open('/home/jovyan/.token.json', 'w') as f:
+        dic = json.read()
+        token = dic["ginfork_token"]
+
+    response = requests.patch(
+        params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
+        data={
+            "repo_id": repo_id,
+            "user_id": uid,
+            "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
+        })

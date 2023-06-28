@@ -42,6 +42,15 @@ def get_datasetStructure():
     return assigned_values['datasetStructure']
 
 def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):
+    """Processing method after click on submit button
+
+    Check form values, authenticate users, and update RF configuration files.
+
+    Args:
+        user_auth_forms ([list(TextInput or PasswordInput)]) : [form instance]
+        error_message ([StaticText]) : [exception messages instance]
+        submit_button_user_auth ([Button]): [Submit button instance]
+    """
     def callback(event):
         user_name = user_auth_forms[0].value
         password = user_auth_forms[1].value
@@ -70,7 +79,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             submit_button_user_auth.name = 'メールアドレスが入力されていません。メールアドレスを入力し再度、ボタンとクリックしてください。'
             return
 
-        if not validate_format_mail_addres(mail_addres):
+        if not validate_format_mail_address(mail_addres):
             submit_button_user_auth.button_type = 'warning'
             submit_button_user_auth.name = 'メールアドレスの形式が不正です。再度、入力しボタンとクリックしてください。'
             return
@@ -125,10 +134,26 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
 
 
 def validate_format_username(user_name):
+    """GIN-fork username format check
+
+    Args:
+        user_name ([str]): [GIN-fork username]
+
+    Returns:
+        [Match[str] | None]: [Returns None if format does not match]
+    """
     validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
     return validation.fullmatch(user_name)
 
-def validate_format_mail_addres(mail_addres):
+def validate_format_mail_address(mail_addres):
+    """mail address format check
+
+    Args:
+        mail_address ([str]): [mail address]
+
+    Returns:
+        [Match[str] | None]: [Returns None if format does not match]
+    """
     validation =     re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
     return validation.fullmatch(mail_addres)
 

@@ -590,12 +590,6 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
 
 # 研究リポジトリ名表示
     RESEARCH_TITLE = subprocess.getoutput('git config --get remote.origin.url').split('/')[-1].replace('.git', '')
-    if len(RESEARCH_TITLE) == 0:
-        repo_url = os.environ['BINDER_REPO_URL']
-        pos = repo_url.rfind('/')
-        pos2 = repo_url.rfind('.git')
-        RESEARCH_TITLE = repo_url[pos+1:pos2]
-    
     res_text = "<h1 style='color:" + color + "'>研究リポジトリ名：" + RESEARCH_TITLE + "</h1>"
     clear_output()
     display(HTML(res_text))

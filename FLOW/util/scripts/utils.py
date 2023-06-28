@@ -291,18 +291,23 @@ def update_repo_url():
     request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
     res = requests.get(request_url)
     res_data = res.json()
-    if len(res_data['data']) == 0:
-        ginfork_token = token.get_ginfork_token()
-        uid = str(user_info.get_user_id())
-        request_url = params['siblings']['ginHttp'] + f'/api/v1/repos/search/user?id={repo_id}&uid={uid}&token={ginfork_token}' 
-        res = requests.get(request_url)
-        res_data = res.json()
-
     is_new_private = dict()
+    is_new_private['is_new'] = False
+    is_new_private['is_private'] = None
+
     if len(res_data['data']) == 0:
-        is_new_private['is_new'] = False
-        is_new_private['is_private'] = None
+        try :
+            ginfork_token = token.get_ginfork_token()
+            uid = str(user_info.get_user_id())
+            request_url = params['siblings']['ginHttp'] + f'/api/v1/repos/search/user?id={repo_id}&uid={uid}&token={ginfork_token}' 
+            res = requests.get(request_url)
+            res_data = res.json()
+        except FileNotFoundError:
+            return is_new_private
+    
+    if len(res_data['data']) == 0:
         return is_new_private
+
     ssh_url = res_data['data'][0]['ssh_url']
     http_url = res_data['data'][0]['html_url'] + '.git'
     update_list = [['gin', ssh_url],['origin', http_url]]
@@ -583,8 +588,14 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
     
     os.chdir(os.environ['HOME'])
 
-    # 研究リポジトリ名表示
+# 研究リポジトリ名表示
     RESEARCH_TITLE = subprocess.getoutput('git config --get remote.origin.url').split('/')[-1].replace('.git', '')
+    if len(RESEARCH_TITLE) == 0:
+        repo_url = os.environ['BINDER_REPO_URL']
+        pos = repo_url.rfind('/')
+        pos2 = repo_url.rfind('.git')
+        RESEARCH_TITLE = repo_url[pos+1:pos2]
+    
     res_text = "<h1 style='color:" + color + "'>研究リポジトリ名：" + RESEARCH_TITLE + "</h1>"
     clear_output()
     display(HTML(res_text))
@@ -606,8 +617,8 @@ def patchContainer():
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
 
-    with open('/home/jovyan/.token.json', 'w') as f:
-        dic = json.read()
+    with open('/home/jovyan/.token.json', 'r') as f:
+        dic = json.load(f)
         token = dic["ginfork_token"]
 
     response = requests.patch(

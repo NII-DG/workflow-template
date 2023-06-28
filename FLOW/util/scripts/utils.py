@@ -41,10 +41,6 @@ def get_datasetStructure():
     assigned_values = fetch_gin_monitoring_assigned_values()
     return assigned_values['datasetStructure']
 
-# user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
-# password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
-# mail_address_form = pn.widgets.TextInput(name="メールアドレス", placeholder= "Enter email address here...", width=700)
-
 def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):
     def callback(event):
         user_name = user_auth_forms[0].value
@@ -136,7 +132,7 @@ def validate_format_mail_addres(mail_addres):
     validation =     re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
     return validation.fullmatch(mail_addres)
 
-def create_user_auth_form():
+def initial_gin_user_auth():
     pn.extension()
     # user name form
     user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
@@ -160,15 +156,6 @@ def create_user_auth_form():
         display(form)
     display(button)
     display(error_message)
-
-
-
-
-
-
-
-
-
 
 
 def verify_GIN_user():

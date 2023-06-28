@@ -64,7 +64,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
 
         if not validate_format_username(user_name):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'ユーザ―名は英数字および"-", "_", "."のみで入力し再度、ボタンとクリックしてください。V {}:{}:{}'.format(user_name, password, mail_addres)
+            submit_button_user_auth.name = 'ユーザ―名は英数字および"-", "_", "."のみで入力し再度、ボタンとクリックしてください。'
             return
 
         ## password

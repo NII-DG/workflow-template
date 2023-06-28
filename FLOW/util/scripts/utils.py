@@ -41,6 +41,8 @@ def get_datasetStructure():
     assigned_values = fetch_gin_monitoring_assigned_values()
     return assigned_values['datasetStructure']
 
+ok_pass_gin_user_auth = False
+
 def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):
     """Processing method after click on submit button
 
@@ -129,8 +131,16 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
         else:
             submit_button_user_auth.button_type = 'success'
             submit_button_user_auth.name = '認証が正常に完了しました。次の手順へお進みください。'
+            set_ok_pass_gin_user_auth(True)
             return
     return callback
+
+def set_ok_pass_gin_user_auth(status:bool):
+    global ok_pass_gin_user_auth
+    ok_pass_gin_user_auth =True
+
+def get_ok_pass_gin_user_auth():
+    return ok_pass_gin_user_auth
 
 
 def validate_format_username(user_name):

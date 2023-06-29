@@ -42,7 +42,7 @@ def get_datasetStructure():
     return assigned_values['datasetStructure']
 
 
-def verify_GIN_user():
+def verify_GIN_user(with_email=True):
     # 以下の認証の手順で用いる、
     # GINのドメイン名等をパラメタファイルから取得する
     params = {}
@@ -81,22 +81,23 @@ def verify_GIN_user():
                 warn = "パスワードが入力されていません。パスワードを入力してください。"
             else:
                 break
-        validation = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-        warn = ''
-        while True:
-            clear_output()
-            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-            display_util.display_msg("ユーザー名："+ name)
-            display_util.display_msg("パスワード：········")
-            if len(warn) > 0:
-                display_util.display_err(warn)
-            email = input("メールアドレス：")
-            if len(email) <= 0:
-                warn = "メールアドレスが入力されていません。メールアドレスを入力してください。"
-            elif not validation.fullmatch(email):
-                warn = "メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。"
-            else:
-                break
+        if with_email:
+            validation = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+            warn = ''
+            while True:
+                clear_output()
+                display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
+                display_util.display_msg("ユーザー名："+ name)
+                display_util.display_msg("パスワード：········")
+                if len(warn) > 0:
+                    display_util.display_err(warn)
+                email = input("メールアドレス：")
+                if len(email) <= 0:
+                    warn = "メールアドレスが入力されていません。メールアドレスを入力してください。"
+                elif not validation.fullmatch(email):
+                    warn = "メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。"
+                else:
+                    break
         clear_output()
 
         # GIN API Basic Authentication
@@ -121,61 +122,10 @@ def verify_GIN_user():
                 access_token = response.json()
                 clear_output()
                 break
-    return tokens, access_token, name, email
-
-def verify_GIN_user_without_email():
-    # 以下の認証の手順で用いる、
-    # GINのドメイン名等をパラメタファイルから取得する
-    params = {}
-    with open(fetch_param_file_path(), mode='r') as f:
-        params = json.load(f)
-
-    # 正常に認証が終わるまで繰り返し
-    clear_output()
-    while True:
-        warn = ''
-        validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
-        while True:
-            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-            if len(warn) > 0:
-                display_util.display_err(warn)
-            name = input("ユーザー名：")
-            if len(name) <= 0:
-                warn = "ユーザー名が入力されていません。ユーザー名を入力してください。"
-                clear_output()
-            elif not validation.fullmatch(name):
-                warn = 'ユーザ―名は英数字および"-", "_", "."のみで入力してください。'
-                clear_output()
-            else:
-                break
-        warn = ''
-        while True:
-            clear_output()
-            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-            display_util.display_msg("ユーザー名："+ name)
-            if len(warn) > 0:
-                display_util.display_err(warn)
-            password = getpass.getpass("パスワード：")
-            if len(password) <= 0:
-                warn = "パスワードが入力されていません。パスワードを入力してください。"
-            else:
-                break
-
-        clear_output()
-
-        # GIN API Basic Authentication
-        # refs: https://docs.python-requests.org/en/master/user/authentication/
-
-        # 既存のトークンがあるか確認する
-        baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
-        response = requests.get(baseURL + name + '/tokens', auth=(name, password))
-        if response.status_code == HTTPStatus.UNAUTHORIZED:
-            display_util.display_err("ユーザ名、またはパスワードが間違っています。<br>恐れ入りますがもう一度ご入力ください。<br>")
-            continue
-        else:
-            break
-
-    return name, password
+    if with_email:
+        return tokens, access_token, name, email
+    else:
+        return name, password
 
 def fetch_ssh_config_path():
     ssh_config_path = '/home/jovyan/.ssh/config'
@@ -461,7 +411,8 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         clear_output()
         if success_message:
             display_util.display_info(success_message)
-            patchContainer()
+            # GIN-forkの実行環境一覧の更新日時を更新する
+            patch_container()
             return True
         else:
             display_util.display_warm(warm_message)
@@ -601,7 +552,43 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
     if not is_new_private['is_new']:
         display_util.display_warm("最新のリポジトリ名でない可能性があります。<br>初期セットアップ後に再度実行してください。")
 
-def patchContainer():
+# GIN-forkの実行環境一覧に追加する
+def add_container(experiment_title=""):
+    uid = str(user_info.get_user_id())
+
+    file_path = os.environ['HOME'] + '/.repository_id'
+    with open(file_path, 'r') as f:
+        repo_id = f.read()
+        
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+    
+    with open('/home/jovyan/.token.json', 'r') as f:
+        dic = json.load(f)
+        token = dic["ginfork_token"]
+
+    response = requests.post(
+        params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
+        data={
+            "repo_id": repo_id,
+            "user_id": uid,
+            "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
+            "experiment_package" : experiment_title,
+            "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/EX-WORKFLOWS/util/required_rebuild_container.ipynb"
+        })
+    
+    try:
+        if response.status_code == requests.codes.ok:
+            display_util.display_info('実行環境を追加しました。')
+
+        elif response.json()["error"].startswith("Error 1062"):
+            display_util.display_warm('すでに追加されています。')
+
+    except Exception:
+        display_util.display_err('追加に失敗しました。')
+
+# GIN-forkの実行環境一覧の更新日時を更新する
+def patch_container():
     uid = str(user_info.get_user_id())
 
     file_path = os.environ['HOME'] + '/.repository_id'
@@ -622,3 +609,21 @@ def patchContainer():
             "user_id": uid,
             "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
         })
+    
+# GIN-forkの実行環境一覧から実行環境へのリンクを削除する
+def delete_container():
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+    with open('/home/jovyan/.token.json', 'r') as f:
+            dic = json.load(f)
+            token = dic["ginfork_token"]
+    server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
+
+    response = requests.delete(
+        params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}'
+    )
+
+    if response.status_code == requests.codes.ok:
+        display_util.display_info('実行環境の削除を反映しました。')
+    else:
+        display_util.display_err('削除の反映に失敗しました。')

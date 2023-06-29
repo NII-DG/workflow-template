@@ -609,7 +609,7 @@ def patch_container():
 def delete_container():
     uid = str(user_info.get_user_id())
     with open(fetch_param_file_path(), mode='r') as f:
-            params = json.load(f)
+        params = json.load(f)
     with open('/home/jovyan/.token.json', 'r') as f:
         dic = json.load(f)
         token = dic["ginfork_token"]

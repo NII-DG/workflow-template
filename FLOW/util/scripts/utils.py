@@ -254,6 +254,9 @@ def update_repo_url():
             res_data = res.json()
         except FileNotFoundError:
             return is_new_private
+        except Exception:
+            display_util.display_err("想定外のエラーが発生しました。")
+            return is_new_private
     
     if len(res_data['data']) == 0:
         return is_new_private
@@ -555,14 +558,10 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
 # GIN-forkの実行環境一覧に追加する
 def add_container(experiment_title=""):
     uid = str(user_info.get_user_id())
-
-    file_path = os.environ['HOME'] + '/.repository_id'
-    with open(file_path, 'r') as f:
+    with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
         repo_id = f.read()
-        
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
-    
     with open('/home/jovyan/.token.json', 'r') as f:
         dic = json.load(f)
         token = dic["ginfork_token"]
@@ -590,19 +589,15 @@ def add_container(experiment_title=""):
 # GIN-forkの実行環境一覧の更新日時を更新する
 def patch_container():
     uid = str(user_info.get_user_id())
-
-    file_path = os.environ['HOME'] + '/.repository_id'
-    with open(file_path, 'r') as f:
+    with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
         repo_id = f.read()
-
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
-
     with open('/home/jovyan/.token.json', 'r') as f:
         dic = json.load(f)
         token = dic["ginfork_token"]
 
-    response = requests.patch(
+    requests.patch(
         params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
         data={
             "repo_id": repo_id,
@@ -615,8 +610,8 @@ def delete_container():
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
     with open('/home/jovyan/.token.json', 'r') as f:
-            dic = json.load(f)
-            token = dic["ginfork_token"]
+        dic = json.load(f)
+        token = dic["ginfork_token"]
     server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
 
     response = requests.delete(

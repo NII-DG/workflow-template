@@ -589,21 +589,16 @@ def add_container(experiment_title=""):
 # GIN-forkの実行環境一覧の更新日時を更新する
 def patch_container():
     uid = str(user_info.get_user_id())
-    with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
-        repo_id = f.read()
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
     with open('/home/jovyan/.token.json', 'r') as f:
         dic = json.load(f)
         token = dic["ginfork_token"]
+    server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
 
-    requests.patch(
-        params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
-        data={
-            "repo_id": repo_id,
-            "user_id": uid,
-            "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
-        })
+    requests.delete(
+        params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}&user_id={uid}'
+    )
     
 # GIN-forkの実行環境一覧から実行環境へのリンクを削除する
 def delete_container():

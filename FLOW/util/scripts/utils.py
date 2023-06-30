@@ -569,7 +569,7 @@ def add_container(experiment_title=""):
     EXCEPTION
     ---------------
     """
-    
+
     uid = str(user_info.get_user_id())
     with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
         repo_id = f.read()
@@ -592,9 +592,10 @@ def add_container(experiment_title=""):
     try:
         if response.status_code == requests.codes.ok:
             display_util.display_info('実行環境を追加しました。')
-
         elif response.json()["error"].startswith("Error 1062"):
             display_util.display_warm('すでに追加されています。')
+        else:
+            display_util.display_err('追加に失敗しました。')
 
     except Exception:
         display_util.display_err('追加に失敗しました。')

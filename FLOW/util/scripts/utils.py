@@ -555,6 +555,7 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
     if not is_new_private['is_new']:
         display_util.display_warm("最新のリポジトリ名でない可能性があります。<br>初期セットアップ後に再度実行してください。")
 
+def add_container(experiment_title=""):
     """register add container to GIN-fork container list.
     ARG
     ---------------
@@ -568,7 +569,7 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
     EXCEPTION
     ---------------
     """
-def add_container(experiment_title=""):
+    
     uid = str(user_info.get_user_id())
     with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
         repo_id = f.read()
@@ -598,6 +599,7 @@ def add_container(experiment_title=""):
     except Exception:
         display_util.display_err('追加に失敗しました。')
 
+def patch_container():
     """update only updated_unix of container
     ARG
     ---------------
@@ -611,7 +613,7 @@ def add_container(experiment_title=""):
     EXCEPTION
     ---------------
     """
-def patch_container():
+    
     uid = str(user_info.get_user_id())
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
@@ -624,6 +626,7 @@ def patch_container():
         params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}&user_id={uid}'
     )
     
+def delete_container():
     """logical delete of container
     ARG
     ---------------
@@ -635,7 +638,7 @@ def patch_container():
     EXCEPTION
     ---------------
     """
-def delete_container():
+
     uid = str(user_info.get_user_id())
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)

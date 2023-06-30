@@ -620,7 +620,7 @@ def patch_container():
         token = dic["ginfork_token"]
     server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
 
-    requests.delete(
+    requests.patch(
         params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}&user_id={uid}'
     )
     

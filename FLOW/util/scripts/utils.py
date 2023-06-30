@@ -595,10 +595,10 @@ def add_container(experiment_title=""):
         elif response.json()["error"].startswith("Error 1062"):
             display_util.display_warm('すでに追加されています。')
         else:
-            display_util.display_err('追加に失敗しました。')
+            display_util.display_err('追加に失敗しました。再度実行してください。')
 
     except Exception:
-        display_util.display_err('追加に失敗しました。')
+        display_util.display_err('追加に失敗しました。再度実行してください。')
 
 def patch_container():
     """update only updated_unix of container
@@ -655,4 +655,4 @@ def delete_container():
     if response.status_code == requests.codes.ok:
         display_util.display_info('実行環境の削除を反映しました。')
     else:
-        display_util.display_err('削除の反映に失敗しました。')
+        display_util.display_err('削除の反映に失敗しました。再度実行してください。')

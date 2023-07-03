@@ -293,7 +293,7 @@ def initial_gin_user_auth_without_email():
     succecc_private_button = pn.widgets.StaticText(value='', sizing_mode='stretch_width')
 
     # Define processing after clicking the submit button
-    button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button, succecc_private_button))
+    button.on_click(submit_user_auth_callback_without_email(user_auth_forms, error_message, button, succecc_private_button))
 
     clear_output()
     for form in user_auth_forms:

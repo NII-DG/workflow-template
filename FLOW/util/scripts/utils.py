@@ -16,6 +16,7 @@ import hashlib
 import datetime
 import re
 import panel as pn
+import urllib
 os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
 from utils.common import common
@@ -62,29 +63,29 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
         ## user name
         if len(user_name) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンとクリックしてください。'
+            submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンをクリックしてください。'
             return
 
         if not validate_format_username(user_name):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'ユーザ―名は英数字および"-", "_", "."のみで入力し再度、ボタンとクリックしてください。'
+            submit_button_user_auth.name = 'ユーザー名は英数字および"-", "_", "."のみで入力し再度、ボタンをクリックしてください。'
             return
 
         ## password
         if len(password) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンとクリックしてください。'
+            submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンをクリックしてください。'
             return
 
         ## mail addres
         if  len(mail_addres) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'メールアドレスが入力されていません。メールアドレスを入力し再度、ボタンとクリックしてください。'
+            submit_button_user_auth.name = 'メールアドレスが入力されていません。メールアドレスを入力し再度、ボタンをクリックしてください。'
             return
 
         if not validate_format_mail_address(mail_addres):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'メールアドレスの形式が不正です。再度、入力しボタンとクリックしてください。'
+            submit_button_user_auth.name = 'メールアドレスの形式が不正です。再度、入力しボタンをクリックしてください。'
             return
 
         # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
@@ -101,8 +102,10 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             ## Unauthorized
             if response.status_code == HTTPStatus.UNAUTHORIZED:
                 submit_button_user_auth.button_type = 'warning'
-                submit_button_user_auth.name = 'ユーザ名、またはパスワードが間違っています。再度、入力しボタンとクリックしてください。'
+                submit_button_user_auth.name = 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
                 return
+            
+            user_info.set_user_info(user_name)
 
             ## Check to see if there is an existing token
             access_token = dict()
@@ -125,7 +128,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
-            submit_button_user_auth.name = '予想外エラーが発生しました。担当者までご連絡ください。'
+            submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
             error_message.value = 'ERROR : {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
@@ -185,6 +188,119 @@ def initial_gin_user_auth():
     display(button)
     display(error_message)
 
+def submit_user_auth_callback_without_email(user_auth_forms, error_message, submit_button_user_auth, success_private_button):
+    """Processing method after click on submit button
+
+    Check form values, authenticate users, and update RF configuration files.
+
+    Args:
+        user_auth_forms ([list(TextInput or PasswordInput)]) : [form instance]
+        error_message ([StaticText]) : [exception messages instance]
+        submit_button_user_auth ([Button]): [Submit button instance]
+        success_private_button ([StaticText]) : [launch binder button]
+    """
+    def callback(event):     
+        user_name = user_auth_forms[0].value
+        password = user_auth_forms[1].value
+        # validate value
+        ## user name
+        if len(user_name) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンをクリックしてください。'
+            return
+
+        if not validate_format_username(user_name):
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'ユーザー名は英数字および"-", "_", "."のみで入力し再度、ボタンをクリックしてください。'
+            return
+
+        ## password
+        if len(password) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンをクリックしてください。'
+            return
+
+        # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
+        # GIN API Basic Authentication
+        # refs: https://docs.python-requests.org/en/master/user/authentication/
+        try:
+            params = {}
+            with open(fetch_param_file_path(), mode='r') as f:
+                params = json.load(f)
+
+            baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
+            response = requests.get(baseURL + user_name + '/tokens', auth=(user_name, password))
+
+            ## Unauthorized
+            if response.status_code == HTTPStatus.UNAUTHORIZED:
+                submit_button_user_auth.button_type = 'warning'
+                submit_button_user_auth.name = 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
+                return
+            
+            user_info.set_user_info(user_name)
+
+            ## Check to see if there is an existing token
+            access_token = dict()
+            tokens = response.json()
+            if len(tokens) >= 1:
+                access_token = response.json()[-1]
+            elif len(tokens) < 1:
+                response = requests.post(baseURL + user_name + '/tokens', data={"name": "system-generated"}, auth=(user_name, password))
+                if response.status_code == HTTPStatus.CREATED:
+                    access_token = response.json()
+
+        # Write out the GIN-fork access token to /home/jovyan/.token.json.
+
+            token_dict = {"ginfork_token": access_token['sha1']}
+            with open('/home/jovyan/.token.json', 'w') as f:
+                json.dump(token_dict, f, indent=4)
+
+            os.chdir(os.environ['HOME'])
+            common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
+        except Exception as e:
+            submit_button_user_auth.button_type = 'danger'
+            submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
+            error_message.value = 'ERROR : {}'.format(str(e))
+            error_message.object = pn.pane.HTML(error_message.value)
+            return
+        else:
+            submit_button_user_auth.button_type = 'success'
+            submit_button_user_auth.name = '新規実験用の実行環境を構築します。以下のボタンをクリックしてください。新規タブで開きます。'
+            error_message.object = pn.pane.HTML(error_message.value) 
+
+            remote_http_url = common.exec_subprocess(cmd='git config --get remote.origin.url')[0].decode()[:-1]
+            pos = remote_http_url.find("://")
+            remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{password}@{remote_http_url[pos+3:]}"
+            url = "https://binder.cs.rcos.nii.ac.jp/v2/git/" + urllib.parse.quote(remote_http_url, safe='') + "/HEAD?filepath=WORKFLOWS/experiment.ipynb"
+            success_private_button.value = f'<button onclick="window.open(\'{url}\')">実行環境を構築する</button>'
+            success_private_button.object = pn.pane.HTML(success_private_button.value)
+            return
+    return callback
+
+def initial_gin_user_auth_without_email():
+    pn.extension()
+
+    # user name form
+    user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
+    # password form
+    password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
+    user_auth_forms = [user_name_form, password_form]
+
+    # Instance for exception messages
+    error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
+
+    button = pn.widgets.Button(name= "入力を完了する", button_type= "primary", width=700)
+    succecc_private_button = pn.widgets.StaticText(value='', sizing_mode='stretch_width')
+
+    # Define processing after clicking the submit button
+    button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button, succecc_private_button))
+
+    clear_output()
+    for form in user_auth_forms:
+        display(form)
+    display(button)
+    display(error_message)
+    display(succecc_private_button)
 
 def fetch_ssh_config_path():
     ssh_config_path = '/home/jovyan/.ssh/config'

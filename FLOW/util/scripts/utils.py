@@ -754,15 +754,28 @@ def add_container(experiment_title=""):
         dic = json.load(f)
         token = dic["ginfork_token"]
 
-    response = requests.post(
-        params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
-        data={
-            "repo_id": repo_id,
-            "user_id": uid,
-            "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
-            "experiment_package" : experiment_title,
-            "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/EX-WORKFLOWS/util/required_rebuild_container.ipynb"
-        })
+    # experiment
+    if len(experiment_title) > 0:
+        response = requests.post(
+            params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
+            data={
+                "repo_id": repo_id,
+                "user_id": uid,
+                "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
+                "experiment_package" : experiment_title,
+                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/EX-WORKFLOWS/util/required_rebuild_container.ipynb"
+            })
+    
+    # research
+    else:
+        response = requests.post(
+            params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
+            data={
+                "repo_id": repo_id,
+                "user_id": uid,
+                "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
+                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/FLOW/util/base_required_every_time.ipynb"
+            })
     
     try:
         if response.status_code == requests.codes.ok:

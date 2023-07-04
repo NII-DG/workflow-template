@@ -763,7 +763,7 @@ def add_container(experiment_title=""):
                 "user_id": uid,
                 "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
                 "experiment_package" : experiment_title,
-                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/EX-WORKFLOWS/util/required_rebuild_container.ipynb"
+                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/experiment.ipynb"
             })
     
     # research
@@ -774,7 +774,7 @@ def add_container(experiment_title=""):
                 "repo_id": repo_id,
                 "user_id": uid,
                 "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
-                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/maDMP.ipynb"
+                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/base_FLOW.ipynb"
             })
     
     try:

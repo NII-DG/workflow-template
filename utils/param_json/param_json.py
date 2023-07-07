@@ -7,6 +7,10 @@ from ..gin_api import repos_search
 
 from urllib import parse
 
+import os
+os.chdir('/home/jovyan/WORKFLOWS')
+from utils.common import common
+
 param_file_path = '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
 
 
@@ -26,8 +30,8 @@ def update_param_url(remote_origin_url):
         From : 下位モジュール
 
     """
-
-    pr = parse.urlparse(remote_origin_url)
+    adjust_url = common.convert_url_remove_user_token(remote_origin_url)
+    pr = parse.urlparse(adjust_url)
     owner_repo_nm = pr.path.replace(".git", "")
     retry_num = 6
     flg = True

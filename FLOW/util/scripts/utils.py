@@ -713,7 +713,7 @@ def register_metadata_for_downloaded_annexdata(file_path):
 # 研究名と実験名を表示する関数
 def show_name(color='black', EXPERIMENT_TITLE=None):
     # リモートリポジトリのURLを最新化する
-    is_new_private = update_repo_url()
+    update_repo_url()
     
     os.chdir(os.environ['HOME'])
 
@@ -727,8 +727,6 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
         #実験パッケージ名表示
         exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>"
         display(HTML(exp_text))
-    if not is_new_private['is_new']:
-        display_util.display_warm("最新のリポジトリ名でない可能性があります。<br>初期セットアップ後に再度実行してください。")
 
 def add_container(experiment_title=""):
     """register add container to GIN-fork container list.

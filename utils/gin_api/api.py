@@ -68,3 +68,8 @@ def create_token_for_launch(scheme, domain, token):
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     params = {'token' : token}
     return requests.post(url=api_url, params=params)
+
+def get_server_info(scheme, domain):
+    sub_url = "api/v1/gin"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    return requests.get(url=api_url)

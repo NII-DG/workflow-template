@@ -52,3 +52,15 @@ def repos(scheme, domain, owner_repo_nm):
     sub_url = parse.urljoin("api/v1/repos/", "./" + owner_repo_nm)
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     return requests.get(api_url)
+
+def delete_access_token(scheme, domain, token):
+    sub_url = "api/v1/user/token/delete"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {'token' : token}
+    return requests.delete(url=api_url, params=params)
+
+def create_token_for_launch(scheme, domain, token):
+    sub_url = "api/v1/user/token/forlaunch"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {'token' : token}
+    return requests.post(url=api_url, params=params)

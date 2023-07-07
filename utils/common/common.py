@@ -103,6 +103,6 @@ def convert_url_remove_user_token(url):
 
         # ユーザ名とパスワードを除いたURLを生成
         new_url = f"{protocol}{domain}"
-        return new_url
+        return new_url, password
 
-    return url  # 変換できない場合は元のURLを返す
+    return url, ""  # 変換できない場合は元のURLを返す

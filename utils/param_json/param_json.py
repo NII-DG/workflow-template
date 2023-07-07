@@ -30,13 +30,14 @@ def update_param_url(remote_origin_url):
         From : 下位モジュール
 
     """
-    adjust_url = common.convert_url_remove_user_token(remote_origin_url)
+    adjust_url, token = common.convert_url_remove_user_token(remote_origin_url)
+
     pr = parse.urlparse(adjust_url)
     owner_repo_nm = pr.path.replace(".git", "")
     retry_num = 6
     flg = True
     while flg:
-        response = api.repos(pr.scheme, pr.netloc, owner_repo_nm)
+        response = api.repos(pr.scheme, pr.netloc, owner_repo_nm, token)
         if response.status_code == HTTPStatus.OK:
             flg = False
 

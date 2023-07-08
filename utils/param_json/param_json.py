@@ -25,9 +25,6 @@ def update_param_url(remote_origin_url):
     requests.exceptions.RequestException :
         Description : 接続の確立不良。
         From : 下位モジュール
-    query_err.QueryError :
-        Description : レスポンス "data"内のデータ数が１以外の場合不正なクエリとして例外とする
-        From : 下位モジュール
 
     """
     adjust_url, token = common.convert_url_remove_user_token(remote_origin_url)
@@ -57,5 +54,5 @@ def update_param_url(remote_origin_url):
         elif response.status_code == HTTPStatus.NOT_FOUND:
             retry_num -= 1
             if retry_num == 0:
-                display_util.display_err("データガバナンス機能から正しいデータが取得できませんでした。システム担当者にご連絡ください")
+                display_util.display_err("データガバナンス機能から正しいデータが取得できませんでした。システム担当者にご連絡ください。")
                 flg = False

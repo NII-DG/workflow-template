@@ -26,7 +26,7 @@ def get_ginfork_token():
 
 
 def del_build_token_by_remote_origin_url(remote_origin_url):
-    """param.jsonのsiblings.ginHttpとsiblings.ginSshを更新する。
+    """プリベートリポジトリ構築用トークンの削除
     ARG
     ---------------
     remote_origin_url : str
@@ -39,13 +39,17 @@ def del_build_token_by_remote_origin_url(remote_origin_url):
 
     """
     adjust_url, token = common.convert_url_remove_user_token(remote_origin_url)
-    pr = parse.urlparse(adjust_url)
-    response = api.delete_access_token(pr.scheme, pr.netloc, token=token)
-    if response.status_code == HTTPStatus.OK:
-        display_util.display_info("GIN-forkの構築用トークンの削除に成功しました。")
-    elif response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
-        display_util.display_info("GIN-forkの構築用トークンは既に削除されています。")
+    if len(token) > 0:
+        # only private repo
+        pr = parse.urlparse(adjust_url)
+        response = api.delete_access_token(pr.scheme, pr.netloc, token=token)
+        if response.status_code == HTTPStatus.OK:
+            display_util.display_info("プライベートリポジトリ構築用トークンの削除に成功しました。")
+        elif response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+            display_util.display_info("プライベートリポジトリ構築用トークンは既に削除されています。")
+        else:
+            display_util.display_err("プライベートリポジトリ構築用トークンの削除に失敗しました。システム担当者にご連絡ください。")
+            response_data = response.json()
+            display_util.display_err('[ERR] {}'.format(response_data['message']))
     else:
-        display_util.display_err("GIN-forkの構築用トークンの削除に失敗しました。システム担当者にご連絡ください。")
-        response_data = response.json()
-        display_util.display_err('[ERR] {}'.format(response_data['message']))
+        pass

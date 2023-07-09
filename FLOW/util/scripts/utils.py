@@ -23,7 +23,7 @@ from utils.common import common
 from utils import display_util
 from utils.token import token
 from utils.user_info import user_info
-from utils.gin_api import api
+from utils.gin_api import api as gin_api
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
@@ -261,7 +261,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
 
             pr = parse.urlparse(params['siblings']['ginHttp'])
             # get building token
-            launch_token_res = api.create_token_for_launch(scheme=pr.scheme, domain=pr.netloc, token=access_token['sha1'])
+            launch_token_res = gin_api.create_token_for_launch(scheme=pr.scheme, domain=pr.netloc, token=access_token['sha1'])
             launch_token = ''
             if launch_token_res.status_code == HTTPStatus.CREATED:
                 launch_token_response_data = response.json()

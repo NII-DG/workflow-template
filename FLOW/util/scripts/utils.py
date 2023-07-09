@@ -23,6 +23,7 @@ from utils.common import common
 from utils import display_util
 from utils.token import token
 from utils.user_info import user_info
+from utils.gin_api import api
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
@@ -257,6 +258,19 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
 
             os.chdir(os.environ['HOME'])
             common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
+
+            pr = parse.urlparse(params['siblings']['ginHttp'])
+            # get building token
+            launch_token_res = api.create_token_for_launch(scheme=pr.scheme, domain=pr.netloc, token=access_token['sha1'])
+            launch_token = ''
+            if launch_token_res.status_code == HTTPStatus.CREATED:
+                launch_token_response_data = response.json()
+                launch_token = launch_token_response_data['sha1']
+            else:
+                err_msg = 'Fail to create buildling token from GIN-fork API. status_code : {}, respose_body : {}'.format(launch_token_res.status_code, response.json())
+                raise Exception(err_msg)
+
+
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
@@ -270,7 +284,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
 
             remote_http_url = common.exec_subprocess(cmd='git config --get remote.origin.url')[0].decode()[:-1]
             pos = remote_http_url.find("://")
-            remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{password}@{remote_http_url[pos+3:]}"
+            remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{launch_token}@{remote_http_url[pos+3:]}"
             url = "https://binder.cs.rcos.nii.ac.jp/v2/git/" + urllib.parse.quote(remote_http_url, safe='') + "/HEAD?filepath=WORKFLOWS/experiment.ipynb"
             success_private_button.value = f'<button onclick="window.open(\'{url}\')">実行環境を構築する</button>'
             success_private_button.object = pn.pane.HTML(success_private_button.value)

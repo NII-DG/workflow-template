@@ -49,10 +49,12 @@ def del_build_token_by_remote_origin_url(remote_origin_url, display_msg=True):
         elif response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             if display_msg:
                 display_util.display_info("プライベートリポジトリ構築用トークンは既に削除されています。")
+        elif response.status_code == HTTPStatus.UNAUTHORIZED:
+            if display_msg:
+                display_util.display_info("プライベートリポジトリ構築用トークンは既に削除されています。")
         else:
             if display_msg:
-                display_util.display_err("プライベートリポジトリ構築用トークンの削除に失敗しました。システム担当者にご連絡ください。")
-                response_data = response.json()
-                display_util.display_err('[ERR] {}'.format(response_data['message']))
+
+                display_util.display_err('プライベートリポジトリ構築用トークンの削除に失敗しました。システム担当者にご連絡ください。Code[{}]'.format(response.status_code))
     else:
         pass

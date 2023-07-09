@@ -54,7 +54,6 @@ def del_build_token_by_remote_origin_url(remote_origin_url, display_msg=True):
                 display_util.display_info("プライベートリポジトリ構築用トークンは既に削除されています。")
         else:
             if display_msg:
-
                 display_util.display_err('プライベートリポジトリ構築用トークンの削除に失敗しました。システム担当者にご連絡ください。Code[{}]'.format(response.status_code))
     else:
         pass

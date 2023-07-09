@@ -273,7 +273,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
-            error_message.value = 'ERROR : {}. {}'.format(str(e))
+            error_message.value = 'ERROR : {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:

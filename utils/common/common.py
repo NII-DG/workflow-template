@@ -92,7 +92,6 @@ def sortFilePath(filepaths : list[str])->list[str]:
 
 
 def convert_url_remove_user_token(url):
-    # ユーザ名とパスワードを含むURLを抽出
     pattern = r"(http[s]?://)([^:]+):([^@]+)@(.+)"
     match = re.search(pattern, url)
     if match:
@@ -101,8 +100,9 @@ def convert_url_remove_user_token(url):
         password = match.group(3)
         domain = match.group(4)
 
-        # ユーザ名とパスワードを除いたURLを生成
+        # Generate URL without username and password
+        # domain includes paths
         new_url = f"{protocol}{domain}"
         return new_url, password
 
-    return url, ""  # 変換できない場合は元のURLを返す
+    return url, ""  # Returns the original URL if it cannot be converted

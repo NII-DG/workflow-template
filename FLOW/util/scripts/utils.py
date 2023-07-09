@@ -127,6 +127,21 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             os.chdir(os.environ['HOME'])
             common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
             common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
+
+            http_origin_url = subprocess.getoutput('git config --get remote.origin.url')
+            adjust_url, token = common.convert_url_remove_user_token(http_origin_url)
+            if len(token) > 0:
+                # only private repo
+                pr = parse.urlparse(adjust_url)
+                response = api.delete_access_token(pr.scheme, pr.netloc, token=token)
+                if response.status_code == HTTPStatus.OK:
+                    pass
+                elif response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+                    pass
+                else:
+                    response_data = response.json()
+                    err_msg = 'プライベートリポジトリ構築用トークンの削除に失敗しました。システム担当者にご連絡ください。 [ERR] {}'.format(response_data['message'])
+                    raise Exception(err_msg)
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'

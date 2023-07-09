@@ -42,8 +42,11 @@ def update_param_url(remote_origin_url):
             f.close()
 
             response_data = response.json()
+            http_url = response_data["http"]
+            if http_url[-1] == '/':
+                http_url = http_url.rstrip('/')
 
-            df["siblings"]["ginHttp"] = response_data["http"]
+            df["siblings"]["ginHttp"] = http_url
             df["siblings"]["ginSsh"] = response_data["ssh"]
 
             with open(param_file_path, 'w') as f:

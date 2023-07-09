@@ -104,7 +104,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
                 submit_button_user_auth.button_type = 'warning'
                 submit_button_user_auth.name = 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
                 return
-            
+
             user_info.set_user_info(user_name)
 
             ## Check to see if there is an existing token
@@ -199,7 +199,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
         submit_button_user_auth ([Button]): [Submit button instance]
         success_private_button ([StaticText]) : [launch binder button]
     """
-    def callback(event):     
+    def callback(event):
         user_name = user_auth_forms[0].value
         password = user_auth_forms[1].value
         # validate value
@@ -236,7 +236,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
                 submit_button_user_auth.button_type = 'warning'
                 submit_button_user_auth.name = 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
                 return
-            
+
             user_info.set_user_info(user_name)
 
             ## Check to see if there is an existing token
@@ -266,7 +266,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
         else:
             submit_button_user_auth.button_type = 'success'
             submit_button_user_auth.name = '新規実験用の実行環境を構築します。以下のボタンをクリックしてください。新規タブで開きます。'
-            error_message.object = pn.pane.HTML(error_message.value) 
+            error_message.object = pn.pane.HTML(error_message.value)
 
             remote_http_url = common.exec_subprocess(cmd='git config --get remote.origin.url')[0].decode()[:-1]
             pos = remote_http_url.find("://")
@@ -424,7 +424,7 @@ def update_repo_url():
         try :
             ginfork_token = token.get_ginfork_token()
             uid = str(user_info.get_user_id())
-            request_url = params['siblings']['ginHttp'] + f'/api/v1/repos/search/user?id={repo_id}&uid={uid}&token={ginfork_token}' 
+            request_url = params['siblings']['ginHttp'] + f'/api/v1/repos/search/user?id={repo_id}&uid={uid}&token={ginfork_token}'
             res = requests.get(request_url)
             res_data = res.json()
         except FileNotFoundError:
@@ -432,7 +432,7 @@ def update_repo_url():
         except Exception:
             display_util.display_err("想定外のエラーが発生しました。")
             return is_new_private
-    
+
     if len(res_data['data']) == 0:
         return is_new_private
 
@@ -714,7 +714,7 @@ def register_metadata_for_downloaded_annexdata(file_path):
 def show_name(color='black', EXPERIMENT_TITLE=None):
     # リモートリポジトリのURLを最新化する
     is_new_private = update_repo_url()
-    
+
     os.chdir(os.environ['HOME'])
 
     # 研究リポジトリ名表示
@@ -765,7 +765,7 @@ def add_container(experiment_title=""):
                 "experiment_package" : experiment_title,
                 "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/experiment.ipynb"
             })
-    
+
     # research
     else:
         response = requests.post(
@@ -776,7 +776,7 @@ def add_container(experiment_title=""):
                 "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
                 "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/base_FLOW.ipynb"
             })
-    
+
     try:
         if response.status_code == requests.codes.ok:
             display_util.display_info('実行環境を追加しました。')
@@ -802,7 +802,7 @@ def patch_container():
     EXCEPTION
     ---------------
     """
-    
+
     uid = str(user_info.get_user_id())
     with open(fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
@@ -814,7 +814,7 @@ def patch_container():
     requests.patch(
         params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}&user_id={uid}'
     )
-    
+
 def delete_container():
     """logical delete of container
     ARG

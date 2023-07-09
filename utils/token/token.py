@@ -25,7 +25,7 @@ def get_ginfork_token():
     return ginfork_token
 
 
-def del_build_token_by_remote_origin_url(remote_origin_url):
+def del_build_token_by_remote_origin_url(remote_origin_url, display_msg=True):
     """プリベートリポジトリ構築用トークンの削除
     ARG
     ---------------
@@ -44,12 +44,15 @@ def del_build_token_by_remote_origin_url(remote_origin_url):
         pr = parse.urlparse(adjust_url)
         response = api.delete_access_token(pr.scheme, pr.netloc, token=token)
         if response.status_code == HTTPStatus.OK:
-            display_util.display_info("プライベートリポジトリ構築用トークンの削除に成功しました。")
+            if display_msg:
+                display_util.display_info("プライベートリポジトリ構築用トークンの削除に成功しました。")
         elif response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
-            display_util.display_info("プライベートリポジトリ構築用トークンは既に削除されています。")
+            if display_msg:
+                display_util.display_info("プライベートリポジトリ構築用トークンは既に削除されています。")
         else:
-            display_util.display_err("プライベートリポジトリ構築用トークンの削除に失敗しました。システム担当者にご連絡ください。")
-            response_data = response.json()
-            display_util.display_err('[ERR] {}'.format(response_data['message']))
+            if display_msg:
+                display_util.display_err("プライベートリポジトリ構築用トークンの削除に失敗しました。システム担当者にご連絡ください。")
+                response_data = response.json()
+                display_util.display_err('[ERR] {}'.format(response_data['message']))
     else:
         pass

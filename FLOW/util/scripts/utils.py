@@ -264,17 +264,16 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
             launch_token_res = gin_api.create_token_for_launch(scheme=pr.scheme, domain=pr.netloc, token=access_token['sha1'])
             launch_token = ''
             if launch_token_res.status_code == HTTPStatus.CREATED:
-                launch_token_response_data = response.json()
+                launch_token_response_data = launch_token_res.json()
                 launch_token = launch_token_response_data['sha1']
             else:
-                err_msg = 'Fail to create buildling token from GIN-fork API. status_code : {}, respose_body : {}'.format(launch_token_res.status_code, response.json())
+                err_msg = 'Fail to create buildling token from GIN-fork API. status_code : {}'.format(launch_token_res.status_code)
                 raise Exception(err_msg)
-
 
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
-            error_message.value = 'ERROR : {}'.format(str(e))
+            error_message.value = 'ERROR : {}. {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:

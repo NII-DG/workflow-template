@@ -522,7 +522,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist' in datalad_error:
+        if 'Repository does not exist' in datalad_error or 'failed with exitcode 128' in datalad_error:
             try:
                 # update URLs of remote repositories
                 update_repo_url()
@@ -727,7 +727,6 @@ def register_metadata_for_downloaded_annexdata(file_path):
 def show_name(color='black', EXPERIMENT_TITLE=None):
     # リモートリポジトリのURLを最新化する
     update_repo_url()
-
     os.chdir(os.environ['HOME'])
 
     # 研究リポジトリ名表示

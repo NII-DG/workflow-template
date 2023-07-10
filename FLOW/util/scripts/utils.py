@@ -599,7 +599,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.chdir(os.environ['HOME'])
             success_message = SUCCESS
     finally:
-        clear_output()
+        # clear_output()
         if success_message:
             display_util.display_info(success_message)
             # GIN-forkの実行環境一覧の更新日時を更新する

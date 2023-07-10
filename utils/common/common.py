@@ -89,3 +89,20 @@ def sortFilePath(filepaths : list[str])->list[str]:
         file_paths_desc.extend(natsorted(group_file_path,reverse=True))
 
     return list(reversed(file_paths_desc))
+
+
+def convert_url_remove_user_token(url):
+    pattern = r"(http[s]?://)([^:]+):([^@]+)@(.+)"
+    match = re.search(pattern, url)
+    if match:
+        protocol = match.group(1)
+        username = match.group(2)
+        password = match.group(3)
+        domain = match.group(4)
+
+        # Generate URL without username and password
+        # domain includes paths
+        new_url = f"{protocol}{domain}"
+        return new_url, password
+
+    return url, ""  # Returns the original URL if it cannot be converted

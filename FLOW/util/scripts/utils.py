@@ -278,14 +278,14 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
             return
         else:
             submit_button_user_auth.button_type = 'success'
-            submit_button_user_auth.name = '新規実験用の実行環境を構築します。以下のボタンをクリックしてください。新規タブで開きます。'
+            submit_button_user_auth.name = '新規実験用の実行環境を作成します。以下のボタンをクリックしてください。新規タブで開きます。'
             error_message.object = pn.pane.HTML(error_message.value)
 
             remote_http_url = common.exec_subprocess(cmd='git config --get remote.origin.url')[0].decode()[:-1]
             pos = remote_http_url.find("://")
             remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{launch_token}@{remote_http_url[pos+3:]}"
             url = "https://binder.cs.rcos.nii.ac.jp/v2/git/" + urllib.parse.quote(remote_http_url, safe='') + "/HEAD?filepath=WORKFLOWS/experiment.ipynb"
-            success_private_button.value = f'<button onclick="window.open(\'{url}\')">実行環境を構築する</button>'
+            success_private_button.value = f'<button onclick="window.open(\'{url}\')">実行環境を作成する</button>'
             success_private_button.object = pn.pane.HTML(success_private_button.value)
             return
     return callback

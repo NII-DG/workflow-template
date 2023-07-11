@@ -847,7 +847,7 @@ def delete_container():
             token = dic["ginfork_token"]
     except FileNotFoundError:
         clear_output()
-        display_util.display_info('実行環境の削除を反映しました。')
+        display_util.display_info('実行環境の削除対象が存在しませんでした。')
         return
     
     server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]

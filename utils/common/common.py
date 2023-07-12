@@ -1,6 +1,7 @@
 import subprocess
 import re
 import os
+from natsort import natsorted
 
 
 def get_AND_elements(list_a, list_b :list)->list:
@@ -60,3 +61,48 @@ def get_AND_dirpaths(paths:list[str])->list[str]:
         else:
             dirpaths.append(dir)
     return dirpaths
+
+def sortFilePath(filepaths : list[str])->list[str]:
+    # create file base info for sort
+    file_path_root_ext = dict[str, dict[str, str]]()
+    root_list = list[str]()
+    ext_list = list[str]()
+    for filepath in filepaths:
+        root, ext = os.path.splitext(filepath)
+        root_ext = {root : ext}
+        file_path_root_ext[filepath] = root_ext
+        if root not in root_list:
+            root_list.append(root)
+        if ext not in ext_list:
+            ext_list.append(ext)
+    root_list = natsorted(root_list)
+    ext_list = natsorted(ext_list)
+
+    # create
+    file_paths_desc = list[str]()
+    for root in reversed(root_list):
+        group_file_path = list[str]()
+        for filepath, root_ext in file_path_root_ext.items():
+            for root_info in root_ext.keys():
+                if root == root_info:
+                    group_file_path.append(filepath)
+        file_paths_desc.extend(natsorted(group_file_path,reverse=True))
+
+    return list(reversed(file_paths_desc))
+
+
+def convert_url_remove_user_token(url):
+    pattern = r"(http[s]?://)([^:]+):([^@]+)@(.+)"
+    match = re.search(pattern, url)
+    if match:
+        protocol = match.group(1)
+        username = match.group(2)
+        password = match.group(3)
+        domain = match.group(4)
+
+        # Generate URL without username and password
+        # domain includes paths
+        new_url = f"{protocol}{domain}"
+        return new_url, password
+
+    return url, ""  # Returns the original URL if it cannot be converted

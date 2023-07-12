@@ -1,6 +1,7 @@
 import json
 import os
 import glob
+import shutil
 from IPython.display import clear_output, HTML, display
 from urllib import parse
 import getpass
@@ -14,10 +15,15 @@ import magic
 import hashlib
 import datetime
 import re
+import panel as pn
+import urllib
 os.chdir('/home/jovyan/WORKFLOWS')
 from utils.git import git_module
 from utils.common import common
 from utils import display_util
+from utils.token import token
+from utils.user_info import user_info
+from utils.gin_api import api as gin_api
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/FLOW/param_files/params.json'
@@ -40,87 +46,274 @@ def get_datasetStructure():
     return assigned_values['datasetStructure']
 
 
-def verify_GIN_user():
-    # 以下の認証の手順で用いる、
-    # GINのドメイン名等をパラメタファイルから取得する
-    params = {}
-    with open(fetch_param_file_path(), mode='r') as f:
-        params = json.load(f)
+def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):
+    """Processing method after click on submit button
 
-    # 正常に認証が終わるまで繰り返し
-    global tokens
-    global access_token
-    clear_output()
-    while True:
-        warn = ''
-        validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
-        while True:
-            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-            if len(warn) > 0:
-                display_util.display_err(warn)
-            name = input("ユーザー名：")
-            if len(name) <= 0:
-                warn = "ユーザー名が入力されていません。ユーザー名を入力してください。"
-                clear_output()
-            elif not validation.fullmatch(name):
-                warn = 'ユーザ―名は英数字および"-", "_", "."のみで入力してください。'
-                clear_output()
-            else:
-                break
-        warn = ''
-        while True:
-            clear_output()
-            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-            display_util.display_msg("ユーザー名："+ name)
-            if len(warn) > 0:
-                display_util.display_err(warn)
-            password = getpass.getpass("パスワード：")
-            if len(password) <= 0:
-                warn = "パスワードが入力されていません。パスワードを入力してください。"
-            else:
-                break
-        validation = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-        warn = ''
-        while True:
-            clear_output()
-            display_util.display_info("GIN-forkのユーザー情報を入力後、Enterキーを押下してください。")
-            display_util.display_msg("ユーザー名："+ name)
-            display_util.display_msg("パスワード：········")
-            if len(warn) > 0:
-                display_util.display_err(warn)
-            email = input("メールアドレス：")
-            if len(email) <= 0:
-                warn = "メールアドレスが入力されていません。メールアドレスを入力してください。"
-            elif not validation.fullmatch(email):
-                warn = "メールアドレスの形式が不正です。恐れ入りますがもう一度ご入力ください。"
-            else:
-                break
-        clear_output()
+    Check form values, authenticate users, and update RF configuration files.
 
+    Args:
+        user_auth_forms ([list(TextInput or PasswordInput)]) : [form instance]
+        error_message ([StaticText]) : [exception messages instance]
+        submit_button_user_auth ([Button]): [Submit button instance]
+    """
+    def callback(event):
+        user_name = user_auth_forms[0].value
+        password = user_auth_forms[1].value
+        mail_addres = user_auth_forms[2].value
+        # validate value
+        ## user name
+        if len(user_name) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンをクリックしてください。'
+            return
+
+        if not validate_format_username(user_name):
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'ユーザー名は英数字および"-", "_", "."のみで入力し再度、ボタンをクリックしてください。'
+            return
+
+        ## password
+        if len(password) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンをクリックしてください。'
+            return
+
+        ## mail addres
+        if  len(mail_addres) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'メールアドレスが入力されていません。メールアドレスを入力し再度、ボタンをクリックしてください。'
+            return
+
+        if not validate_format_mail_address(mail_addres):
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'メールアドレスの形式が不正です。再度、入力しボタンをクリックしてください。'
+            return
+
+        # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
         # GIN API Basic Authentication
         # refs: https://docs.python-requests.org/en/master/user/authentication/
+        try:
+            params = {}
+            with open(fetch_param_file_path(), mode='r') as f:
+                params = json.load(f)
 
-        # 既存のトークンがあるか確認する
-        baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
-        response = requests.get(baseURL + name + '/tokens', auth=(name, password))
-        if response.status_code == HTTPStatus.UNAUTHORIZED:
-            display_util.display_err("ユーザ名、またはパスワードが間違っています。<br>恐れ入りますがもう一度ご入力ください。<br>")
-            continue
+            baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
+            response = requests.get(baseURL + user_name + '/tokens', auth=(user_name, password))
 
-        tokens = response.json()
-        if len(tokens) >= 1:
-            access_token = response.json()[-1]
-            clear_output()
-            break
-        elif len(tokens) < 1:
-            # 既存のトークンがなければ作成する
-            response = requests.post(baseURL + name + '/tokens', data={"name": "system-generated"}, auth=(name, password))
-            if response.status_code == HTTPStatus.CREATED:
-                access_token = response.json()
-                clear_output()
-                break
-    return tokens, access_token, name, email
+            ## Unauthorized
+            if response.status_code == HTTPStatus.UNAUTHORIZED:
+                submit_button_user_auth.button_type = 'warning'
+                submit_button_user_auth.name = 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
+                return
 
+            user_info.set_user_info(user_name)
+
+            ## Check to see if there is an existing token
+            access_token = dict()
+            tokens = response.json()
+            if len(tokens) >= 1:
+                access_token = response.json()[-1]
+            elif len(tokens) < 1:
+                response = requests.post(baseURL + user_name + '/tokens', data={"name": "system-generated"}, auth=(user_name, password))
+                if response.status_code == HTTPStatus.CREATED:
+                    access_token = response.json()
+
+        # Write out the GIN-fork access token to /home/jovyan/.token.json.
+
+            token_dict = {"ginfork_token": access_token['sha1']}
+            with open('/home/jovyan/.token.json', 'w') as f:
+                json.dump(token_dict, f, indent=4)
+
+            os.chdir(os.environ['HOME'])
+            common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
+            common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
+        except Exception as e:
+            submit_button_user_auth.button_type = 'danger'
+            submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
+            error_message.value = 'ERROR : {}'.format(str(e))
+            error_message.object = pn.pane.HTML(error_message.value)
+            return
+        else:
+            submit_button_user_auth.button_type = 'success'
+            submit_button_user_auth.name = '認証が正常に完了しました。次の手順へお進みください。'
+            return
+    return callback
+
+
+def validate_format_username(user_name):
+    """GIN-fork username format check
+
+    Args:
+        user_name ([str]): [GIN-fork username]
+
+    Returns:
+        [Match[str] | None]: [Returns None if format does not match]
+    """
+    validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
+    return validation.fullmatch(user_name)
+
+def validate_format_mail_address(mail_addres):
+    """mail address format check
+
+    Args:
+        mail_address ([str]): [mail address]
+
+    Returns:
+        [Match[str] | None]: [Returns None if format does not match]
+    """
+    validation =     re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    return validation.fullmatch(mail_addres)
+
+def initial_gin_user_auth():
+    pn.extension()
+    # user name form
+    user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
+    # password form
+    password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
+    # email address form
+    mail_address_form = pn.widgets.TextInput(name="メールアドレス", placeholder= "Enter email address here...", width=700)
+    user_auth_forms = [user_name_form, password_form, mail_address_form]
+
+    # Instance for exception messages
+    error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
+
+    button = pn.widgets.Button(name= "入力を完了する", button_type= "primary", width=700)
+
+
+    # Define processing after clicking the submit button
+    button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
+
+    clear_output()
+    for form in user_auth_forms:
+        display(form)
+    display(button)
+    display(error_message)
+
+def submit_user_auth_callback_without_email(user_auth_forms, error_message, submit_button_user_auth, success_private_button):
+    """Processing method after click on submit button
+
+    Check form values, authenticate users, and update RF configuration files.
+
+    Args:
+        user_auth_forms ([list(TextInput or PasswordInput)]) : [form instance]
+        error_message ([StaticText]) : [exception messages instance]
+        submit_button_user_auth ([Button]): [Submit button instance]
+        success_private_button ([StaticText]) : [launch binder button]
+    """
+    def callback(event):
+        user_name = user_auth_forms[0].value
+        password = user_auth_forms[1].value
+        # validate value
+        ## user name
+        if len(user_name) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンをクリックしてください。'
+            return
+
+        if not validate_format_username(user_name):
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'ユーザー名は英数字および"-", "_", "."のみで入力し再度、ボタンをクリックしてください。'
+            return
+
+        ## password
+        if len(password) <= 0:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンをクリックしてください。'
+            return
+
+        # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
+        # GIN API Basic Authentication
+        # refs: https://docs.python-requests.org/en/master/user/authentication/
+        try:
+            params = {}
+            with open(fetch_param_file_path(), mode='r') as f:
+                params = json.load(f)
+
+            baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
+            response = requests.get(baseURL + user_name + '/tokens', auth=(user_name, password))
+
+            ## Unauthorized
+            if response.status_code == HTTPStatus.UNAUTHORIZED:
+                submit_button_user_auth.button_type = 'warning'
+                submit_button_user_auth.name = 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
+                return
+
+            user_info.set_user_info(user_name)
+
+            ## Check to see if there is an existing token
+            access_token = dict()
+            tokens = response.json()
+            if len(tokens) >= 1:
+                access_token = response.json()[-1]
+            elif len(tokens) < 1:
+                response = requests.post(baseURL + user_name + '/tokens', data={"name": "system-generated"}, auth=(user_name, password))
+                if response.status_code == HTTPStatus.CREATED:
+                    access_token = response.json()
+
+        # Write out the GIN-fork access token to /home/jovyan/.token.json.
+
+            token_dict = {"ginfork_token": access_token['sha1']}
+            with open('/home/jovyan/.token.json', 'w') as f:
+                json.dump(token_dict, f, indent=4)
+
+            os.chdir(os.environ['HOME'])
+            common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
+
+            pr = parse.urlparse(params['siblings']['ginHttp'])
+            # get building token
+            launch_token_res = gin_api.create_token_for_launch(scheme=pr.scheme, domain=pr.netloc, token=access_token['sha1'])
+            launch_token = ''
+            if launch_token_res.status_code == HTTPStatus.CREATED:
+                launch_token_response_data = launch_token_res.json()
+                launch_token = launch_token_response_data['sha1']
+            else:
+                err_msg = 'Fail to create buildling token from GIN-fork API. status_code : {}'.format(launch_token_res.status_code)
+                raise Exception(err_msg)
+
+        except Exception as e:
+            submit_button_user_auth.button_type = 'danger'
+            submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
+            error_message.value = 'ERROR : {}'.format(str(e))
+            error_message.object = pn.pane.HTML(error_message.value)
+            return
+        else:
+            submit_button_user_auth.button_type = 'success'
+            submit_button_user_auth.name = '新規実験用の実行環境を作成します。以下のボタンをクリックしてください。新規タブで開きます。'
+            error_message.object = pn.pane.HTML(error_message.value)
+
+            remote_http_url = common.exec_subprocess(cmd='git config --get remote.origin.url')[0].decode()[:-1]
+            pos = remote_http_url.find("://")
+            remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{launch_token}@{remote_http_url[pos+3:]}"
+            url = "https://binder.cs.rcos.nii.ac.jp/v2/git/" + urllib.parse.quote(remote_http_url, safe='') + "/HEAD?filepath=WORKFLOWS/experiment.ipynb"
+            success_private_button.value = f'<button onclick="window.open(\'{url}\')">実行環境を作成する</button>'
+            success_private_button.object = pn.pane.HTML(success_private_button.value)
+            return
+    return callback
+
+def initial_gin_user_auth_without_email():
+    pn.extension()
+
+    # user name form
+    user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
+    # password form
+    password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
+    user_auth_forms = [user_name_form, password_form]
+
+    # Instance for exception messages
+    error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
+
+    button = pn.widgets.Button(name= "入力を完了する", button_type= "primary", width=700)
+    succecc_private_button = pn.widgets.StaticText(value='', sizing_mode='stretch_width')
+
+    # Define processing after clicking the submit button
+    button.on_click(submit_user_auth_callback_without_email(user_auth_forms, error_message, button, succecc_private_button))
+
+    clear_output()
+    for form in user_auth_forms:
+        display(form)
+    display(button)
+    display(error_message)
+    display(succecc_private_button)
 
 def fetch_ssh_config_path():
     ssh_config_path = '/home/jovyan/.ssh/config'
@@ -236,6 +429,26 @@ def update_repo_url():
     request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
     res = requests.get(request_url)
     res_data = res.json()
+    is_new_private = dict()
+    is_new_private['is_new'] = False
+    is_new_private['is_private'] = None
+
+    if len(res_data['data']) == 0:
+        try :
+            ginfork_token = token.get_ginfork_token()
+            uid = str(user_info.get_user_id())
+            request_url = params['siblings']['ginHttp'] + f'/api/v1/repos/search/user?id={repo_id}&uid={uid}&token={ginfork_token}'
+            res = requests.get(request_url)
+            res_data = res.json()
+        except FileNotFoundError:
+            return is_new_private
+        except Exception:
+            display_util.display_err("想定外のエラーが発生しました。")
+            return is_new_private
+
+    if len(res_data['data']) == 0:
+        return is_new_private
+
     ssh_url = res_data['data'][0]['ssh_url']
     http_url = res_data['data'][0]['html_url'] + '.git'
     update_list = [['gin', ssh_url],['origin', http_url]]
@@ -243,7 +456,9 @@ def update_repo_url():
         result = subprocess.run('git remote set-url ' + update_target[0] + ' ' + update_target[1], shell=True, stdout=PIPE, stderr=PIPE, text=True)
         if 'No such remote' in result.stderr:
             subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
-
+    is_new_private['is_new'] = True
+    is_new_private['is_private'] = res_data['data'][0]['private']
+    return is_new_private
 
 SIBLING = 'gin'
 SUCCESS = 'データ同期が完了しました。'
@@ -307,7 +522,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     except:
         datalad_error = traceback.format_exc()
         # if there is a connection error to the remote, try recovery
-        if 'Repository does not exist' in datalad_error:
+        if 'Repository does not exist' in datalad_error or 'failed with exitcode 128' in datalad_error:
             try:
                 # update URLs of remote repositories
                 update_repo_url()
@@ -387,6 +602,8 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         clear_output()
         if success_message:
             display_util.display_info(success_message)
+            # GIN-forkの実行環境一覧の更新日時を更新する
+            patch_container()
             return True
         else:
             display_util.display_warm(warm_message)
@@ -522,3 +739,124 @@ def show_name(color='black', EXPERIMENT_TITLE=None):
         #実験パッケージ名表示
         exp_text = "<h1 style='color:" + color + "'>実験パッケージ名：" + EXPERIMENT_TITLE + "</h1>"
         display(HTML(exp_text))
+
+def add_container(experiment_title=""):
+    """register add container to GIN-fork container list.
+    ARG
+    ---------------
+    experiment_title : str
+        Description : a contaier is regarded as an experiment contaier if and only if experiment_title is set.
+
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
+
+    uid = str(user_info.get_user_id())
+    with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
+        repo_id = f.read()
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+    with open('/home/jovyan/.token.json', 'r') as f:
+        dic = json.load(f)
+        token = dic["ginfork_token"]
+
+    # experiment
+    if len(experiment_title) > 0:
+        response = requests.post(
+            params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
+            data={
+                "repo_id": repo_id,
+                "user_id": uid,
+                "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
+                "experiment_package" : experiment_title,
+                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/experiment.ipynb"
+            })
+
+    # research
+    else:
+        response = requests.post(
+            params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
+            data={
+                "repo_id": repo_id,
+                "user_id": uid,
+                "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
+                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/base_FLOW.ipynb"
+            })
+
+    try:
+        if response.status_code == requests.codes.ok:
+            display_util.display_info('実行環境を追加しました。')
+        elif response.json()["error"].startswith("Error 1062"):
+            display_util.display_warm('すでに追加されています。')
+        else:
+            display_util.display_err('追加に失敗しました。再度実行してください。')
+
+    except Exception:
+        display_util.display_err('追加に失敗しました。再度実行してください。')
+
+def patch_container():
+    """update only updated_unix of container
+    ARG
+    ---------------
+    experiment_title : str
+        Description : contaier is regarded as experiment contaier if and only if experiment_title is set.
+
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
+
+    uid = str(user_info.get_user_id())
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+    with open('/home/jovyan/.token.json', 'r') as f:
+        dic = json.load(f)
+        token = dic["ginfork_token"]
+    server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
+
+    requests.patch(
+        params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}&user_id={uid}'
+    )
+
+def delete_container():
+    """logical delete of container
+    ARG
+    ---------------
+
+    RETURN
+    ---------------
+    Returns nothing.
+
+    EXCEPTION
+    ---------------
+    """
+    # 初期セットアップのユーザー認証が終わっていない場合はここで終了
+    try:
+        uid = str(user_info.get_user_id())
+        with open(fetch_param_file_path(), mode='r') as f:
+            params = json.load(f)
+        with open('/home/jovyan/.token.json', 'r') as f:
+            dic = json.load(f)
+            token = dic["ginfork_token"]
+    except FileNotFoundError:
+        clear_output()
+        display_util.display_info('実行環境の削除対象が存在しませんでした。')
+        return
+    
+    server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
+
+    response = requests.delete(
+        params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}&user_id={uid}'
+    )
+
+    if response.status_code == requests.codes.ok:
+        display_util.display_info('実行環境の削除を反映しました。')
+    else:
+        display_util.display_err('削除の反映に失敗しました。再度実行してください。')

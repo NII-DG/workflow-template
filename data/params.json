@@ -1,0 +1,13 @@
+{
+    "siblings": {
+        "ginHttp": "",
+        "ginSsh": "",
+        "gitHugibHttp": "https://github.com/",
+        "gitHubSsh": "git@github.com:"
+    },
+    "rcosBinderUrl": "https://jupyter.cs.rcos.nii.ac.jp",
+    "dgCore" : {
+        "Scheme": "https",
+        "Netloc": "core.dg.nii.ac.jp"
+    }
+}

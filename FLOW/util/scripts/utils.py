@@ -245,7 +245,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
 
 
             # Define processing after clicking the submit button
-            button2.on_click(submit_user_auth_callback(user_auth_forms2, error_message2, button2))
+            button2.on_click(submit_user_auth_callback2(user_auth_forms2, error_message2, button2))
 
             clear_output()
             for form in user_auth_forms2:

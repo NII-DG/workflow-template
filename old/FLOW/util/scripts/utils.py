@@ -837,19 +837,13 @@ def delete_container():
     EXCEPTION
     ---------------
     """
-    # 初期セットアップのユーザー認証が終わっていない場合はここで終了
-    try:
-        uid = str(user_info.get_user_id())
-        with open(fetch_param_file_path(), mode='r') as f:
-            params = json.load(f)
-        with open('/home/jovyan/.token.json', 'r') as f:
-            dic = json.load(f)
-            token = dic["ginfork_token"]
-    except FileNotFoundError:
-        clear_output()
-        display_util.display_info('実行環境の削除対象が存在しませんでした。')
-        return
-    
+
+    uid = str(user_info.get_user_id())
+    with open(fetch_param_file_path(), mode='r') as f:
+        params = json.load(f)
+    with open('/home/jovyan/.token.json', 'r') as f:
+        dic = json.load(f)
+        token = dic["ginfork_token"]
     server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
 
     response = requests.delete(

@@ -9,16 +9,17 @@ from message import display, message
 from common import common
 from path import path
 
-
-param_file_path = '../../../data/params.json'
+param_file_path = os.path.join(path.DATA_PATH, 'params.json')
 
 
 def update_param_url(remote_origin_url):
     """param.jsonのsiblings.ginHttpとsiblings.ginSshを更新する。
+
     ARG
     ---------------
     remote_origin_url : str
         Description : git config remote.origin.urlの値
+
     EXCEPTION
     ---------------
     requests.exceptions.RequestException :

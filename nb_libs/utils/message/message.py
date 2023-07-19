@@ -1,5 +1,4 @@
 import configparser
-sys.path.append('..')
 
 
 CONFIG_PATH = '../../../data/message.ini'

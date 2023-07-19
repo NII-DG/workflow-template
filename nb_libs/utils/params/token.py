@@ -5,10 +5,11 @@ import os
 import json
 from http import HTTPStatus
 from urllib import parse
-os.chdir('/home/jovyan/WORKFLOWS')
-from utils.common import common
-from utils.gin_api import api
-from utils import display, message
+import sys
+sys.path.append('..')
+from common import common
+from gin import api
+from message import display, message
 
 def get_ginfork_token():
     """$HOME/.token.jsonからginfork_tokenを取得する。

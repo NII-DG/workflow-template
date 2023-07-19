@@ -7,25 +7,18 @@ sys.path.append('..')
 from message import message, display
 
 # directory
-FROW_DIR = "WORKFLOWS"
 NOTEBOOK_DIR = "notebooks"
-RES_DIR = "research"
-EXP_DIR = "experiment"
-
-# notebook
-RES_TOP_NB = "base_FLOW.ipynb"
-EXP_TOP_NB = "experiment.ipynb"
 
 # path
 SYS_PATH = os.path.join(os.environ['HOME'], '.dg-sys')
-FROW_PATH = os.path.join(os.environ['HOME'], FROW_DIR)
+FROW_PATH = os.path.join(os.environ['HOME'], "WORKFLOWS")
 DATA_PATH = os.path.join(FROW_PATH, "data")
 
-RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RES_DIR)
-EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXP_DIR)
+RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, "research")
+EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, "experiment")
 
-RES_TOP_PATH = os.path.join(RES_DIR_PATH, RES_TOP_NB)
-EXP_TOP_PATH = os.path.join(EXP_DIR_PATH, EXP_TOP_NB)
+RES_TOP_PATH = os.path.join(RES_DIR_PATH, "base_FLOW.ipynb")
+EXP_TOP_PATH = os.path.join(EXP_DIR_PATH, "experiment.ipynb")
 
 
 def res_top_link():

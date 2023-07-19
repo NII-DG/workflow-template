@@ -58,5 +58,6 @@ def del_build_token_by_remote_origin_url(remote_origin_url, display_msg=True):
         else:
             if display_msg:
                 display.display_err(message.get("build_token", "error")+'Code[{}]'.format(response.status_code))
+                raise Exception()
     else:
         pass

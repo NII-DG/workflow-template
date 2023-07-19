@@ -5,8 +5,9 @@ import sys
 sys.path.append('..')
 from utils.path import path
 from utils.message import message, display
-from utils.params import param_json, token
+from utils.params import param_json
 from utils.gin import sync
+
 
 def organize_flow(workflow_identifier:str):
     """リサーチフローの最適化処理
@@ -37,19 +38,8 @@ def update_gin_url():
     try:
         # update param json
         param_json.update_param_url(url)
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
         display.display_err(message.get('communication', 'error'))
-
-
-def del_build_token():
-    """不要なGIn-forkトークンの削除"""
-
-    url = sync.get_remote_url()
-
-    try:
-        # delete build token(only private)
-        token.del_build_token_by_remote_origin_url(url)
-    except requests.exceptions.RequestException:
-        display.display_err(message.get('communication', 'error'))
-
-
+        raise e
+    except Exception as e:
+        raise e

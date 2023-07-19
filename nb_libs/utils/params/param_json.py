@@ -1,3 +1,4 @@
+import os
 import json
 from http import HTTPStatus
 from urllib import parse
@@ -6,9 +7,9 @@ sys.path.append('..')
 from gin import api
 from message import display, message
 from common import common
+from path import path
 
-
-param_file_path = '../../../data/params.json'
+param_file_path = os.path.join(path.DATA_PATH, 'params.json')
 
 
 def update_param_url(remote_origin_url):

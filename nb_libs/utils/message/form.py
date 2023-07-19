@@ -14,6 +14,7 @@ from common import common
 from params import user_info
 from gin import api as gin_api
 from gin import sync
+import message
 
 
 def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):

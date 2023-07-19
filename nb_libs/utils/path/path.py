@@ -19,6 +19,7 @@ EXP_TOP_NB = "experiment.ipynb"
 # path
 SYS_PATH = os.path.join(os.environ['HOME'], '.dg-sys')
 FROW_PATH = os.path.join(os.environ['HOME'], FROW_DIR)
+DATA_PATH = os.path.join(FROW_PATH, "data")
 
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RES_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXP_DIR)

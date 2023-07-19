@@ -19,7 +19,7 @@ def display_flow(flow_type:str):
         import experiment as util
         notebook_dir = path.EXP_DIR_PATH
     else:
-        raise NameError
+        raise ValueError
 
     diag_file_name = flow_type + '_notebooks.diag'
     svg_file_name = flow_type + '_notebooks.svg'

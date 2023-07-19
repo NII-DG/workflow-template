@@ -6,7 +6,7 @@ config_ini = configparser.ConfigParser()
 config = config_ini.read(CONFIG_PATH, encoding='utf-8')
 
 
-def get(section:str, key:str) -> str:
+def get(section:str, option:str) -> str:
     """メッセージを取得する
 
     Args:
@@ -15,4 +15,8 @@ def get(section:str, key:str) -> str:
     Returns:
         str: message for user
     """
-    return config[section][key]
+
+    if config_ini.has_option(section, option):
+        raise KeyError
+
+    return config[section][option]

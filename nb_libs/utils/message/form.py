@@ -14,7 +14,7 @@ from common import common
 from params import user_info
 from gin import api as gin_api
 from gin import sync
-import message
+import message as mess
 
 
 def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):
@@ -35,29 +35,29 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
         ## user name
         if len(user_name) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンをクリックしてください。'
+            submit_button_user_auth.name = mess.get('user_auth','username_empty_error')
             return
 
         if not validate_format_username(user_name):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'ユーザー名は英数字および"-", "_", "."のみで入力し再度、ボタンをクリックしてください。'
+            submit_button_user_auth.name = mess.get('user_auth','username_pattern_error')
             return
 
         ## password
         if len(password) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンをクリックしてください。'
+            submit_button_user_auth.name = mess.get('user_auth','password_empty_error')
             return
 
         ## mail addres
         if  len(mail_addres) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'メールアドレスが入力されていません。メールアドレスを入力し再度、ボタンをクリックしてください。'
+            submit_button_user_auth.name = mess.get('user_auth','mailaddress_empty_error')
             return
 
         if not validate_format_mail_address(mail_addres):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'メールアドレスの形式が不正です。再度、入力しボタンをクリックしてください。'
+            submit_button_user_auth.name = mess.get('user_auth','mailaddress_pattern_error')
             return
 
         # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
@@ -74,7 +74,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             ## Unauthorized
             if response.status_code == HTTPStatus.UNAUTHORIZED:
                 submit_button_user_auth.button_type = 'warning'
-                submit_button_user_auth.name = 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
+                submit_button_user_auth.name = mess.get('user_auth','unauthorized')
                 return
 
             user_info.set_user_info(user_name)
@@ -100,13 +100,13 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
-            submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
+            submit_button_user_auth.name = mess.get('user_auth','exception')
             error_message.value = 'ERROR : {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:
             submit_button_user_auth.button_type = 'success'
-            submit_button_user_auth.name = '認証が正常に完了しました。次の手順へお進みください。'
+            submit_button_user_auth.name = mess.get('user_auth','success')
             return
     return callback
 
@@ -138,17 +138,17 @@ def validate_format_mail_address(mail_addres):
 def initial_gin_user_auth():
     pn.extension()
     # user name form
-    user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
+    user_name_form = pn.widgets.TextInput(name=mess.get('user_auth','username_title'), placeholder=mess.get('user_auth','username_help'), width=700)
     # password form
-    password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
+    password_form = pn.widgets.PasswordInput(name=mess.get('user_auth','password_title'), placeholder=mess.get('user_auth','password_help'), width=700)
     # email address form
-    mail_address_form = pn.widgets.TextInput(name="メールアドレス", placeholder= "Enter email address here...", width=700)
+    mail_address_form = pn.widgets.TextInput(name=mess.get('user_auth','emailaddress_title'), placeholder=mess.get('user_auth','emailaddress_help'), width=700)
     user_auth_forms = [user_name_form, password_form, mail_address_form]
 
     # Instance for exception messages
     error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
 
-    button = pn.widgets.Button(name= "入力を完了する", button_type= "primary", width=700)
+    button = pn.widgets.Button(name= mess.get('button','entry'), button_type= "primary", width=700)
 
 
     # Define processing after clicking the submit button
@@ -178,18 +178,18 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
         ## user name
         if len(user_name) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'ユーザー名が入力されていません。ユーザー名を入力し再度、ボタンをクリックしてください。'
+            submit_button_user_auth.name = mess.get('user_auth','username_empty_error')
             return
 
         if not validate_format_username(user_name):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'ユーザー名は英数字および"-", "_", "."のみで入力し再度、ボタンをクリックしてください。'
+            submit_button_user_auth.name = mess.get('user_auth','username_pattern_error')
             return
 
         ## password
         if len(password) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = 'パスワードが入力されていません。パスワードを入力し再度、ボタンをクリックしてください。'
+            submit_button_user_auth.name = mess.get('user_auth','password_empty_error')
             return
 
         # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
@@ -206,7 +206,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
             ## Unauthorized
             if response.status_code == HTTPStatus.UNAUTHORIZED:
                 submit_button_user_auth.button_type = 'warning'
-                submit_button_user_auth.name = 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
+                submit_button_user_auth.name = mess.get('user_auth','unauthorized')
                 return
 
             user_info.set_user_info(user_name)
@@ -243,20 +243,20 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
 
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
-            submit_button_user_auth.name = '予想外のエラーが発生しました。担当者までご連絡ください。'
+            submit_button_user_auth.name = mess.get('user_auth','exception')
             error_message.value = 'ERROR : {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:
             submit_button_user_auth.button_type = 'success'
-            submit_button_user_auth.name = '新規実験用の実行環境を作成します。以下のボタンをクリックしてください。新規タブで開きます。'
+            submit_button_user_auth.name = mess.get('build_container', 'new_experimnet')
             error_message.object = pn.pane.HTML(error_message.value)
 
             remote_http_url = common.exec_subprocess(cmd='git config --get remote.origin.url')[0].decode()[:-1]
             pos = remote_http_url.find("://")
             remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{launch_token}@{remote_http_url[pos+3:]}"
             url = "https://binder.cs.rcos.nii.ac.jp/v2/git/" + urllib.parse.quote(remote_http_url, safe='') + "/HEAD?filepath=WORKFLOWS/experiment.ipynb"
-            success_private_button.value = f'<button onclick="window.open(\'{url}\')">実行環境を作成する</button>'
+            success_private_button.value = f'<button onclick="window.open(\'{url}\')">'+ mess.get('build_container', 'build_button') +'</button>'
             success_private_button.object = pn.pane.HTML(success_private_button.value)
             return
     return callback
@@ -265,15 +265,15 @@ def initial_gin_user_auth_without_email():
     pn.extension()
 
     # user name form
-    user_name_form = pn.widgets.TextInput(name="GIN-fork ユーザー名", placeholder= "Enter your user name on GIN-fork here...", width=700)
+    user_name_form = pn.widgets.TextInput(name=mess.get('user_auth','username_title'), placeholder= mess.get('user_auth','username_help'), width=700)
     # password form
-    password_form = pn.widgets.PasswordInput(name="パスワード", placeholder= "Enter password here...", width=700)
+    password_form = pn.widgets.PasswordInput(name=mess.get('user_auth','password_title'), placeholder=mess.get('user_auth','password_help'), width=700)
     user_auth_forms = [user_name_form, password_form]
 
     # Instance for exception messages
     error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
 
-    button = pn.widgets.Button(name= "入力を完了する", button_type= "primary", width=700)
+    button = pn.widgets.Button(name= mess.get('button','entry'), button_type= "primary", width=700)
     succecc_private_button = pn.widgets.StaticText(value='', sizing_mode='stretch_width')
 
     # Define processing after clicking the submit button

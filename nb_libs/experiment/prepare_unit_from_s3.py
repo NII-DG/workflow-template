@@ -1,11 +1,17 @@
-import os, json, requests, urllib, csv
+import os, json, requests, urllib, csv, subprocess, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display
 import nb_libs.utils.path.path
-import nb_libs.utils.message as mess
+import nb_libs.utils.message.message as mess
+import nb_libs.utils.message.display as display_util
 
 # メソッド名変える
 def aaa():
+    """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
+
+    Exception:
+        URLにアクセスして200,400,403,404以外のレスポンスが返ってきた場合
+    """
     def on_click_callback(clicked_button: Button) -> None:
         
         os.chdir(os.environ['HOME'])
@@ -76,19 +82,48 @@ def access(url):
         if response.status_code == 200:
             pass
         elif response.status_code == 404 or response.status_code == 400:
-            msg = mess.get('from_s3', 'wrong_url'),
+            msg = mess.get('from_s3', 'wrong_url')
         elif response.status_code == 403:
-            msg = mess.get('from_s3', 'private_url'),
+            msg = mess.get('from_s3', 'private_url')
+        else:
+            raise Exception("想定外のエラーが発生しました。担当者に問い合わせください。")
     except requests.exceptions.RequestException:
-        msg = mess.get('from_s3', 'wrong_url'),
+        msg = mess.get('from_s3', 'wrong_url')
     return msg
 
 def bbb():
+    """リポジトリへのリンク登録のためのCSVファイルを作成する
+    
+    Exception:
+        jsonファイルから情報を取得できなかった場合
+    """
     with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
-        input_url = json.load(f)['s3_object_url']
-        dest_path = json.load(f)['dest_file_path']
+        dic = json.load(f)
+        input_url = dic['s3_object_url']
+        dest_path = dic['dest_file_path']
 
         with open(os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv'), mode='w') as f:
             writer = csv.writer(f)
             writer.writerow(['who','link'])
             writer.writerow([dest_path, input_url])
+
+def ccc():
+    """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
+    
+    Exception:
+    """
+    try:
+        result = ''
+        result = subprocess.getoutput("datalad addurls --nosave --fast .tmp/datalad-addurls.csv '{link}' '{who}'")
+
+        for line in result:
+            if 'addurls(error)' in line or 'addurls(impossible)' in line:
+                raise Exception
+    except Exception:
+        display_util.display_err("リンクの作成に失敗しました。用意したいデータにアクセス可能か確認してください。")
+        display_util.display_log(traceback.format_exc())
+    else:
+        display_util.display_info("リンクの作成に成功しました。次の処理にお進みください。")
+
+# def ddd():
+    

@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
-import os
 import re
 import sys
-import shutil
-from subprocess import run, CalledProcessError
+from subprocess import run
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from lxml import etree
 from nbformat import read, NO_CONVERT
 from itertools import chain, zip_longest
-from jinja2 import Template
-from datetime import datetime
+
 
 title_font_size = 10
 item_font_size = 7
@@ -101,16 +98,15 @@ def load_json(PATH):
 
 
 def generate_svg_diag(
-        output='WORKFLOWS/EX-WORKFLOWS/images/notebooks.svg',
-        diag='WORKFLOWS/EX-WORKFLOWS/images/notebooks.diag',
+        output='WORKFLOWS/data/flow/research_notebooks.svg',
+        diag='WORKFLOWS/data/flow/research_notebooks.diag',
+        dir_util='WORKFLOWS/notebooks/research',
         font='.fonts/ipag.ttf',
-        dir_util='WORKFLOWS/EX-WORKFLOWS/util',
-        dir_experiment='WORKFLOWS/EX-WORKFLOWS',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'
         _generate_skeleton(skeleton, Path(diag), Path(font))
-        _embed_detail_information(Path(output), skeleton, Path(dir_util), Path(dir_experiment))
+        _embed_detail_information(Path(output), skeleton, Path(dir_util))
         return output
 
 def _generate_skeleton(output, diag, font):
@@ -123,10 +119,9 @@ def setup_python_path():
     if lib_path not in sys.path:
         sys.path.append(lib_path)
 
-def _embed_detail_information(output, skeleton, dir_util, dir_experiment):
+def _embed_detail_information(output, skeleton, dir_util):
     # Notebookのヘッダ取得
     nb_headers = _get_notebook_headers(dir_util)
-    nb_headers.update(_get_notebook_headers(dir_experiment))
 
     # 雛形の読み込み
     tree = etree.parse(str(skeleton))
@@ -135,7 +130,7 @@ def _embed_detail_information(output, skeleton, dir_util, dir_experiment):
     for elem in list(tree.findall(SVG_TEXT)):
         if _is_target_rect(elem, nb_headers.keys()):
             nb_name = _find_matching_notebook(nb_headers.keys(), elem.text)
-            _embed_info_in_one_rect(elem, nb_headers, Path('WORKFLOWS/EX-WORKFLOWS'), nb_name)
+            _embed_info_in_one_rect(elem, nb_headers, nb_name)
 
     # SVGの保存
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -154,10 +149,10 @@ def _find_matching_notebook(notebooks, title):
         if nb.startswith(title):
             return nb
 
-def _embed_info_in_one_rect(elem, nb_headers, nb_dir, nb_name):
+def _embed_info_in_one_rect(elem, nb_headers, nb_name):
     headers = nb_headers[nb_name]
     nb_file = nb_headers[nb_name]['path']
-    nb_file = nb_file.replace('WORKFLOWS/EX-WORKFLOWS/', 'EX-WORKFLOWS/')
+    nb_file = nb_file.replace('WORKFLOWS/FLOW/', 'FLOW/')
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),
@@ -241,6 +236,7 @@ def create_text(rect, font_size, font_color, font_weight='normal', font_style='n
     text_elem.attrib['font-anchor'] = 'middle'
     text_elem.attrib['x'] = str(rect[0][0] + text_margin)
     text_elem.attrib['width'] = str(rect[1][0] - text_margin * 2)
+    text_elem.attrib['inline-size'] = '400px'
     return text_elem
 
 def create_anchor(elems, link):

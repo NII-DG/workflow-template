@@ -9,7 +9,7 @@ from message import message, display
 # directory
 FROW_DIR = "WORKFLOWS"
 NOTEBOOK_DIR = "notebooks"
-RES_DIR = "reserch"
+RES_DIR = "research"
 EXP_DIR = "experiment"
 
 # notebook
@@ -17,7 +17,8 @@ RES_TOP_NB = "base_FLOW.ipynb"
 EXP_TOP_NB = "experiment.ipynb"
 
 # path
-FROW_PATH = os.path.join(os.environ['HOME'],FROW_DIR)
+SYS_PATH = os.path.join(os.environ['HOME'], '.dg-sys')
+FROW_PATH = os.path.join(os.environ['HOME'], FROW_DIR)
 
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RES_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXP_DIR)

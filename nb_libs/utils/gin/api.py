@@ -15,6 +15,7 @@ import sync
 
 def repos_search_by_repo_id(scheme, domain, repo_id):
     """GIN_API : api/v1/repos/search リクエストメソッド
+
     ARG
     ---------------
     scheme : str
@@ -39,6 +40,7 @@ def repos_search_by_repo_id(scheme, domain, repo_id):
 
 def repos(scheme, domain, owner_repo_nm, token=''):
     """GIN_API : api/v1/repos/$repoOwnerNm/$repoNm リクエストメソッド
+
     ARG
     ---------------
     scheme : str
@@ -47,10 +49,12 @@ def repos(scheme, domain, owner_repo_nm, token=''):
         Description : ドメイン名
     owner_repo_nm : str
         Description : リポジトリオーナ名/リポジトリ名
+
     RETURN
     ---------------
     Respons :
         Description : レスポンスインスタンス
+
     EXCEPTION
     ---------------
     接続の確立不良 : requests.exceptions.RequestException

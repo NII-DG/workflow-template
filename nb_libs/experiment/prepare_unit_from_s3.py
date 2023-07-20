@@ -7,16 +7,17 @@ import nb_libs.utils.message.message as mess
 import nb_libs.utils.message.display as display_util
 import nb_libs.utils.gin.sync as sync
 
+ADDURLS_CSV = '.tmp/datalad-addurls.csv'
+UNIT_S3_JSON = '.tmp/rf_form_data/prepare_unit_from_s3.json'
+PKG_INFO_JSON = 'ex_pkg_info.json'
+
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
-
-    Exception:
-        URLにアクセスして200,400,403,404以外のレスポンスが返ってきた場合
     """
     def on_click_callback(clicked_button: Button) -> None:
         
         os.chdir(os.environ['HOME'])
-        with open(os.path.join(path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
+        with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
             experiment_title = json.load(f)["ex_pkg_name"]
 
         input_url = text_url.value
@@ -47,14 +48,14 @@ def input_url_path():
 
         data = dict()
         data['s3_object_url'] = urllib.parse.quote(input_url)
-        data['dest_file_path'] = '/home/jovyan/experiments/'+ experiment_title + '/' + input_path
+        data['dest_file_path'] = os.path.join('home/jovyan/experiments', experiment_title, input_path)
         data['input_path'] = input_path
         
         os.makedirs('.tmp/rf_form_data', exist_ok=True)
-        with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='w') as f:
+        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='w') as f:
             json.dump(data, f, indent=4)
 
-        button.description = mess.get('from_s3', 'end_input')
+        button.description = mess.get('from_s3', 'done_input')
         button.layout=Layout(width='250px')
         button.button_style='success'
 
@@ -77,7 +78,14 @@ text_url = Text(
     style=style
 )
 
-def validate_url(url):
+
+def validate_url(url) -> str:
+    """S3オブジェクトURLの検証を行う
+
+    Return:
+        エラーメッセージ
+
+    """
     msg = ""
     try:
         response = requests.head(url)
@@ -88,7 +96,7 @@ def validate_url(url):
         elif response.status_code == 403:
             msg = mess.get('from_s3', 'private_url')
         else:
-            raise Exception("想定外のエラーが発生しました。担当者に問い合わせください。")
+            msg = mess.get('from_s3', 'exception')
     except requests.exceptions.RequestException:
         msg = mess.get('from_s3', 'wrong_url')
     return msg
@@ -100,14 +108,17 @@ def create_csv():
         jsonファイルから情報を取得できなかった場合
     """
     try:
-        with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
+        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
             dic = json.load(f)
             input_url = urllib.parse.unquote(dic['s3_object_url'], encoding='utf-8')
             dest_path = dic['dest_file_path']
     except FileNotFoundError:
-        raise Exception("前のセルが実行されていません。")
+        display_util.display_err(mess.get('from_s3', 'did_not_finish'))
+    except KeyError:
+        display_util.display_err(mess.get('from_s3', 'unexpected'))
+        display_util.display_log(traceback.format_exc())
 
-    with open(os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv'), mode='w') as f:
+    with open(os.path.join(os.environ['HOME'], ADDURLS_CSV), mode='w') as f:
         writer = csv.writer(f)
         writer.writerow(['who','link'])
         writer.writerow([dest_path, input_url])
@@ -125,10 +136,10 @@ def add_url():
             if 'addurls(error)' in line or 'addurls(impossible)' in line:
                 raise Exception
     except Exception:
-        display_util.display_err("リンクの作成に失敗しました。用意したいデータにアクセス可能か確認してください。")
+        display_util.display_err(mess.get('from_s3', 'create_link_fail'))
         display_util.display_log(traceback.format_exc())
     else:
-        display_util.display_info("リンクの作成に成功しました。次の処理にお進みください。")
+        display_util.display_info(mess.get('from_s3', 'create_link_success'))
 
 def save_annex():
     """データ取得履歴を記録する
@@ -136,7 +147,7 @@ def save_annex():
     Exception:
     """
     try:
-        with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
+        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
             dest_path = json.load(f)['dest_file_path']
 
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
@@ -146,11 +157,11 @@ def save_annex():
         os.system('git annex lock')
         sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message='S3ストレージから実験のデータを用意')
     except Exception:
-        display_util.display_err("処理に失敗しました。用意したいデータにアクセス可能か確認してください。")
+        display_util.display_err(mess.get('from_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
     else:
         clear_output()
-        display_util.display_info("来歴の記録に成功しました。次の処理にお進みください。")
+        display_util.display_info(mess.get('from_s3', 'process_success'))
 
 
 def get_data() -> dict:
@@ -166,9 +177,9 @@ def get_data() -> dict:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         os.chdir(os.environ['HOME'])
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
-        with open(os.path.join(path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
-            experiment_title = json.load(f)["ex_pkg_name"]
-        with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
+        with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
+            experiment_title = json.load(f)['ex_pkg_name']
+        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
             path_dic = json.load(f)
             dest_path = path_dic['dest_file_path']
             input_path = path_dic['input_path']
@@ -196,11 +207,11 @@ def get_data() -> dict:
         git_path.append('WORKFLOWS/notebooks/experiment_prepare_unit_from_s3.ipynb')
 
     except Exception:
-        display_util.display_err("処理に失敗しました。用意したいデータにアクセス可能か確認してください。")
+        display_util.display_err(mess.get('from_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
     else:
         clear_output()
-        display_util.display_info("データのダウンロードに成功しました。次の処理にお進みください。")
+        display_util.display_info(mess.get('from_s3', 'download_success'))
 
         dic = dict()
         dic['git_path'] = git_path
@@ -213,10 +224,8 @@ def get_data() -> dict:
 def remove_tmp():
     """一時ファイルを削除する
 
-    Exception:
-
     """
-    if os.path.isfile(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json')):
-        os.remove(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'))
-    if os.path.isfile(os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv')):
-        os.remove(os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv'))
+    if os.path.isfile(os.path.join(os.environ['HOME'], UNIT_S3_JSON)):
+        os.remove(os.path.join(os.environ['HOME'], UNIT_S3_JSON))
+    if os.path.isfile(os.path.join(os.environ['HOME'], ADDURLS_CSV)):
+        os.remove(os.path.join(os.environ['HOME'], ADDURLS_CSV))

@@ -11,10 +11,10 @@ def display_flow(flow_type:str):
         flow_type (str): フローの種別('research' or 'experiment')
     """
     if flow_type == 'research':
-        import research as util
+        from . import research as util
         notebook_dir = path.RES_DIR_PATH
     elif flow_type == 'experiment':
-        import experiment as util
+        from . import experiment as util
         notebook_dir = path.EXP_DIR_PATH
     else:
         raise ValueError
@@ -32,5 +32,6 @@ def display_flow(flow_type:str):
     if not os.path.isfile(diag_path):
         shutil.copy(orig_diag_path, diag_path)
 
-    util.generate_svg_diag(output=svg_path, diag=diag_path, dir_util=notebook_dir)
+    font_path = os.path.join(os.environ['HOME'], '.fonts/ipag.ttf')
+    util.generate_svg_diag(output=svg_path, diag=diag_path, dir_util=notebook_dir, font=font_path)
     display(SVG(filename=svg_path))

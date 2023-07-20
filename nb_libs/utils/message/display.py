@@ -133,17 +133,3 @@ def display_warm(msg=''):
     """
     back = "#ffff93"
     display_html_msg(msg, None, back, default_tag)
-
-
-def desplay_link(url:str, msg:str):
-    """リンクを表示する
-
-    ARG
-    ---------------
-    url : str
-        Description : リンク先のURL
-    msg : str
-        Description : 表示する説明
-    """
-    html_text = "<a href='" + url + "'>" + msg + "</a>"
-    return display(HTML(html_text))

@@ -10,6 +10,7 @@ import nb_libs.utils.gin.sync as sync
 ADDURLS_CSV = '.tmp/datalad-addurls.csv'
 UNIT_S3_JSON = '.tmp/rf_form_data/prepare_unit_from_s3.json'
 PKG_INFO_JSON = 'ex_pkg_info.json'
+NOTEBOOK_PATH = 'WORKFLOWS/notebooks/experiment_prepare_unit_from_s3.ipynb'
 
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
@@ -48,8 +49,7 @@ def input_url_path():
 
         data = dict()
         data['s3_object_url'] = urllib.parse.quote(input_url)
-        data['dest_file_path'] = os.path.join('home/jovyan/experiments', experiment_title, input_path)
-        data['input_path'] = input_path
+        data['dest_file_path'] = os.path.join(path.EXPERIMENTS_PATH, experiment_title, input_path)
         
         os.makedirs('.tmp/rf_form_data', exist_ok=True)
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='w') as f:
@@ -61,7 +61,6 @@ def input_url_path():
 
     button = Button(description=mess.get('from_s3', 'end_input'), layout=Layout(width='250px'))
     button.on_click(on_click_callback)
-    text_url.on_submit(on_click_callback)
     display(text_url, text_path, button)
 
 style = {'description_width': 'initial'}
@@ -103,9 +102,7 @@ def validate_url(url) -> str:
 
 def create_csv():
     """リポジトリへのリンク登録のためのCSVファイルを作成する
-    
-    Exception:
-        jsonファイルから情報を取得できなかった場合
+
     """
     try:
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
@@ -126,7 +123,6 @@ def create_csv():
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
     
-    Exception:
     """
     try:
         result = ''
@@ -188,7 +184,7 @@ def get_data() -> dict:
         # Obtain the actual data of the created link.
         api.get(path=annex_paths)
 
-        if input_path.startswith('source/'):
+        if input_path.startswith(path.EXPERIMENTS_PATH + '/' + experiment_title + '/source/'):
             # Make the data stored in the source folder the target of git management.
             # Temporary lock on annex content
             subprocess.getoutput('git annex lock')
@@ -204,7 +200,7 @@ def get_data() -> dict:
             sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)
 
         annex_paths = list(set(annex_paths) - set(git_path))
-        git_path.append('WORKFLOWS/notebooks/experiment_prepare_unit_from_s3.ipynb')
+        git_path.append(NOTEBOOK_PATH)
 
     except Exception:
         display_util.display_err(mess.get('from_s3', 'process_fail'))

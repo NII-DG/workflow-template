@@ -1,7 +1,11 @@
 import json
 import os
-from ..common import common
+import subprocess
 import re
+import sys
+sys.path.append('..')
+from common import common
+
 
 def exec_git_status():
     """execute 'git status' commands
@@ -196,6 +200,7 @@ def get_multi_local_object_hash_by_path(target_paths:list[str]) -> list[str]:
 
     return hash_list
 
+
 def is_conflict() -> bool:
     result = exec_git_status()
     lines = result.split('\n')
@@ -203,3 +208,7 @@ def is_conflict() -> bool:
         if 'both modified:' in l or 'both added:' in l:
             return True
     return False
+
+
+def get_remote_url():
+    return subprocess.getoutput('git config --get remote.origin.url')

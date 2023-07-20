@@ -3,12 +3,12 @@ import sys
 sys.path.append('..')
 from utils.message import message, display
 from utils.params import token
-from utils.gin import sync
+from utils.git import git_module
 
 def del_build_token():
-    """不要なGIn-forkトークンの削除"""
+    """不要なGIN-forkトークンの削除"""
 
-    url = sync.get_remote_url()
+    url = git_module.get_remote_url()
 
     try:
         # delete build token(only private)

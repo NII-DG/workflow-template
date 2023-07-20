@@ -6,8 +6,7 @@ sys.path.append('..')
 from utils.path import path
 from utils.message import message, display
 from utils.params import param_json
-from utils.gin import sync
-
+from utils.git import git_module
 
 def organize_flow(workflow_identifier:str):
     """リサーチフローの最適化処理
@@ -19,8 +18,7 @@ def organize_flow(workflow_identifier:str):
         dmp.jsonに"fields"プロパティがある想定
     """
 
-    path_flows = os.path.join(path.RES_DIR_PATH)
-    templates = glob.glob(os.path.join(path_flows, '**'), recursive=True)
+    templates = glob.glob(os.path.join(path.RES_DIR_PATH, '**'), recursive=True)
 
     # 選択外の分野のセクション群を削除
     for tmpl in templates:
@@ -33,7 +31,7 @@ def organize_flow(workflow_identifier:str):
 def update_gin_url():
     """params.json の"siblings": {"ginHttp", "ginSsh"}を更新する"""
 
-    url = sync.get_remote_url()
+    url = git_module.get_remote_url()
 
     try:
         # update param json

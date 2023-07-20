@@ -19,8 +19,6 @@ from message import display
 from params import token, user_info
 import api as gin_api
 
-def get_remote_url():
-    return subprocess.getoutput('git config --get remote.origin.url')
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/data/params.json'

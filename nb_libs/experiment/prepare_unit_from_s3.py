@@ -1,11 +1,11 @@
 import os, json, requests, urllib, csv, subprocess, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output
+from datalad import api
 import nb_libs.utils.path.path as path
 import nb_libs.utils.message.message as mess
 import nb_libs.utils.message.display as display_util
 import nb_libs.utils.gin.sync as sync
-import nb_libs.utils.gin.api as api
 
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
@@ -47,7 +47,8 @@ def input_url_path():
 
         data = dict()
         data['s3_object_url'] = urllib.parse.quote(input_url)
-        data['dest_file_path'] = input_path
+        data['dest_file_path'] = '/home/jovyan/experiments/'+ experiment_title + '/' + input_path
+        data['input_path'] = input_path
         
         os.makedirs('.tmp/rf_form_data', exist_ok=True)
         with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='w') as f:
@@ -101,7 +102,7 @@ def create_csv():
     try:
         with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
             dic = json.load(f)
-            input_url = dic['s3_object_url']
+            input_url = urllib.parse.unquote(dic['s3_object_url'], encoding='utf-8')
             dest_path = dic['dest_file_path']
     except FileNotFoundError:
         raise Exception("前のセルが実行されていません。")
@@ -135,11 +136,9 @@ def save_annex():
     Exception:
     """
     try:
-        with open(os.path.join(path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
-            experiment_title = json.load(f)["ex_pkg_name"]
         with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
-            input_path = json.load(f)['dest_file_path']  
-        dest_path = os.path.join(path.EXP_DIR_PATH, experiment_title, input_path)
+            dest_path = json.load(f)['dest_file_path']
+
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         os.chdir(os.environ['HOME'])
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
@@ -171,7 +170,9 @@ def get_data() -> dict:
             experiment_title = json.load(f)["ex_pkg_name"]
         with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
             input_path = json.load(f)['dest_file_path']
-        dest_path = '/home/jovyan/experiments/' + experiment_title + '/' + input_path
+            path_dic = json.load(f)
+            dest_path = path_dic['dest_file_path']
+            input_path = path_dic['input_path']
 
         annex_paths = [dest_path]
         # Obtain the actual data of the created link.

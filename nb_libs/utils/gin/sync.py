@@ -11,16 +11,12 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
-import sys
-sys.path.append('..')
-from git import git_module
-from common import common
-from message import display
-from params import token, user_info
-import api as gin_api
+from ..git import git_module
+from ..common import common
+from ..message import display
+from ..params import token, user_info
+from . import api as gin_api
 
-def get_remote_url():
-    return subprocess.getoutput('git config --get remote.origin.url')
 
 def fetch_param_file_path() -> str:
     return '/home/jovyan/WORKFLOWS/data/params.json'

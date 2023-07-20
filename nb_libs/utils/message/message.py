@@ -1,9 +1,11 @@
 import configparser
+import os
+from ..path import path
 
 
-CONFIG_PATH = '../../../data/message.ini'
-config_ini = configparser.ConfigParser()
-config = config_ini.read(CONFIG_PATH, encoding='utf-8')
+CONFIG_PATH = os.path.join(path.DATA_PATH, 'message.ini')
+config = configparser.ConfigParser()
+config.read(CONFIG_PATH, encoding='utf-8')
 
 
 def get(section:str, option:str) -> str:

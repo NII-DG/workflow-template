@@ -4,17 +4,14 @@ from IPython.display import clear_output, display
 from urllib import parse
 import requests
 from http import HTTPStatus
-from subprocess import PIPE
 import panel as pn
 import urllib
 import re
-import sys
-sys.path.append('..')
-from common import common
-from params import user_info
-from gin import api as gin_api
-from gin import sync
-import message as mess
+from ..common import common
+from ..params import user_info
+from ..gin import api as gin_api
+from ..gin import sync
+from ..message import message as mess
 
 
 def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):

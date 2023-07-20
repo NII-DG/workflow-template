@@ -7,10 +7,9 @@ import requests
 import os
 import json
 import sys
-sys.path.append('..')
-from message import display
-from params import user_info
-import sync
+from ..message import display
+from ..params import user_info
+from . import sync
 
 
 def repos_search_by_repo_id(scheme, domain, repo_id):

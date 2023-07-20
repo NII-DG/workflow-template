@@ -4,9 +4,7 @@
 import os
 import json
 import requests
-os.chdir('/home/jovyan/WORKFLOWS/FLOW/')
-from util.scripts import utils
-
+from ..gin import sync
 
 def get_user_id():
     """$HOME/.user_infoからユーザーIDを取得する。
@@ -35,7 +33,7 @@ def set_user_info(name):
 
     # APIリクエストに必要な情報を取得する
     params = {}
-    with open(utils.fetch_param_file_path(), mode='r') as f:
+    with open(sync.fetch_param_file_path(), mode='r') as f:
         params = json.load(f)
 
     # ユーザー名からuidを取得する

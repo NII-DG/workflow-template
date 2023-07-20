@@ -98,15 +98,18 @@ def create_csv():
     Exception:
         jsonファイルから情報を取得できなかった場合
     """
-    with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
-        dic = json.load(f)
-        input_url = dic['s3_object_url']
-        dest_path = dic['dest_file_path']
+    try:
+        with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
+            dic = json.load(f)
+            input_url = dic['s3_object_url']
+            dest_path = dic['dest_file_path']
+    except FileNotFoundError:
+        raise Exception("前のセルが実行されていません。")
 
-        with open(os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv'), mode='w') as f:
-            writer = csv.writer(f)
-            writer.writerow(['who','link'])
-            writer.writerow([dest_path, input_url])
+    with open(os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv'), mode='w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['who','link'])
+        writer.writerow([dest_path, input_url])
 
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
@@ -135,7 +138,7 @@ def save_annex():
         with open(os.path.join(path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
             experiment_title = json.load(f)["ex_pkg_name"]
         with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
-            input_path = json.load(f)['dest_file_path']
+            input_path = json.load(f)['dest_file_path']  
         dest_path = os.path.join(path.EXP_DIR_PATH, experiment_title, input_path)
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         os.chdir(os.environ['HOME'])
@@ -148,13 +151,16 @@ def save_annex():
         display_util.display_log(traceback.format_exc())
     else:
         clear_output()
-        display_util.display_info("来歴の記録とデータのダウンロードに成功しました。次の処理にお進みください。")
+        display_util.display_info("来歴の記録に成功しました。次の処理にお進みください。")
 
 
-def get_data():
+def get_data() -> dict:
     """取得データの実データをダウンロードする
 
     Exception:
+
+    Return:
+        dict: used in syncs_with_repo()
     """
     git_path = []
     try:
@@ -187,10 +193,31 @@ def get_data():
             sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)
 
         annex_paths = list(set(annex_pahts) - set(git_path))
+        git_path.append('WORKFLOWS/notebooks/experiment_prepare_unit_from_s3.ipynb')
 
     except Exception:
         display_util.display_err("処理に失敗しました。用意したいデータにアクセス可能か確認してください。")
         display_util.display_log(traceback.format_exc())
     else:
         clear_output()
-        display_util.display_info("来歴の記録とデータのダウンロードに成功しました。次の処理にお進みください。")
+        display_util.display_info("データのダウンロードに成功しました。次の処理にお進みください。")
+
+        dic = dict()
+        dic['git_path'] = git_path
+        dic['gitannex_path'] = annex_paths
+        dic['gitannex_files'] = annex_paths
+        dic['message'] = experiment_title + '_実験データの用意'
+        dic['experiment_title'] = experiment_title
+        dic['get_paths'] = [f'experiments/{experiment_title}']
+        return dic
+
+def remove_tmp():
+    """一時ファイルを削除する
+
+    Exception:
+
+    """
+    if os.path.isfile(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json')):
+        os.remove(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'))
+    if os.path.isfile(os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv')):
+        os.remove(os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv'))

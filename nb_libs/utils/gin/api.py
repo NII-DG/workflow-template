@@ -9,7 +9,7 @@ import json
 import sys
 from ..message import display
 from ..params import user_info
-import sync
+from . import sync
 
 
 def repos_search_by_repo_id(scheme, domain, repo_id):

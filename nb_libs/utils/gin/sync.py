@@ -15,7 +15,7 @@ from ..git import git_module
 from ..common import common
 from ..message import display
 from ..params import token, user_info
-import ..api as gin_api
+from . import api as gin_api
 
 
 def fetch_param_file_path() -> str:

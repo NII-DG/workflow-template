@@ -17,7 +17,7 @@ def move_button(url:str, msg:str):
     return display(HTML(html_text))
 
 
-def link_button(url:str, msg:str)
+def link_button(url:str, msg:str):
     """別タブでページを開くボタンを表示する
 
     ARG

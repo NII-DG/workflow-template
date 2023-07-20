@@ -143,9 +143,9 @@ def save_annex():
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         os.chdir(os.environ['HOME'])
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
-        annex_pahts = [dest_path]
+        annex_paths = [dest_path]
         os.system('git annex lock')
-        sync.save_annex_and_register_metadata(gitannex_path=annex_pahts, gitannex_files=[], message='S3ストレージから実験のデータを用意')
+        sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message='S3ストレージから実験のデータを用意')
     except Exception:
         display_util.display_err("処理に失敗しました。用意したいデータにアクセス可能か確認してください。")
         display_util.display_log(traceback.format_exc())
@@ -173,9 +173,9 @@ def get_data() -> dict:
             input_path = json.load(f)['dest_file_path']
         dest_path = '/home/jovyan/experiments/' + experiment_title + '/' + input_path
 
-        annex_pahts = [dest_path]
+        annex_paths = [dest_path]
         # Obtain the actual data of the created link.
-        api.get(path=annex_pahts)
+        api.get(path=annex_paths)
 
         if input_path.startswith('source/'):
             # Make the data stored in the source folder the target of git management.
@@ -192,7 +192,7 @@ def get_data() -> dict:
             # Attach sdDatePablished metadata to data stored in folders other than the source folder.
             sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)
 
-        annex_paths = list(set(annex_pahts) - set(git_path))
+        annex_paths = list(set(annex_paths) - set(git_path))
         git_path.append('WORKFLOWS/notebooks/experiment_prepare_unit_from_s3.ipynb')
 
     except Exception:

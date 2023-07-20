@@ -1,0 +1,91 @@
+   
+   blockdiag {
+    node_width = 200;
+    node_height = 130;
+    orientation = portrait;
+    span_width = 10;
+    span_height = 30;
+
+        group {
+            shape = line;
+            style = none;
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffeed9";
+                    "0. prepare_for_workflow"[label = "0. リサーチフロー機能の実行準備", fontsize = 10];
+                    "base_required_every_time"[fontsize = 10];
+                }
+            }
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#fcdcb1";
+                    "1. preparation_phase"[label = "1. 研究準備", fontsize = 10];
+                    "～準備中（GRDMと連携予定）～"[fontsize = 10, color = "#e6e5e3"];
+                }
+            }
+
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffd6a1";
+                    "2. experimental_phase"[label = "2. 実験", fontsize = 10];
+                    "base_launch_an_experiment";
+                    "dummy"[shape=none, width=1, height=1];
+                    "base_validate_metadata";
+                }
+            }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffb95c";
+                    "3. after_experiments_phase"[label = "3 実験終了後", fontsize = 10];
+                    "～準備中（WEKO3と連携予定）～"[fontsize = 10, color = "#e6e5e3"];
+                }
+            }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    orientation = portrait;
+                    color = "#ffa329";
+                    "4. after_research"[label = "4. 研究終了", fontsize = 10];
+                    "base_finish_research";
+                }
+            }
+            group {
+                shape = line;
+                style = none;
+                orientation = portrait;
+                group {
+                    color = none;
+                    orientation = portrait;
+                    "dummy-1 to reduce size"[shape=none, height=1];
+                    "dummy-2 to reduce size"[shape=none, height=1];
+                    "dummy-3 to reduce size"[shape=none, height=1];
+                }
+            }
+        }
+
+        "0. prepare_for_workflow" -> "1. preparation_phase" -> "2. experimental_phase" -> "3. after_experiments_phase" -> "4. after_research";
+        "4. after_research" -> "dummy-1 to reduce size"[style=none];
+        "base_launch_an_experiment" -> "base_launch_an_experiment";
+        "base_launch_an_experiment" -> "dummy"[dir=none];
+        "dummy" -> "base_validate_metadata";
+    }

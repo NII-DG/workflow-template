@@ -7,9 +7,8 @@ import requests
 import os
 import json
 import sys
-sys.path.append('..')
-from message import display
-from params import user_info
+from ..message import display
+from ..params import user_info
 import sync
 
 

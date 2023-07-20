@@ -2,9 +2,7 @@ import json
 import os
 import subprocess
 import re
-import sys
-sys.path.append('..')
-from common import common
+from ..common import common
 
 
 def exec_git_status():

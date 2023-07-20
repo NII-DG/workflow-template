@@ -1,9 +1,7 @@
 import os
 import shutil
 from IPython.display import display, SVG
-import sys
-sys.path.append('..')
-from path import path
+from ..path import path
 
 
 def display_flow(flow_type:str):

@@ -1,12 +1,10 @@
 import os
 import glob
 import requests
-import sys
-sys.path.append('..')
-from utils.path import path
-from utils.message import message, display
-from utils.params import param_json
-from utils.git import git_module
+from ..utils.path import path
+from ..utils.message import message, display
+from ..utils.params import param_json
+from ..utils.git import git_module
 
 def organize_flow(workflow_identifier:str):
     """リサーチフローの最適化処理

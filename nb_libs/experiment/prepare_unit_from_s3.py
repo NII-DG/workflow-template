@@ -1,6 +1,6 @@
 import os, json, requests, urllib, csv, subprocess, traceback
 from ipywidgets import Text, Button, Layout
-from IPython.display import display, clear_output
+from IPython.display import display, clear_output, Javascript
 from datalad import api
 import nb_libs.utils.path.path as path
 import nb_libs.utils.message.message as mess
@@ -124,6 +124,7 @@ def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
     
     """
+    os.chdir(os.environ['HOME'])
     try:
         result = ''
         result = subprocess.getoutput("datalad addurls --nosave --fast .tmp/datalad-addurls.csv '{link}' '{who}'")
@@ -160,7 +161,7 @@ def save_annex():
         display_util.display_info(mess.get('from_s3', 'process_success'))
 
 
-def get_data() -> dict:
+def get_data():
     """取得データの実データをダウンロードする
 
     Exception:
@@ -201,7 +202,7 @@ def get_data() -> dict:
         clear_output()
         display_util.display_info(mess.get('from_s3', 'download_success'))
 
-def prepare_sync():
+def prepare_sync() -> dict:
     """同期の準備を行う
 
     Return:
@@ -209,8 +210,9 @@ def prepare_sync():
 
     """
 
+    display(Javascript('IPython.notebook.save_checkpoint();'))
+
     git_path = []
-    os.chdir(os.environ['HOME'])
     with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
         experiment_title = json.load(f)['ex_pkg_name']
     with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:

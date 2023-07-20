@@ -169,7 +169,6 @@ def get_data() -> dict:
         with open(os.path.join(path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
             experiment_title = json.load(f)["ex_pkg_name"]
         with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
-            input_path = json.load(f)['dest_file_path']
             path_dic = json.load(f)
             dest_path = path_dic['dest_file_path']
             input_path = path_dic['input_path']
@@ -208,7 +207,6 @@ def get_data() -> dict:
         dic['gitannex_path'] = annex_paths
         dic['gitannex_files'] = annex_paths
         dic['message'] = experiment_title + '_実験データの用意'
-        dic['experiment_title'] = experiment_title
         dic['get_paths'] = [f'experiments/{experiment_title}']
         return dic
 

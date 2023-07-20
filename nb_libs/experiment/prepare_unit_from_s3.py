@@ -165,10 +165,8 @@ def get_data() -> dict:
 
     Exception:
 
-    Return:
-        dict: used in syncs_with_repo()
+    
     """
-    git_path = []
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         os.chdir(os.environ['HOME'])
@@ -176,15 +174,13 @@ def get_data() -> dict:
         with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
             experiment_title = json.load(f)['ex_pkg_name']
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-            path_dic = json.load(f)
-            dest_path = path_dic['dest_file_path']
-            input_path = path_dic['input_path']
+            dest_path = json.load(f)['dest_file_path']
 
         annex_paths = [dest_path]
         # Obtain the actual data of the created link.
         api.get(path=annex_paths)
 
-        if input_path.startswith(path.EXPERIMENTS_PATH + '/' + experiment_title + '/source/'):
+        if dest_path.startswith(os.path.join(path.EXPERIMENTS_PATH, experiment_title, 'source/')):
             # Make the data stored in the source folder the target of git management.
             # Temporary lock on annex content
             subprocess.getoutput('git annex lock')
@@ -194,13 +190,9 @@ def get_data() -> dict:
             subprocess.getoutput('git commit -m "Change content type : git-annex to git"')
             subprocess.getoutput(f'git annex metadata --remove-all "{dest_path}"')
             subprocess.getoutput(f'git annex unannex "{dest_path}"')
-            git_path.append(dest_path)
         else:
             # Attach sdDatePablished metadata to data stored in folders other than the source folder.
             sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)
-
-        annex_paths = list(set(annex_paths) - set(git_path))
-        git_path.append(NOTEBOOK_PATH)
 
     except Exception:
         display_util.display_err(mess.get('from_s3', 'process_fail'))
@@ -209,19 +201,39 @@ def get_data() -> dict:
         clear_output()
         display_util.display_info(mess.get('from_s3', 'download_success'))
 
-        dic = dict()
-        dic['git_path'] = git_path
-        dic['gitannex_path'] = annex_paths
-        dic['gitannex_files'] = annex_paths
-        dic['message'] = experiment_title + '_実験データの用意'
-        dic['get_paths'] = [f'experiments/{experiment_title}']
-        return dic
+def prepare_sync():
+    """同期の準備を行う
 
-def remove_tmp():
-    """一時ファイルを削除する
+    Return:
+        dict: used in syncs_with_repo()
 
     """
+
+    git_path = []
+    os.chdir(os.environ['HOME'])
+    with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
+        experiment_title = json.load(f)['ex_pkg_name']
+    with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
+        dest_path = json.load(f)['dest_file_path']
+
+    annex_paths = [dest_path]
+
+    if dest_path.startswith(os.path.join(path.EXPERIMENTS_PATH, experiment_title, 'source/')):
+        git_path.append(dest_path)
+
+    annex_paths = list(set(annex_paths) - set(git_path))
+    git_path.append(NOTEBOOK_PATH)
+
+    dic = dict()
+    dic['git_path'] = git_path
+    dic['gitannex_path'] = annex_paths
+    dic['gitannex_files'] = annex_paths
+    dic['get_paths'] = [f'experiments/{experiment_title}']
+    dic['message'] = experiment_title + '_実験データの用意'
+    
     if os.path.isfile(os.path.join(os.environ['HOME'], UNIT_S3_JSON)):
         os.remove(os.path.join(os.environ['HOME'], UNIT_S3_JSON))
     if os.path.isfile(os.path.join(os.environ['HOME'], ADDURLS_CSV)):
         os.remove(os.path.join(os.environ['HOME'], ADDURLS_CSV))
+    
+    return dic

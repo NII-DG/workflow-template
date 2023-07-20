@@ -4,7 +4,6 @@ from IPython.display import clear_output, display
 from urllib import parse
 import requests
 from http import HTTPStatus
-from subprocess import PIPE
 import panel as pn
 import urllib
 import re

@@ -1,12 +1,13 @@
 import os, json, requests, urllib, csv, subprocess, traceback
 from ipywidgets import Text, Button, Layout
-from IPython.display import display
-import nb_libs.utils.path.path
+from IPython.display import display, clear_output
+import nb_libs.utils.path.path as path
 import nb_libs.utils.message.message as mess
 import nb_libs.utils.message.display as display_util
+import nb_libs.utils.gin.sync as sync
+import nb_libs.utils.gin.api as api
 
-# メソッド名変える
-def aaa():
+def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
 
     Exception:
@@ -15,7 +16,7 @@ def aaa():
     def on_click_callback(clicked_button: Button) -> None:
         
         os.chdir(os.environ['HOME'])
-        with open(os.path.join(nb_libs.utils.path.path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
+        with open(os.path.join(path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
             experiment_title = json.load(f)["ex_pkg_name"]
 
         input_url = text_url.value
@@ -25,14 +26,14 @@ def aaa():
         
         if len(input_url)<=0:
             err_msg = mess.get('from_s3', 'empty_url')
-        elif len(msg := (access(input_url))) > 0:
+        elif len(msg := (validate_url(input_url))) > 0:
             err_msg = msg
 
         elif not input_path.startswith('input_data/') and not input_path.startswith('source/'):
             err_msg = mess.get('from_s3', 'start_with')
         elif input_path == 'input_data/' or input_path == 'source/':
             err_msg = input_path + mess.get('from_s3', 'after_dir')
-        elif os.path.isfile("experiments/" + experiment_title + "/" + input_path):
+        elif os.path.isfile(os.path.join("experiments", experiment_title, input_path)):
             err_msg = input_path + mess.get('from_s3', 'already_exist')
 
         elif os.path.splitext(input_path)[1] != os.path.splitext(input_url)[1]:
@@ -75,7 +76,7 @@ text_url = Text(
     style=style
 )
 
-def access(url):
+def validate_url(url):
     msg = ""
     try:
         response = requests.head(url)
@@ -91,7 +92,7 @@ def access(url):
         msg = mess.get('from_s3', 'wrong_url')
     return msg
 
-def bbb():
+def create_csv():
     """リポジトリへのリンク登録のためのCSVファイルを作成する
     
     Exception:
@@ -107,7 +108,7 @@ def bbb():
             writer.writerow(['who','link'])
             writer.writerow([dest_path, input_url])
 
-def ccc():
+def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
     
     Exception:
@@ -125,5 +126,71 @@ def ccc():
     else:
         display_util.display_info("リンクの作成に成功しました。次の処理にお進みください。")
 
-# def ddd():
+def save_annex():
+    """データ取得履歴を記録する
     
+    Exception:
+    """
+    try:
+        with open(os.path.join(path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
+            experiment_title = json.load(f)["ex_pkg_name"]
+        with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
+            input_path = json.load(f)['dest_file_path']
+        dest_path = os.path.join(path.EXP_DIR_PATH, experiment_title, input_path)
+        # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
+        os.chdir(os.environ['HOME'])
+        # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
+        annex_pahts = [dest_path]
+        os.system('git annex lock')
+        sync.save_annex_and_register_metadata(gitannex_path=annex_pahts, gitannex_files=[], message='S3ストレージから実験のデータを用意')
+    except Exception:
+        display_util.display_err("処理に失敗しました。用意したいデータにアクセス可能か確認してください。")
+        display_util.display_log(traceback.format_exc())
+    else:
+        clear_output()
+        display_util.display_info("来歴の記録とデータのダウンロードに成功しました。次の処理にお進みください。")
+
+
+def get_data():
+    """取得データの実データをダウンロードする
+
+    Exception:
+    """
+    git_path = []
+    try:
+        # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
+        os.chdir(os.environ['HOME'])
+        # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
+        with open(os.path.join(path.SYS_PATH, 'ex_pkg_info.json'), mode='r') as f:
+            experiment_title = json.load(f)["ex_pkg_name"]
+        with open(os.path.join(os.environ['HOME'], '.tmp/rf_form_data/prepare_unit_from_s3.json'), mode='r') as f:
+            input_path = json.load(f)['dest_file_path']
+        dest_path = '/home/jovyan/experiments/' + experiment_title + '/' + input_path
+
+        annex_pahts = [dest_path]
+        # Obtain the actual data of the created link.
+        api.get(path=annex_pahts)
+
+        if input_path.startswith('source/'):
+            # Make the data stored in the source folder the target of git management.
+            # Temporary lock on annex content
+            subprocess.getoutput('git annex lock')
+            # Unlock only the paths under the source folder.
+            subprocess.getoutput(f'git annex unlock "{dest_path}"')
+            subprocess.getoutput(f'git add "{dest_path}"')
+            subprocess.getoutput('git commit -m "Change content type : git-annex to git"')
+            subprocess.getoutput(f'git annex metadata --remove-all "{dest_path}"')
+            subprocess.getoutput(f'git annex unannex "{dest_path}"')
+            git_path.append(dest_path)
+        else:
+            # Attach sdDatePablished metadata to data stored in folders other than the source folder.
+            sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)
+
+        annex_paths = list(set(annex_pahts) - set(git_path))
+
+    except Exception:
+        display_util.display_err("処理に失敗しました。用意したいデータにアクセス可能か確認してください。")
+        display_util.display_log(traceback.format_exc())
+    else:
+        clear_output()
+        display_util.display_info("来歴の記録とデータのダウンロードに成功しました。次の処理にお進みください。")

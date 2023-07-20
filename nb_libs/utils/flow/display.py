@@ -33,5 +33,5 @@ def display_flow(flow_type:str):
         shutil.copy(orig_diag_path, diag_path)
 
     font_path = os.path.join(os.environ['HOME'], '.fonts/ipag.ttf')
-    util.generate_svg_diag(output=svg_path, diag=diag_path, dir_util=notebook_dir, font=font_path)
+    util.generate_svg_diag(output=svg_path, diag=diag_path, dir_util=notebook_dir, font=font_path,)
     display(SVG(filename=svg_path))

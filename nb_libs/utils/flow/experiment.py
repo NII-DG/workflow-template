@@ -100,13 +100,13 @@ def load_json(PATH):
 def generate_svg_diag(
         output='WORKFLOWS/data/flow/experiment_notebooks.svg',
         diag='WORKFLOWS/data/flow/experiment_notebooks.diag',
+        dir_util='WORKFLOWS/notebooks/experimnet',
         font='.fonts/ipag.ttf',
-        dir_experiment='WORKFLOWS/notebooks/experimnet',
 ):
     with TemporaryDirectory() as workdir:
         skeleton = Path(workdir) / 'skeleton.svg'
         _generate_skeleton(skeleton, Path(diag), Path(font))
-        _embed_detail_information(Path(output), skeleton, Path(dir_experiment))
+        _embed_detail_information(Path(output), skeleton, Path(dir_util))
         return output
 
 def _generate_skeleton(output, diag, font):
@@ -119,9 +119,9 @@ def setup_python_path():
     if lib_path not in sys.path:
         sys.path.append(lib_path)
 
-def _embed_detail_information(output, skeleton, dir_experiment):
+def _embed_detail_information(output, skeleton, dir_util):
     # Notebookのヘッダ取得
-    nb_headers = _get_notebook_headers(dir_experiment)
+    nb_headers = _get_notebook_headers(dir_util)
 
     # 雛形の読み込み
     tree = etree.parse(str(skeleton))

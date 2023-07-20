@@ -16,7 +16,4 @@ def get(section:str, option:str) -> str:
         str: message for user
     """
 
-    if config_ini.has_option(section, option):
-        raise KeyError
-
     return config[section][option]

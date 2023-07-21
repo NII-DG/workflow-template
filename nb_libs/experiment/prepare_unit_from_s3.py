@@ -6,6 +6,7 @@ import nb_libs.utils.path.path as path
 import nb_libs.utils.message.message as mess
 import nb_libs.utils.message.display as display_util
 import nb_libs.utils.gin.sync as sync
+import nb_libs.utils.common.common as common
 
 ADDURLS_CSV = '.tmp/datalad-addurls.csv'
 UNIT_S3_JSON = '.tmp/rf_form_data/prepare_unit_from_s3.json'
@@ -50,7 +51,7 @@ def input_url_path():
             return
 
         data = dict()
-        data['s3_object_url'] = urllib.parse.quote(input_url)
+        data['s3_object_url'] = urllib.parse.unquote(input_url)
         data['dest_file_path'] = os.path.join(path.EXPERIMENTS_PATH, experiment_title, input_path)
         
         os.makedirs('.tmp/rf_form_data', exist_ok=True)
@@ -109,7 +110,7 @@ def create_csv():
     try:
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
             dic = json.load(f)
-            input_url = urllib.parse.unquote(dic['s3_object_url'], encoding='utf-8')
+            input_url = dic['s3_object_url']
             dest_path = dic['dest_file_path']
     except FileNotFoundError:
         display_util.display_err(mess.get('from_s3', 'did_not_finish'))
@@ -129,7 +130,8 @@ def add_url():
     os.chdir(os.environ['HOME'])
     try:
         result = ''
-        result = subprocess.getoutput("datalad addurls --nosave --fast .tmp/datalad-addurls.csv '{link}' '{who}'")
+        api.addurls(save=False, fast=True, urlfile= '.tmp/datalad-addurls.csv', urlformat='{link}', filenameformat='{who}')
+        # result = subprocess.getoutput("datalad addurls --nosave --fast .tmp/datalad-addurls.csv '{link}' '{who}'")
 
         for line in result:
             if 'addurls(error)' in line or 'addurls(impossible)' in line:
@@ -186,13 +188,13 @@ def get_data():
         if dest_path.startswith(os.path.join(path.EXPERIMENTS_PATH, experiment_title, 'source/')):
             # Make the data stored in the source folder the target of git management.
             # Temporary lock on annex content
-            subprocess.getoutput('git annex lock')
+            common.exec_subprocess('git annex lock')
             # Unlock only the paths under the source folder.
-            subprocess.getoutput(f'git annex unlock "{dest_path}"')
-            subprocess.getoutput(f'git add "{dest_path}"')
-            subprocess.getoutput('git commit -m "Change content type : git-annex to git"')
-            subprocess.getoutput(f'git annex metadata --remove-all "{dest_path}"')
-            subprocess.getoutput(f'git annex unannex "{dest_path}"')
+            common.exec_subprocess(f'git annex unlock "{dest_path}"')
+            common.exec_subprocess(f'git add "{dest_path}"')
+            common.exec_subprocess('git commit -m "Change content type : git-annex to git"')
+            common.exec_subprocess(f'git annex metadata --remove-all "{dest_path}"')
+            common.exec_subprocess(f'git annex unannex "{dest_path}"')
         else:
             # Attach sdDatePablished metadata to data stored in folders other than the source folder.
             sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)

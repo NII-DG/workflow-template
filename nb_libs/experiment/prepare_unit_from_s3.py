@@ -1,4 +1,4 @@
-import os, json, requests, urllib, csv, subprocess, traceback
+import os, json, urllib, csv, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
 from datalad import api
@@ -7,6 +7,8 @@ import nb_libs.utils.message.message as mess
 import nb_libs.utils.message.display as display_util
 import nb_libs.utils.gin.sync as sync
 import nb_libs.utils.common.common as common
+import nb_libs.utils.aws.s3 as s3
+from nb_libs.utils.except_class.addurls_err import AddurlsError
 
 ADDURLS_CSV = '.tmp/datalad-addurls.csv'
 UNIT_S3_JSON = '.tmp/rf_form_data/prepare_unit_from_s3.json'
@@ -29,7 +31,7 @@ def input_url_path():
         
         if len(input_url)<=0:
             err_msg = mess.get('from_s3', 'empty_url')
-        elif len(msg := (validate_url(input_url))) > 0:
+        elif len(msg := (s3.access_s3_url(input_url))) > 0:
             err_msg = msg
         elif not input_path.startswith('input_data/') and not input_path.startswith('source/'):
             err_msg = mess.get('from_s3', 'start_with')
@@ -80,30 +82,7 @@ text_url = Text(
     style=style
 )
 
-
-def validate_url(url) -> str:
-    """S3オブジェクトURLの検証を行う
-
-    Return:
-        エラーメッセージ
-
-    """
-    msg = ""
-    try:
-        response = requests.head(url)
-        if response.status_code == 200:
-            pass
-        elif response.status_code == 404 or response.status_code == 400:
-            msg = mess.get('from_s3', 'wrong_url')
-        elif response.status_code == 403:
-            msg = mess.get('from_s3', 'private_object')
-        else:
-            msg = mess.get('from_s3', 'exception')
-    except requests.exceptions.RequestException:
-        msg = mess.get('from_s3', 'wrong_url')
-    return msg
-
-def create_csv():
+def prepare_addurls_data():
     """リポジトリへのリンク登録のためのCSVファイルを作成する
 
     """
@@ -135,8 +114,8 @@ def add_url():
 
         for line in result:
             if 'addurls(error)' in line or 'addurls(impossible)' in line:
-                raise Exception
-    except Exception:
+                raise AddurlsError
+    except AddurlsError:
         display_util.display_err(mess.get('from_s3', 'create_link_fail'))
         display_util.display_log(traceback.format_exc())
     else:

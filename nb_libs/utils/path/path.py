@@ -10,6 +10,7 @@ NOTEBOOK_DIR = "notebooks"
 RESEARCH_DIR = "research"
 
 # path
+HOME_PATH = os.environ['HOME']
 SYS_PATH = os.path.join(os.environ['HOME'], '.dg-sys')
 FROW_PATH = os.path.join(os.environ['HOME'], FLOW_DIR)
 EXPERIMENTS_PATH = os.path.join(os.environ['HOME'], 'experiments')

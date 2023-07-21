@@ -2,7 +2,6 @@ import os
 import json
 from http import HTTPStatus
 from urllib import parse
-import sys
 from ..gin import api
 from ..message import display, message
 from ..common import common

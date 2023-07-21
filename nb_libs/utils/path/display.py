@@ -5,15 +5,15 @@ from . import path
 
 
 def link_button(url:str, msg:str, target='_self'):
-    """同じページで画面遷移するボタンを表示する
+    """画面遷移するボタンを表示する
 
     Args:
         url (str): リンク先のURL
         msg (str): 表示する説明
-        target (str): targetの属性(e.g. _blank)
+        target (str): target属性の種類(e.g. _blank)
     """
     html_text =  f'<a href="{url}" target="{target}" ><button>{msg}</button></a>'
-    return display(HTML(html_text))
+    display(HTML(html_text))
 
 
 def res_top_link():

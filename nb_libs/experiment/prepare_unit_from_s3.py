@@ -135,7 +135,7 @@ def save_annex():
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
         annex_paths = [dest_path]
         os.system('git annex lock')
-        sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message='S3ストレージから実験のデータを用意')
+        sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=mess.get('from_s3', 'data_from_s3'))
     except Exception:
         display_util.display_err(mess.get('from_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
@@ -164,7 +164,7 @@ def get_data():
         # Obtain the actual data of the created link.
         api.get(path=annex_paths)
 
-        if dest_path.startswith(os.path.join(path.EXPERIMENTS_PATH, experiment_title, 'source/')):
+        if dest_path.startswith(path.create_source_dir_path(experiment_title)):
             # Make the data stored in the source folder the target of git management.
             # Temporary lock on annex content
             common.exec_subprocess('git annex lock')
@@ -207,7 +207,7 @@ def prepare_sync() -> dict:
 
     annex_paths = [dest_path]
 
-    if dest_path.startswith(os.path.join(path.EXPERIMENTS_PATH, experiment_title, 'source/')):
+    if dest_path.startswith(path.create_source_dir_path(experiment_title)):
         git_path.append(dest_path)
 
     annex_paths = list(set(annex_paths) - set(git_path))
@@ -218,11 +218,9 @@ def prepare_sync() -> dict:
     dic['gitannex_path'] = annex_paths
     dic['gitannex_files'] = annex_paths
     dic['get_paths'] = [f'experiments/{experiment_title}']
-    dic['message'] = experiment_title + '_実験データの用意'
+    dic['message'] = mess.get('from_s3', 'prepare_data').format(experiment_title)
     
-    if os.path.isfile(os.path.join(os.environ['HOME'], UNIT_S3_JSON)):
-        os.remove(os.path.join(os.environ['HOME'], UNIT_S3_JSON))
-    if os.path.isfile(os.path.join(os.environ['HOME'], ADDURLS_CSV)):
-        os.remove(os.path.join(os.environ['HOME'], ADDURLS_CSV))
+    common.delete_file(os.path.join(os.environ['HOME'], UNIT_S3_JSON))
+    common.delete_file(os.path.join(os.environ['HOME'], ADDURLS_CSV))
     
     return dic

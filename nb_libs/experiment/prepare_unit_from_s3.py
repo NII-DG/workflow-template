@@ -38,10 +38,10 @@ def input_url_path():
             err_msg = input_path + mess.get('from_s3', 'after_dir')
         elif os.path.splitext(input_path)[1] != os.path.splitext(input_url)[1]:
             err_msg = input_path + mess.get('from_s3', 'different_ext')
-        elif not input_path.endswith('/'):
-            err_msg = input_path + mess.get('from_s3', 'end_slash')
+        elif input_path.endswith('/'):
+            err_msg = mess.get('from_s3', 'end_slash')
         elif '\\' in input_path:
-            err_msg = input_path + mess.get('from_s3', 'backslash')
+            err_msg = mess.get('from_s3', 'backslash')
 
         if len(err_msg) > 0:
             button.layout=Layout(width='700px')

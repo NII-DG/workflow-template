@@ -35,7 +35,7 @@ def update_gin_url():
         # update param json
         param_json.update_param_url(url)
     except requests.exceptions.RequestException as e:
-        display.display_err(message.get('communication', 'error'))
+        display.display_err(message.get('param_json', 'communication_error'))
         raise e
     except Exception as e:
         raise e

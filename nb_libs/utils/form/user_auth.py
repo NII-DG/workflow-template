@@ -97,7 +97,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
-            submit_button_user_auth.name = mess.get('user_auth','exception')
+            submit_button_user_auth.name = mess.get('user_auth','unexpected')
             error_message.value = 'ERROR : {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
@@ -145,7 +145,7 @@ def initial_gin_user_auth():
     # Instance for exception messages
     error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
 
-    button = pn.widgets.Button(name= mess.get('button','entry'), button_type= "primary", width=700)
+    button = pn.widgets.Button(name= mess.get('user_auth','end_input'), button_type= "primary", width=700)
 
 
     # Define processing after clicking the submit button
@@ -240,7 +240,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
 
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
-            submit_button_user_auth.name = mess.get('user_auth','exception')
+            submit_button_user_auth.name = mess.get('user_auth','unexpected')
             error_message.value = 'ERROR : {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
@@ -270,7 +270,7 @@ def initial_gin_user_auth_without_email():
     # Instance for exception messages
     error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
 
-    button = pn.widgets.Button(name= mess.get('button','entry'), button_type= "primary", width=700)
+    button = pn.widgets.Button(name= mess.get('user_auth','end_input'), button_type= "primary", width=700)
     succecc_private_button = pn.widgets.StaticText(value='', sizing_mode='stretch_width')
 
     # Define processing after clicking the submit button

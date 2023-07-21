@@ -6,7 +6,7 @@ from urllib import parse
 import requests
 import os
 import json
-import sys
+import time
 from ..message import display
 from ..params import user_info
 from . import sync
@@ -84,6 +84,38 @@ def get_server_info(scheme, domain):
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     return requests.get(url=api_url)
 
+
+def upload_key(scheme:str, domain:str, token:str, pubkey:str):
+    """GIN_API : api/v1/user/keys リクエストメソッド
+
+    ARG
+    ---------------
+    scheme : str
+        Description : プロトコル名(http, https, ssh)
+    domain : str
+        Description : ドメイン名
+    token : str
+        Description : token
+    pubkey : str
+        Description : SSHのpublic key
+
+    RETURN
+    ---------------
+    Respons :
+        Description : レスポンスインスタンス
+
+    EXCEPTION
+    ---------------
+    接続の確立不良 : requests.exceptions.RequestException
+    """
+    sub_url = "api/v1/user/keys"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {'token' : token}
+    data = {
+                "title": "system-generated-"+str(time.time()),
+                "key": pubkey
+            }
+    return requests.post(url=api_url, params=params,data=data)
 
 
 def add_container(experiment_title=""):

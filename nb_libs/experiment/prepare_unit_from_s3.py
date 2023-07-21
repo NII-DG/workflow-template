@@ -30,16 +30,18 @@ def input_url_path():
             err_msg = mess.get('from_s3', 'empty_url')
         elif len(msg := (validate_url(input_url))) > 0:
             err_msg = msg
-
         elif not input_path.startswith('input_data/') and not input_path.startswith('source/'):
             err_msg = mess.get('from_s3', 'start_with')
-        elif input_path == 'input_data/' or input_path == 'source/':
-            err_msg = input_path + mess.get('from_s3', 'after_dir')
         elif os.path.isfile(os.path.join("experiments", experiment_title, input_path)):
             err_msg = input_path + mess.get('from_s3', 'already_exist')
-
+        elif input_path == 'input_data/' or input_path == 'source/':
+            err_msg = input_path + mess.get('from_s3', 'after_dir')
         elif os.path.splitext(input_path)[1] != os.path.splitext(input_url)[1]:
-            err_msg = input_path + mess.get('from_s3', 'different_url')
+            err_msg = input_path + mess.get('from_s3', 'different_ext')
+        elif input_path.endswith('/'):
+            err_msg = mess.get('from_s3', 'end_slash')
+        elif '\\' in input_path:
+            err_msg = mess.get('from_s3', 'backslash')
 
         if len(err_msg) > 0:
             button.layout=Layout(width='700px')
@@ -93,7 +95,7 @@ def validate_url(url) -> str:
         elif response.status_code == 404 or response.status_code == 400:
             msg = mess.get('from_s3', 'wrong_url')
         elif response.status_code == 403:
-            msg = mess.get('from_s3', 'private_url')
+            msg = mess.get('from_s3', 'private_object')
         else:
             msg = mess.get('from_s3', 'exception')
     except requests.exceptions.RequestException:
@@ -213,10 +215,14 @@ def prepare_sync() -> dict:
     display(Javascript('IPython.notebook.save_checkpoint();'))
 
     git_path = []
-    with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
-        experiment_title = json.load(f)['ex_pkg_name']
-    with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-        dest_path = json.load(f)['dest_file_path']
+    try:
+        with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
+            experiment_title = json.load(f)['ex_pkg_name']
+        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
+            dest_path = json.load(f)['dest_file_path']
+    except Exception:
+        display_util.display_err(mess.get('from_s3', 'did_not_finish'))
+        return
 
     annex_paths = [dest_path]
 

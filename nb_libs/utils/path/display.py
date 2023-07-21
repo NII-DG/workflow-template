@@ -29,4 +29,4 @@ def res_top_link_from_maDMP():
 
 def exp_top_link():
     """実験フロートップページへのリンクを表示する"""
-    link_button('./experimnet.ipynb', message.get("transition", "experiment_top"))
+    link_button('./experiment.ipynb', message.get("transition", "experiment_top"))

@@ -49,12 +49,13 @@ def upload_ssh_key():
         elif msg['message'] == 'Key content has been used as non-deploy key':
             display.display_warm(message.get('ssh_key', 'already_exist'))
         else:
-            raise Exception()
+            raise Exception
 
     except requests.exceptions.RequestException as e:
         display.display_err(message.get('ssh_key', 'communication_error'))
         raise e
     except Exception as e:
+        display.display_err(message.get('ssh_key', 'unexpected'))
         raise e
 
 

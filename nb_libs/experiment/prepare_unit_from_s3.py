@@ -13,7 +13,10 @@ from nb_libs.utils.except_class.addurls_err import AddurlsError
 ADDURLS_CSV = '.tmp/datalad-addurls.csv'
 UNIT_S3_JSON = '.tmp/rf_form_data/prepare_unit_from_s3.json'
 PKG_INFO_JSON = 'ex_pkg_info.json'
-NOTEBOOK_PATH = 'WORKFLOWS/notebooks/experiment_prepare_unit_from_s3.ipynb'
+NOTEBOOK_PATH = 'WORKFLOWS/notebooks/experiment/prepare_unit_from_s3.ipynb'
+
+S3_OBJECT_URL = 's3_object_url'
+DEST_FILE_PATH = 'dest_file_path'
 
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
@@ -53,8 +56,8 @@ def input_url_path():
             return
 
         data = dict()
-        data['s3_object_url'] = urllib.parse.unquote(input_url)
-        data['dest_file_path'] = os.path.join(path.EXPERIMENTS_PATH, experiment_title, input_path)
+        data[S3_OBJECT_URL] = urllib.parse.unquote(input_url)
+        data[DEST_FILE_PATH] = os.path.join(path.EXPERIMENTS_PATH, experiment_title, input_path)
         
         os.makedirs('.tmp/rf_form_data', exist_ok=True)
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='w') as f:
@@ -89,8 +92,8 @@ def prepare_addurls_data():
     try:
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
             dic = json.load(f)
-            input_url = dic['s3_object_url']
-            dest_path = dic['dest_file_path']
+            input_url = dic[S3_OBJECT_URL]
+            dest_path = dic[DEST_FILE_PATH]
     except FileNotFoundError:
         display_util.display_err(mess.get('from_s3', 'did_not_finish'))
     except KeyError:
@@ -109,8 +112,7 @@ def add_url():
     os.chdir(os.environ['HOME'])
     try:
         result = ''
-        api.addurls(save=False, fast=True, urlfile= '.tmp/datalad-addurls.csv', urlformat='{link}', filenameformat='{who}')
-        # result = subprocess.getoutput("datalad addurls --nosave --fast .tmp/datalad-addurls.csv '{link}' '{who}'")
+        result = api.addurls(save=False, fast=True, urlfile= '.tmp/datalad-addurls.csv', urlformat='{link}', filenameformat='{who}')
 
         for line in result:
             if 'addurls(error)' in line or 'addurls(impossible)' in line:
@@ -128,7 +130,7 @@ def save_annex():
     """
     try:
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-            dest_path = json.load(f)['dest_file_path']
+            dest_path = json.load(f)[DEST_FILE_PATH]
 
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         os.chdir(os.environ['HOME'])
@@ -158,7 +160,7 @@ def get_data():
         with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
             experiment_title = json.load(f)['ex_pkg_name']
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-            dest_path = json.load(f)['dest_file_path']
+            dest_path = json.load(f)[DEST_FILE_PATH]
 
         annex_paths = [dest_path]
         # Obtain the actual data of the created link.
@@ -200,7 +202,7 @@ def prepare_sync() -> dict:
         with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
             experiment_title = json.load(f)['ex_pkg_name']
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-            dest_path = json.load(f)['dest_file_path']
+            dest_path = json.load(f)[DEST_FILE_PATH]
     except Exception:
         display_util.display_err(mess.get('from_s3', 'did_not_finish'))
         return

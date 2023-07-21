@@ -30,16 +30,18 @@ def input_url_path():
             err_msg = mess.get('from_s3', 'empty_url')
         elif len(msg := (validate_url(input_url))) > 0:
             err_msg = msg
-
         elif not input_path.startswith('input_data/') and not input_path.startswith('source/'):
             err_msg = mess.get('from_s3', 'start_with')
-        elif input_path == 'input_data/' or input_path == 'source/':
-            err_msg = input_path + mess.get('from_s3', 'after_dir')
         elif os.path.isfile(os.path.join("experiments", experiment_title, input_path)):
             err_msg = input_path + mess.get('from_s3', 'already_exist')
-
+        elif input_path == 'input_data/' or input_path == 'source/':
+            err_msg = input_path + mess.get('from_s3', 'after_dir')
         elif os.path.splitext(input_path)[1] != os.path.splitext(input_url)[1]:
-            err_msg = input_path + mess.get('from_s3', 'different_url')
+            err_msg = input_path + mess.get('from_s3', 'different_ext')
+        elif not input_path.endswith('/'):
+            err_msg = input_path + mess.get('from_s3', 'end_slash')
+        elif '\\' in input_path:
+            err_msg = input_path + mess.get('from_s3', 'backslash')
 
         if len(err_msg) > 0:
             button.layout=Layout(width='700px')

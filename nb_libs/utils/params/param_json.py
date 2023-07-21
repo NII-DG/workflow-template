@@ -57,4 +57,4 @@ def update_param_url(remote_origin_url):
             if retry_num == 0:
                 flg = False
                 display.display_err(message.get('param_json','not_found_error'))
-                raise Exception()
+                raise Exception

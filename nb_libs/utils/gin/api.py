@@ -1,15 +1,9 @@
 """
 GIN frok APIの通信メソッド群
 """
-
 from urllib import parse
 import requests
-import os
-import json
 import time
-from ..message import display
-from ..params import user_info
-from . import sync
 
 
 def repos_search_by_repo_id(scheme, domain, repo_id):
@@ -111,129 +105,48 @@ def upload_key(scheme:str, domain:str, token:str, pubkey:str):
     sub_url = "api/v1/user/keys"
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     params = {'token' : token}
-    data = {
-                "title": "system-generated-"+str(time.time()),
-                "key": pubkey
-            }
+    data={
+        "title": "system-generated-"+str(time.time()),
+        "key": pubkey
+    }
     return requests.post(url=api_url, params=params,data=data)
 
 
-def add_container(experiment_title=""):
-    """register add container to GIN-fork container list.
+def add_container(scheme, domain, token,
+                    repo_id, user_id, server_name, ipynb_url, pkg_title=""):
 
-    ARG
-    ---------------
-    experiment_title : str
-        Description : a contaier is regarded as an experiment contaier if and only if experiment_title is set.
+    sub_url = "/api/v1/container"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {'token' : token}
+    data = {
+            "repo_id": repo_id,
+            "user_id": user_id,
+            "server_name": server_name,
+            "url":ipynb_url
+    }
+    if len(pkg_title) > 0:
+        data["experiment_package"] = pkg_title
 
-    RETURN
-    ---------------
-    Returns nothing.
-
-    EXCEPTION
-    ---------------
-    """
-
-    uid = str(user_info.get_user_id())
-    with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
-        repo_id = f.read()
-    with open(sync.fetch_param_file_path(), mode='r') as f:
-        params = json.load(f)
-    with open('/home/jovyan/.token.json', 'r') as f:
-        dic = json.load(f)
-        token = dic["ginfork_token"]
-
-    # experiment
-    if len(experiment_title) > 0:
-        response = requests.post(
-            params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
-            data={
-                "repo_id": repo_id,
-                "user_id": uid,
-                "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
-                "experiment_package" : experiment_title,
-                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/experiment.ipynb"
-            })
-
-    # research
-    else:
-        response = requests.post(
-            params['siblings']['ginHttp']+'/api/v1/container?token=' + token,
-            data={
-                "repo_id": repo_id,
-                "user_id": uid,
-                "server_name": os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3],
-                "url": "https://jupyter.cs.rcos.nii.ac.jp" + os.environ["JUPYTERHUB_SERVICE_PREFIX"] + "notebooks/WORKFLOWS/base_FLOW.ipynb"
-            })
-
-    try:
-        if response.status_code == requests.codes.ok:
-            display.display_info('実行環境を追加しました。')
-        elif response.json()["error"].startswith("Error 1062"):
-            display.display_warm('すでに追加されています。')
-        else:
-            display.display_err('追加に失敗しました。再度実行してください。')
-
-    except Exception:
-        display.display_err('追加に失敗しました。再度実行してください。')
+    return requests.post(url=api_url, params=params, data=data)
 
 
-def patch_container():
-    """update only updated_unix of container
-
-    ARG
-    ---------------
-    experiment_title : str
-        Description : contaier is regarded as experiment contaier if and only if experiment_title is set.
-
-    RETURN
-    ---------------
-    Returns nothing.
-
-    EXCEPTION
-    ---------------
-    """
-
-    uid = str(user_info.get_user_id())
-    with open(sync.fetch_param_file_path(), mode='r') as f:
-        params = json.load(f)
-    with open('/home/jovyan/.token.json', 'r') as f:
-        dic = json.load(f)
-        token = dic["ginfork_token"]
-    server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
-
-    requests.patch(
-        params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}&user_id={uid}'
-    )
+def patch_container(scheme, domain, token, server_name, user_id):
+    sub_url = "/api/v1/container"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {
+        'token' : token,
+        'server_name' : server_name,
+        'user_id' : user_id
+    }
+    return requests.patch(url=api_url, params=params)
 
 
-def delete_container():
-    """logical delete of container
-
-    ARG
-    ---------------
-
-    RETURN
-    ---------------
-    Returns nothing.
-
-    EXCEPTION
-    ---------------
-    """
-
-    uid = str(user_info.get_user_id())
-    with open(sync.fetch_param_file_path(), mode='r') as f:
-        params = json.load(f)
-    with open('/home/jovyan/.token.json', 'r') as f:
-        dic = json.load(f)
-        token = dic["ginfork_token"]
-    server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
-
-    response = requests.delete(
-        params['siblings']['ginHttp'] + f'/api/v1/container?token={token}&server_name={server_name}&user_id={uid}'
-    )
-
-    if response.status_code == requests.codes.ok:
-        display.display_info('実行環境の削除を反映しました。')
-    else:
-        display.display_err('削除の反映に失敗しました。再度実行してください。')
+def delete_container(scheme, domain, token, server_name, user_id):
+    sub_url = "/api/v1/container"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {
+        'token' : token,
+        'server_name' : server_name,
+        'user_id' : user_id
+    }
+    return requests.delete(url=api_url, params=params)

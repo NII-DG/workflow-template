@@ -222,6 +222,7 @@ def prepare_sync() -> dict:
             dest_path = json.load(f)['dest_file_path']
     except Exception:
         display_util.display_err(mess.get('from_s3', 'did_not_finish'))
+        return
 
     annex_paths = [dest_path]
 

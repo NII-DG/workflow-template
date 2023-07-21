@@ -215,10 +215,13 @@ def prepare_sync() -> dict:
     display(Javascript('IPython.notebook.save_checkpoint();'))
 
     git_path = []
-    with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
-        experiment_title = json.load(f)['ex_pkg_name']
-    with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-        dest_path = json.load(f)['dest_file_path']
+    try:
+        with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
+            experiment_title = json.load(f)['ex_pkg_name']
+        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
+            dest_path = json.load(f)['dest_file_path']
+    except Exception:
+        display_util.display_err(mess.get('from_s3', 'did_not_finish'))
 
     annex_paths = [dest_path]
 

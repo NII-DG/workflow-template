@@ -32,6 +32,8 @@ def dg_menu(type='research'):
     menu_selector = pn.widgets.Select(name=message.get('menu', 'select'), options=menu_option, value=1)
 
     html_output  = pn.pane.HTML()
+    html_output.height = 50
+    html_output.width = 400
 
     def update_selected_value(event):
         selected_value = event.new
@@ -51,6 +53,8 @@ def dg_menu(type='research'):
             html_output.object = gin_link_html()
 
     menu_selector.param.watch(update_selected_value,'value')
+    html_output.height = 50
+    html_output.width = 400
     display(menu_selector)
     display(html_output)
 
@@ -59,7 +63,7 @@ def html_res_name(color='black'):
     """研究名を表示する"""
     sync.update_repo_url()
     research_title = git.get_remote_url().split('/')[-1].replace('.git', '')
-    msg = message.get('menu', 'research_title')+ research_title
+    msg = message.get('menu', 'research_title').format(research_title)
     return show.creat_html_msg(msg=msg, fore=color, tag='h1')
 
 
@@ -73,7 +77,7 @@ def html_exp_name(color='black'):
     except Exception:
         experiment_title = '-'
 
-    msg = message.get('menu', 'experiment_title') + experiment_title
+    msg = message.get('menu', 'experiment_title').format(experiment_title)
     return show.creat_html_msg(msg=msg, fore=color, tag='h1')
 
 

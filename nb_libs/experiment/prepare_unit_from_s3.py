@@ -10,22 +10,20 @@ import nb_libs.utils.common.common as common
 import nb_libs.utils.aws.s3 as s3
 from nb_libs.utils.except_class.addurls_err import AddurlsError
 
-ADDURLS_CSV = '.tmp/datalad-addurls.csv'
-UNIT_S3_JSON = '.tmp/rf_form_data/prepare_unit_from_s3.json'
-PKG_INFO_JSON = 'ex_pkg_info.json'
-NOTEBOOK_PATH = 'WORKFLOWS/notebooks/experiment/prepare_unit_from_s3.ipynb'
-
+# 辞書のキー
 S3_OBJECT_URL = 's3_object_url'
 DEST_FILE_PATH = 'dest_file_path'
+EX_PKG_NAME = 'ex_pkg_name'
 
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
     """
     def on_click_callback(clicked_button: Button) -> None:
+
+        common.delete_file(path.UNIT_S3_JSON_PATH)
         
-        os.chdir(os.environ['HOME'])
-        with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
-            experiment_title = json.load(f)["ex_pkg_name"]
+        with open(path.PKG_INFO_PATH, mode='r') as f:
+            experiment_title = json.load(f)[EX_PKG_NAME]
 
         input_url = text_url.value
         input_path = text_path.value
@@ -38,7 +36,7 @@ def input_url_path():
             err_msg = msg
         elif not input_path.startswith('input_data/') and not input_path.startswith('source/'):
             err_msg = mess.get('from_s3', 'start_with')
-        elif os.path.isfile(os.path.join("experiments", experiment_title, input_path)):
+        elif os.path.isfile(path.create_experiments_sub_path(experiment_title, input_path)):
             err_msg = input_path + mess.get('from_s3', 'already_exist')
         elif input_path == 'input_data/' or input_path == 'source/':
             err_msg = input_path + mess.get('from_s3', 'after_dir')
@@ -57,40 +55,42 @@ def input_url_path():
 
         data = dict()
         data[S3_OBJECT_URL] = urllib.parse.unquote(input_url)
-        data[DEST_FILE_PATH] = os.path.join(path.EXPERIMENTS_PATH, experiment_title, input_path)
+        data[DEST_FILE_PATH] = path.create_experiments_sub_path(experiment_title, input_path)
         
-        os.makedirs('.tmp/rf_form_data', exist_ok=True)
-        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='w') as f:
+        os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
+        with open(path.UNIT_S3_JSON_PATH, mode='w') as f:
             json.dump(data, f, indent=4)
 
         button.description = mess.get('from_s3', 'done_input')
         button.layout=Layout(width='250px')
         button.button_style='success'
 
+    common.delete_file(path.UNIT_S3_JSON_PATH)
+    style = {'description_width': 'initial'}
+    text_path = Text(
+        description = mess.get('from_s3', 'file_path'),
+        placeholder='Enter a file path here...',
+        layout=Layout(width='700px'),
+        style=style
+    )
+    text_url = Text(
+        description=mess.get('from_s3', 'object_url'),
+        placeholder='Enter a object URL here...',
+        layout=Layout(width='700px'),
+        style=style
+    )
+
     button = Button(description=mess.get('from_s3', 'end_input'), layout=Layout(width='250px'))
     button.on_click(on_click_callback)
     display(text_url, text_path, button)
 
-style = {'description_width': 'initial'}
-text_path = Text(
-    description = mess.get('from_s3', 'file_path'),
-    placeholder='Enter a file path here...',
-    layout=Layout(width='700px'),
-    style=style
-)
-text_url = Text(
-    description=mess.get('from_s3', 'object_url'),
-    placeholder='Enter a object URL here...',
-    layout=Layout(width='700px'),
-    style=style
-)
 
 def prepare_addurls_data():
     """リポジトリへのリンク登録のためのCSVファイルを作成する
 
     """
     try:
-        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
+        with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dic = json.load(f)
             input_url = dic[S3_OBJECT_URL]
             dest_path = dic[DEST_FILE_PATH]
@@ -100,7 +100,7 @@ def prepare_addurls_data():
         display_util.display_err(mess.get('from_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
 
-    with open(os.path.join(os.environ['HOME'], ADDURLS_CSV), mode='w') as f:
+    with open(path.ADDURLS_CSV_PATH, mode='w') as f:
         writer = csv.writer(f)
         writer.writerow(['who','link'])
         writer.writerow([dest_path, input_url])
@@ -109,10 +109,9 @@ def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
     
     """
-    os.chdir(os.environ['HOME'])
     try:
         result = ''
-        result = api.addurls(save=False, fast=True, urlfile= '.tmp/datalad-addurls.csv', urlformat='{link}', filenameformat='{who}')
+        result = api.addurls(save=False, fast=True, urlfile= path.ADDURLS_CSV_PATH, urlformat='{link}', filenameformat='{who}')
 
         for line in result:
             if 'addurls(error)' in line or 'addurls(impossible)' in line:
@@ -129,14 +128,13 @@ def save_annex():
     Exception:
     """
     try:
-        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
+        with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_path = json.load(f)[DEST_FILE_PATH]
 
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
-        os.chdir(os.environ['HOME'])
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
         annex_paths = [dest_path]
-        os.system('git annex lock')
+        common.exec_subprocess('git annex lock')
         sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=mess.get('from_s3', 'data_from_s3'))
     except Exception:
         display_util.display_err(mess.get('from_s3', 'process_fail'))
@@ -155,18 +153,17 @@ def get_data():
     """
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
-        os.chdir(os.environ['HOME'])
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
-        with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
-            experiment_title = json.load(f)['ex_pkg_name']
-        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
+        with open(path.PKG_INFO_PATH, mode='r') as f:
+            experiment_title = json.load(f)[EX_PKG_NAME]
+        with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_path = json.load(f)[DEST_FILE_PATH]
 
         annex_paths = [dest_path]
         # Obtain the actual data of the created link.
         api.get(path=annex_paths)
 
-        if dest_path.startswith(path.create_source_dir_path(experiment_title)):
+        if dest_path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
             # Make the data stored in the source folder the target of git management.
             # Temporary lock on annex content
             common.exec_subprocess('git annex lock')
@@ -199,9 +196,9 @@ def prepare_sync() -> dict:
 
     git_path = []
     try:
-        with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
-            experiment_title = json.load(f)['ex_pkg_name']
-        with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
+        with open(path.PKG_INFO_PATH, mode='r') as f:
+            experiment_title = json.load(f)[EX_PKG_NAME]
+        with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_path = json.load(f)[DEST_FILE_PATH]
     except Exception:
         display_util.display_err(mess.get('from_s3', 'did_not_finish'))
@@ -209,20 +206,20 @@ def prepare_sync() -> dict:
 
     annex_paths = [dest_path]
 
-    if dest_path.startswith(path.create_source_dir_path(experiment_title)):
+    if dest_path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
         git_path.append(dest_path)
 
     annex_paths = list(set(annex_paths) - set(git_path))
-    git_path.append(NOTEBOOK_PATH)
+    git_path.append(path.EXP_DIR_PATH + path.PREPARE_UNIT_FROM_S3)
 
     dic = dict()
     dic['git_path'] = git_path
     dic['gitannex_path'] = annex_paths
     dic['gitannex_files'] = annex_paths
-    dic['get_paths'] = [f'experiments/{experiment_title}']
+    dic['get_paths'] = [path.create_experiments_sub_path(experiment_title)]
     dic['message'] = mess.get('from_s3', 'prepare_data').format(experiment_title)
     
-    common.delete_file(os.path.join(os.environ['HOME'], UNIT_S3_JSON))
-    common.delete_file(os.path.join(os.environ['HOME'], ADDURLS_CSV))
+    common.delete_file(path.UNIT_S3_JSON_PATH)
+    common.delete_file(path.ADDURLS_CSV_PATH)
     
     return dic

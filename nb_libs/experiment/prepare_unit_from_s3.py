@@ -8,6 +8,8 @@ import nb_libs.utils.message.display as display_util
 import nb_libs.utils.gin.sync as sync
 import nb_libs.utils.common.common as common
 import nb_libs.utils.aws.s3 as s3
+import nb_libs.utils.git.datalad_util as annex_util
+import nb_libs.utils.git.git_module as git_module
 from nb_libs.utils.except_class.addurls_err import AddurlsError
 
 # 辞書のキー
@@ -34,18 +36,8 @@ def input_url_path():
             err_msg = mess.get('from_s3', 'empty_url')
         elif len(msg := (s3.access_s3_url(input_url))) > 0:
             err_msg = msg
-        elif not input_path.startswith('input_data/') and not input_path.startswith('source/'):
-            err_msg = mess.get('from_s3', 'start_with')
-        elif os.path.isfile(path.create_experiments_sub_path(experiment_title, input_path)):
-            err_msg = input_path + mess.get('from_s3', 'already_exist')
-        elif input_path == 'input_data/' or input_path == 'source/':
-            err_msg = input_path + mess.get('from_s3', 'after_dir')
-        elif os.path.splitext(input_path)[1] != os.path.splitext(input_url)[1]:
-            err_msg = input_path + mess.get('from_s3', 'different_ext')
-        elif input_path.endswith('/'):
-            err_msg = mess.get('from_s3', 'end_slash')
-        elif '\\' in input_path:
-            err_msg = mess.get('from_s3', 'backslash')
+        
+        s3.validate_input_path()
 
         if len(err_msg) > 0:
             button.layout=Layout(width='700px')
@@ -99,11 +91,7 @@ def prepare_addurls_data():
     except KeyError:
         display_util.display_err(mess.get('from_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-
-    with open(path.ADDURLS_CSV_PATH, mode='w') as f:
-        writer = csv.writer(f)
-        writer.writerow(['who','link'])
-        writer.writerow([dest_path, input_url])
+    annex_util.create_csv({dest_path: input_url})
 
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
@@ -134,7 +122,9 @@ def save_annex():
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
         annex_paths = [dest_path]
-        common.exec_subprocess('git annex lock')
+
+        git_module.git_annex_lock()
+
         sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=mess.get('from_s3', 'data_from_s3'))
     except Exception:
         display_util.display_err(mess.get('from_s3', 'process_fail'))
@@ -163,19 +153,21 @@ def get_data():
         # Obtain the actual data of the created link.
         api.get(path=annex_paths)
 
-        if dest_path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
-            # Make the data stored in the source folder the target of git management.
-            # Temporary lock on annex content
-            common.exec_subprocess('git annex lock')
-            # Unlock only the paths under the source folder.
-            common.exec_subprocess(f'git annex unlock "{dest_path}"')
-            common.exec_subprocess(f'git add "{dest_path}"')
-            common.exec_subprocess('git commit -m "Change content type : git-annex to git"')
-            common.exec_subprocess(f'git annex metadata --remove-all "{dest_path}"')
-            common.exec_subprocess(f'git annex unannex "{dest_path}"')
-        else:
-            # Attach sdDatePablished metadata to data stored in folders other than the source folder.
-            sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)
+        annex_util.annex_to_git(experiment_title)
+
+        # if dest_path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
+        #     # Make the data stored in the source folder the target of git management.
+        #     # Temporary lock on annex content
+        #     common.exec_subprocess('git annex lock')
+        #     # Unlock only the paths under the source folder.
+        #     common.exec_subprocess(f'git annex unlock "{dest_path}"')
+        #     common.exec_subprocess(f'git add "{dest_path}"')
+        #     common.exec_subprocess('git commit -m "Change content type : git-annex to git"')
+        #     common.exec_subprocess(f'git annex metadata --remove-all "{dest_path}"')
+        #     common.exec_subprocess(f'git annex unannex "{dest_path}"')
+        # else:
+        #     # Attach sdDatePablished metadata to data stored in folders other than the source folder.
+        #     sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)
 
     except Exception:
         display_util.display_err(mess.get('from_s3', 'process_fail'))

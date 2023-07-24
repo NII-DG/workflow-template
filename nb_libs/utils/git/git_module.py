@@ -57,6 +57,26 @@ def git_ls_files(path:str):
     result = stdout.decode('utf-8')
     return result
 
+def git_annex_lock():
+    stdout, stderr, rt = common.exec_subprocess('git_annex_lock')
+    result = stdout.decode('utf-8')
+    return result
+
+def git_annex_unlock(path:str):
+    stdout, stderr, rt = common.exec_subprocess(f'git annex unlock "{path}"')
+    result = stdout.decode('utf-8')
+    return result
+
+def git_annex_remove(path:str):
+    stdout, stderr, rt = common.exec_subprocess(f'git annex metadata --remove-all "{path}"')
+    result = stdout.decode('utf-8')
+    return result
+
+def git_annex_unannex(path:str):
+    stdout, stderr, rt = common.exec_subprocess(f'git annex unannex "{path}"')
+    result = stdout.decode('utf-8')
+    return result
+
 def get_conflict_filepaths() -> list[str]:
     """Get conflict paths in Unmerged paths for commit from git status
 

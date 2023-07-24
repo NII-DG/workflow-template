@@ -106,3 +106,10 @@ def convert_url_remove_user_token(url):
         return new_url, password
 
     return url, ""  # Returns the original URL if it cannot be converted
+
+def delete_file(file_path:str):
+    '''ファイルが存在するか確認してから削除する
+
+    '''
+    if os.path.isfile(file_path):
+        os.remove(file_path)

@@ -1,4 +1,4 @@
-import os, json, requests, urllib, csv, subprocess, traceback
+import os, json, urllib, csv, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
 from datalad import api
@@ -6,11 +6,17 @@ import nb_libs.utils.path.path as path
 import nb_libs.utils.message.message as mess
 import nb_libs.utils.message.display as display_util
 import nb_libs.utils.gin.sync as sync
+import nb_libs.utils.common.common as common
+import nb_libs.utils.aws.s3 as s3
+from nb_libs.utils.except_class.addurls_err import AddurlsError
 
 ADDURLS_CSV = '.tmp/datalad-addurls.csv'
 UNIT_S3_JSON = '.tmp/rf_form_data/prepare_unit_from_s3.json'
 PKG_INFO_JSON = 'ex_pkg_info.json'
-NOTEBOOK_PATH = 'WORKFLOWS/notebooks/experiment_prepare_unit_from_s3.ipynb'
+NOTEBOOK_PATH = 'WORKFLOWS/notebooks/experiment/prepare_unit_from_s3.ipynb'
+
+S3_OBJECT_URL = 's3_object_url'
+DEST_FILE_PATH = 'dest_file_path'
 
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
@@ -28,7 +34,7 @@ def input_url_path():
         
         if len(input_url)<=0:
             err_msg = mess.get('from_s3', 'empty_url')
-        elif len(msg := (validate_url(input_url))) > 0:
+        elif len(msg := (s3.access_s3_url(input_url))) > 0:
             err_msg = msg
         elif not input_path.startswith('input_data/') and not input_path.startswith('source/'):
             err_msg = mess.get('from_s3', 'start_with')
@@ -50,8 +56,8 @@ def input_url_path():
             return
 
         data = dict()
-        data['s3_object_url'] = urllib.parse.quote(input_url)
-        data['dest_file_path'] = os.path.join(path.EXPERIMENTS_PATH, experiment_title, input_path)
+        data[S3_OBJECT_URL] = urllib.parse.unquote(input_url)
+        data[DEST_FILE_PATH] = os.path.join(path.EXPERIMENTS_PATH, experiment_title, input_path)
         
         os.makedirs('.tmp/rf_form_data', exist_ok=True)
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='w') as f:
@@ -79,38 +85,15 @@ text_url = Text(
     style=style
 )
 
-
-def validate_url(url) -> str:
-    """S3オブジェクトURLの検証を行う
-
-    Return:
-        エラーメッセージ
-
-    """
-    msg = ""
-    try:
-        response = requests.head(url)
-        if response.status_code == 200:
-            pass
-        elif response.status_code == 404 or response.status_code == 400:
-            msg = mess.get('from_s3', 'wrong_url')
-        elif response.status_code == 403:
-            msg = mess.get('from_s3', 'private_object')
-        else:
-            msg = mess.get('from_s3', 'exception')
-    except requests.exceptions.RequestException:
-        msg = mess.get('from_s3', 'wrong_url')
-    return msg
-
-def create_csv():
+def prepare_addurls_data():
     """リポジトリへのリンク登録のためのCSVファイルを作成する
 
     """
     try:
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
             dic = json.load(f)
-            input_url = urllib.parse.unquote(dic['s3_object_url'], encoding='utf-8')
-            dest_path = dic['dest_file_path']
+            input_url = dic[S3_OBJECT_URL]
+            dest_path = dic[DEST_FILE_PATH]
     except FileNotFoundError:
         display_util.display_err(mess.get('from_s3', 'did_not_finish'))
     except KeyError:
@@ -129,12 +112,12 @@ def add_url():
     os.chdir(os.environ['HOME'])
     try:
         result = ''
-        result = subprocess.getoutput("datalad addurls --nosave --fast .tmp/datalad-addurls.csv '{link}' '{who}'")
+        result = api.addurls(save=False, fast=True, urlfile= '.tmp/datalad-addurls.csv', urlformat='{link}', filenameformat='{who}')
 
         for line in result:
             if 'addurls(error)' in line or 'addurls(impossible)' in line:
-                raise Exception
-    except Exception:
+                raise AddurlsError
+    except AddurlsError:
         display_util.display_err(mess.get('from_s3', 'create_link_fail'))
         display_util.display_log(traceback.format_exc())
     else:
@@ -147,14 +130,14 @@ def save_annex():
     """
     try:
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-            dest_path = json.load(f)['dest_file_path']
+            dest_path = json.load(f)[DEST_FILE_PATH]
 
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         os.chdir(os.environ['HOME'])
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
         annex_paths = [dest_path]
         os.system('git annex lock')
-        sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message='S3ストレージから実験のデータを用意')
+        sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=mess.get('from_s3', 'data_from_s3'))
     except Exception:
         display_util.display_err(mess.get('from_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
@@ -177,22 +160,22 @@ def get_data():
         with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
             experiment_title = json.load(f)['ex_pkg_name']
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-            dest_path = json.load(f)['dest_file_path']
+            dest_path = json.load(f)[DEST_FILE_PATH]
 
         annex_paths = [dest_path]
         # Obtain the actual data of the created link.
         api.get(path=annex_paths)
 
-        if dest_path.startswith(os.path.join(path.EXPERIMENTS_PATH, experiment_title, 'source/')):
+        if dest_path.startswith(path.create_source_dir_path(experiment_title)):
             # Make the data stored in the source folder the target of git management.
             # Temporary lock on annex content
-            subprocess.getoutput('git annex lock')
+            common.exec_subprocess('git annex lock')
             # Unlock only the paths under the source folder.
-            subprocess.getoutput(f'git annex unlock "{dest_path}"')
-            subprocess.getoutput(f'git add "{dest_path}"')
-            subprocess.getoutput('git commit -m "Change content type : git-annex to git"')
-            subprocess.getoutput(f'git annex metadata --remove-all "{dest_path}"')
-            subprocess.getoutput(f'git annex unannex "{dest_path}"')
+            common.exec_subprocess(f'git annex unlock "{dest_path}"')
+            common.exec_subprocess(f'git add "{dest_path}"')
+            common.exec_subprocess('git commit -m "Change content type : git-annex to git"')
+            common.exec_subprocess(f'git annex metadata --remove-all "{dest_path}"')
+            common.exec_subprocess(f'git annex unannex "{dest_path}"')
         else:
             # Attach sdDatePablished metadata to data stored in folders other than the source folder.
             sync.register_metadata_for_downloaded_annexdata(file_path=dest_path)
@@ -219,14 +202,14 @@ def prepare_sync() -> dict:
         with open(os.path.join(path.SYS_PATH, PKG_INFO_JSON), mode='r') as f:
             experiment_title = json.load(f)['ex_pkg_name']
         with open(os.path.join(os.environ['HOME'], UNIT_S3_JSON), mode='r') as f:
-            dest_path = json.load(f)['dest_file_path']
+            dest_path = json.load(f)[DEST_FILE_PATH]
     except Exception:
         display_util.display_err(mess.get('from_s3', 'did_not_finish'))
         return
 
     annex_paths = [dest_path]
 
-    if dest_path.startswith(os.path.join(path.EXPERIMENTS_PATH, experiment_title, 'source/')):
+    if dest_path.startswith(path.create_source_dir_path(experiment_title)):
         git_path.append(dest_path)
 
     annex_paths = list(set(annex_paths) - set(git_path))
@@ -237,11 +220,9 @@ def prepare_sync() -> dict:
     dic['gitannex_path'] = annex_paths
     dic['gitannex_files'] = annex_paths
     dic['get_paths'] = [f'experiments/{experiment_title}']
-    dic['message'] = experiment_title + '_実験データの用意'
+    dic['message'] = mess.get('from_s3', 'prepare_data').format(experiment_title)
     
-    if os.path.isfile(os.path.join(os.environ['HOME'], UNIT_S3_JSON)):
-        os.remove(os.path.join(os.environ['HOME'], UNIT_S3_JSON))
-    if os.path.isfile(os.path.join(os.environ['HOME'], ADDURLS_CSV)):
-        os.remove(os.path.join(os.environ['HOME'], ADDURLS_CSV))
+    common.delete_file(os.path.join(os.environ['HOME'], UNIT_S3_JSON))
+    common.delete_file(os.path.join(os.environ['HOME'], ADDURLS_CSV))
     
     return dic

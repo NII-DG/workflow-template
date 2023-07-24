@@ -29,14 +29,14 @@ def dg_menu(type='research'):
     menu_option[message.get('menu', 'trans_gin')] = 6
 
     # プルダウン形式のセレクターを生成
-    menu_selector = pn.widgets.Select(name=message.get('menu', 'select'), options=menu_option, value=1)
+    menu_selector = pn.widgets.Select(name=message.get('menu', 'select'), options=menu_option, value=1, width=300)
 
     html_output  = pn.pane.HTML()
-    html_output.height = 50
-    html_output.width = 400
 
     def update_selected_value(event):
         selected_value = event.new
+        html_output.height = 80
+        html_output.width = 900
 
         if selected_value == 1:
             html_output.object = ''
@@ -53,10 +53,7 @@ def dg_menu(type='research'):
             html_output.object = gin_link_html()
 
     menu_selector.param.watch(update_selected_value,'value')
-    html_output.height = 50
-    html_output.width = 400
-    display(menu_selector)
-    display(html_output)
+    display(pn.Column(menu_selector, html_output))
 
 
 def html_res_name(color='black'):

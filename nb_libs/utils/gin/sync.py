@@ -1,8 +1,6 @@
 import json
 import os
-import glob
 from IPython.display import clear_output
-from urllib import parse
 import requests
 from datalad import api
 import traceback
@@ -24,8 +22,9 @@ def fetch_param_file_path() -> str:
 
 
 def fetch_gin_monitoring_assigned_values():
-    # dmp.jsonからcontentSize, workflowIdentifier, datasetStructureの値を取得する
-    dmp_file_path = '/home/jovyan/dmp.json'
+    """dmp.jsonからcontentSize, workflowIdentifier, datasetStructureの値を取得する"""
+
+    dmp_file_path = os.path.join(p.HOME_PATH, 'dmp.json')
     with open(dmp_file_path, mode='r') as f:
         dmp_json = json.load(f)
     assigned_values = {
@@ -40,59 +39,9 @@ def get_datasetStructure():
     return assigned_values['datasetStructure']
 
 
-def fetch_ssh_config_path():
-    ssh_config_path = '/home/jovyan/.ssh/config'
-    return ssh_config_path
-
-
-def config_GIN(ginHttp):
-    """リポジトリホスティングサーバのURLからドメイン名を抽出してコンテナに対してSHH通信を信頼させるメソッド
-        この時、/home/jovyan/.ssh/configファイルに設定値を出力する。
-    ARG
-    ---------------------------
-    ginHttp : str
-        Description : リポジトリホスティングサーバのURL ex : http://dg01.dg.rcos.nii.ac.jp
-    """
-    # SSHホスト（＝GIN）を信頼する設定
-    path = fetch_ssh_config_path()
-    s = ''
-    pr = parse.urlparse(ginHttp)
-    ginDomain = pr.netloc
-    if os.path.exists(path):
-        with open(path, 'r') as f:
-            s = f.read()
-        if s.find('host ' + ginDomain + '\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null') == -1:
-            # 設定が無い場合は追記する
-            with open('/home/jovyan/.ssh/config', mode='a') as f:
-                write_GIN_config(mode='a', ginDomain=ginDomain)
-        else:
-            # すでにGINを信頼する設定があれば何もしない
-            pass
-    else:
-        # 設定ファイルが無い場合は新規作成して設定を書きこむ
-        with open('/home/jovyan/.ssh/config', mode='w') as f:
-            write_GIN_config(mode='w', ginDomain=ginDomain)
-
-
-def write_GIN_config(mode, ginDomain):
-    path = fetch_ssh_config_path()
-    with open(path, mode) as f:
-        f.write('\nhost ' + ginDomain + '\n')
-        f.write('\tStrictHostKeyChecking no\n')
-        f.write('\tUserKnownHostsFile=/dev/null\n')
-
-
-def fetch_files(dir_path):
-    """引数に与えたディレクトリパス以下にあるファイルのリストを作成して返す"""
-    data_list = []
-    files = glob.glob(dir_path + "/*")
-    for f in files:
-        data_list += [f]
-    return data_list
-
-
 def update_repo_url():
-    # HTTPとSSHのリモートURLを最新化する
+    """HTTPとSSHのリモートURLを最新化する"""
+
     # APIリクエストに必要な情報を取得する
     params = param_json.get_params()
     repo_id = repository_id.get_repo_id()
@@ -136,8 +85,19 @@ def update_repo_url():
 SIBLING = 'gin'
 
 
+def setup_sync():
+    
+    # S3にあるデータをGIN-forkに同期しないための設定
+    common.exec_subprocess(cmd='git annex untrust here')
+    common.exec_subprocess(cmd='git annex --force trust web')
+    # URLを最新化してpush
+    update_repo_url()
+    common.exec_subprocess(cmd=f'git push {SIBLING} git-annex:git-annex')
+
+
 def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str, get_paths:list[str]):
     """synchronize with the repository
+
     ARG
     ---------------
     git_path : str or list(str)
@@ -290,9 +250,9 @@ def extract_info_from_datalad_update_err(raw_msg:str)->str:
     return err_detail_info[start_index:end_index]
 
 
-
 def save_annex_and_register_metadata(gitannex_path :list[str], gitannex_files:list[str], message:str):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
+
     ARG
     ---------------
     git_path : str or list(str)
@@ -342,6 +302,7 @@ def push():
 
 def register_metadata_for_annexdata(file_path):
     """register_metadata(content_size, sha256, mime_type) for specified file
+
     ARG
     ---------------
     file_path : str
@@ -370,8 +331,10 @@ def register_metadata_for_annexdata(file_path):
     else:
         pass
 
+
 def register_metadata_for_downloaded_annexdata(file_path):
     """register metadata(sd_date_published)for the specified file
+
     ARG
     ---------------
     file_path : str

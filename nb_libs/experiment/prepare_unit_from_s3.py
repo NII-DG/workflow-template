@@ -1,4 +1,4 @@
-import os, json, urllib, csv, traceback
+import os, json, urllib, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
 from datalad import api
@@ -32,12 +32,15 @@ def input_url_path():
 
         err_msg = ""
         
+        # URLの検証
         if len(input_url)<=0:
             err_msg = mess.get('from_s3', 'empty_url')
         elif len(msg := (s3.access_s3_url(input_url))) > 0:
             err_msg = msg
         
-        s3.validate_input_path()
+        # 格納先パスの検証
+        if len(err_msg) == 0:
+            err_msg = s3.validate_input_path((input_path, input_url), experiment_title)
 
         if len(err_msg) > 0:
             button.layout=Layout(width='700px')
@@ -118,13 +121,10 @@ def save_annex():
     try:
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_path = json.load(f)[DEST_FILE_PATH]
-
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
         annex_paths = [dest_path]
-
-        git_module.git_annex_lock()
-
+        git_module.git_annex_lock(path.HOME_PATH)
         sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=mess.get('from_s3', 'data_from_s3'))
     except Exception:
         display_util.display_err(mess.get('from_s3', 'process_fail'))
@@ -132,7 +132,6 @@ def save_annex():
     else:
         clear_output()
         display_util.display_info(mess.get('from_s3', 'process_success'))
-
 
 def get_data():
     """取得データの実データをダウンロードする

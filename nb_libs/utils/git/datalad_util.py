@@ -18,7 +18,7 @@ def create_csv(who_link_dict: dict):
             writer.writerow({'who': who, 'link':link})
 
 def annex_to_git(datalad_get_paths, experiment_title):
-    ''' Change content type : git-annex to git
+    ''' git-annex to git
 
         Args:
             datalad_get_paths: 
@@ -27,9 +27,9 @@ def annex_to_git(datalad_get_paths, experiment_title):
     
     '''
     source_paths = []
-    for path in datalad_get_paths:
-        if path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
-            source_paths.append(path)
+    for datalad_get_path in datalad_get_paths:
+        if datalad_get_path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
+            source_paths.append(datalad_get_path)
 
     if len(source_paths) > 0:
         # Make path str for git or annex command
@@ -40,7 +40,7 @@ def annex_to_git(datalad_get_paths, experiment_title):
         git_arg_path = ' '.join(src_list)
 
         # Temporary lock on annex content
-        git_module.git_annex_lock()
+        git_module.git_annex_lock(path.HOME_PATH)
         # Unlock only the paths under the source folder.
         git_module.git_annex_unlock(git_arg_path)
         git_module.git_add(git_arg_path)

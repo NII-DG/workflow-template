@@ -57,8 +57,8 @@ def git_ls_files(path:str):
     result = stdout.decode('utf-8')
     return result
 
-def git_annex_lock():
-    stdout, stderr, rt = common.exec_subprocess('git_annex_lock')
+def git_annex_lock(path:str):
+    stdout, stderr, rt = common.exec_subprocess(f'git_annex_lock "{path}"')
     result = stdout.decode('utf-8')
     return result
 

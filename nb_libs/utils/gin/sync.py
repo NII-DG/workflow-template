@@ -9,6 +9,7 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
+import shutil
 from ..git import git_module
 from ..common import common
 from .. import message as mess
@@ -86,12 +87,21 @@ SIBLING = 'gin'
 
 
 def setup_sync():
-    
+    """特定のデータをGIN-forkに同期しないための設定"""
+
     # S3にあるデータをGIN-forkに同期しないための設定
     common.exec_subprocess(cmd='git annex untrust here')
     common.exec_subprocess(cmd='git annex --force trust web')
-    # URLを最新化してpush
-    update_repo_url()
+
+    # .gitignoreを作成
+    file_path = os.path.join(p.HOME_PATH, '.gitignore')
+    orig_file_path = os.path.join(p.DATA_PATH, 'orig_gitignore')
+    if os.path.isfile(file_path):
+        shutil.copy(orig_file_path, file_path)
+
+
+def push_annex_branch():
+    """git-annexブランチをpushする"""
     common.exec_subprocess(cmd=f'git push {SIBLING} git-annex:git-annex')
 
 

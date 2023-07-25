@@ -34,8 +34,15 @@ def input_url_path():
         elif len(msg := (s3.access_s3_url(input_url))) > 0:
             err_msg = msg
 
-        with open(path.PKG_INFO_PATH, mode='r') as f:
-            experiment_title = json.load(f)[EX_PKG_NAME]
+        try:
+            with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
+                experiment_title = json.load(f)[EX_PKG_NAME]
+        except FileNotFoundError as e:
+            display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+            raise FileNotFoundError() from e
+        except KeyError as e:
+            display_util.display_err(message.get('from_repo_s3', 'unexpected'))
+            raise KeyError() from e
         
         # 格納先パスの検証
         if len(err_msg) == 0:
@@ -161,7 +168,7 @@ def get_data():
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
-        with open(path.PKG_INFO_PATH, mode='r') as f:
+        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
             experiment_title = json.load(f)[EX_PKG_NAME]
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_path = json.load(f)[DEST_FILE_PATH]
@@ -200,7 +207,7 @@ def prepare_sync() -> dict:
 
     git_path = []
     try:
-        with open(path.PKG_INFO_PATH, mode='r') as f:
+        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
             experiment_title = json.load(f)[EX_PKG_NAME]
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_path = json.load(f)[DEST_FILE_PATH]

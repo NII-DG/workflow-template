@@ -2,8 +2,10 @@ import requests, os
 import nb_libs.utils.message.message as mess
 import nb_libs.utils.path.path as path
 
-def access_s3_url(url) -> str:
+def access_s3_url(url:str) -> str:
     """S3オブジェクトURLの検証を行う
+    Args:
+        url(str): S3オブジェクトのURL
 
     Return:
         エラーメッセージ
@@ -32,7 +34,7 @@ def validate_input_path(input_paths:list, experiment_title:str) -> str:
 
     '''
     path_set = set()
-    for input_path, input_url in range(input_paths):
+    for input_path, input_url in input_paths:
 
         # input_data/, source/から始まること
         if not input_path.startswith('input_data/') and not input_path.startswith('source/'):

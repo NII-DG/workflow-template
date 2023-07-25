@@ -3,11 +3,16 @@ from ..path import path
 from ..gin import sync
 from ..message import message
 import git_module
+from datalad import api
+import nb_libs.utils.message.message as mess
+import nb_libs.utils.message.display as display_util
+from nb_libs.utils.except_class.addurls_err import AddurlsError, DidNotFinishError
 
 def create_csv(who_link_dict: dict):
     '''datalad addurlで用いるcsvファイルを作成する
 
-        Arg: {who1: link1, who2: link2}の形式の辞書
+        Args: 
+            who_link_dict(dict): {who1: link1, who2: link2, ...}の形式の辞書
     
     '''
     with open(path.ADDURLS_CSV_PATH, mode='w') as f:
@@ -17,14 +22,12 @@ def create_csv(who_link_dict: dict):
         for who, link in who_link_dict.items():
             writer.writerow({'who': who, 'link':link})
 
-def annex_to_git(datalad_get_paths, experiment_title):
+def annex_to_git(datalad_get_paths:list, experiment_title:str):
     ''' git-annex to git
 
         Args:
-            datalad_get_paths: 
-            
-            experiment_title: 実験パッケージ名
-    
+            datalad_get_paths(list): 
+            experiment_title(str): 実験パッケージ名
     '''
     source_paths = []
     for datalad_get_path in datalad_get_paths:
@@ -39,6 +42,7 @@ def annex_to_git(datalad_get_paths, experiment_title):
 
         git_arg_path = ' '.join(src_list)
 
+        # Make the data stored in the source folder the target of git management.
         # Temporary lock on annex content
         git_module.git_annex_lock(path.HOME_PATH)
         # Unlock only the paths under the source folder.
@@ -52,3 +56,24 @@ def annex_to_git(datalad_get_paths, experiment_title):
     except_source_path = list(set(datalad_get_paths) - set(source_paths))
     for file_path in except_source_path:
         sync.register_metadata_for_downloaded_annexdata(file_path=file_path)
+
+def addurl():
+    """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
+
+    Exception:
+        DidNotFinishError: .tmp内のファイルが存在しない場合
+        AddurlsError: addurlsに失敗した場合
+
+    """
+    result = ''
+    try:
+        result = api.addurls(save=False, fast=True, urlfile= path.ADDURLS_CSV_PATH, urlformat='{link}', filenameformat='{who}')
+    except FileNotFoundError:
+        display_util.display_err(mess.get('from_s3', 'did_not_finish'))
+        raise DidNotFinishError()
+
+    for line in result:
+        if 'addurls(error)' in line or 'addurls(impossible)' in line:
+            display_util.display_err(mess.get('from_s3', 'create_link_fail'))
+            raise AddurlsError()
+    

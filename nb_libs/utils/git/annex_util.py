@@ -20,7 +20,7 @@ def create_csv(who_link_dict: dict):
             writer.writerow({'who': who, 'link':link})
 
 def annex_to_git(datalad_get_paths:list, experiment_title:str):
-    ''' git-annex to git
+    ''' annex管理をgit管理に変更する
 
         Args:
             datalad_get_paths(list): パスのリスト
@@ -60,6 +60,7 @@ def addurl():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
+
         AddurlsError: addurlsに失敗した場合
 
     """

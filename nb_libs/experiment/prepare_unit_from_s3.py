@@ -23,13 +23,9 @@ def input_url_path():
     def on_click_callback(clicked_button: Button) -> None:
 
         common.delete_file(path.UNIT_S3_JSON_PATH)
-        
-        with open(path.PKG_INFO_PATH, mode='r') as f:
-            experiment_title = json.load(f)[EX_PKG_NAME]
 
         input_url = text_url.value
         input_path = text_path.value
-
         err_msg = ""
         
         # URLの検証
@@ -37,6 +33,9 @@ def input_url_path():
             err_msg = message.get('from_repo_s3', 'empty_url')
         elif len(msg := (s3.access_s3_url(input_url))) > 0:
             err_msg = msg
+
+        with open(path.PKG_INFO_PATH, mode='r') as f:
+            experiment_title = json.load(f)[EX_PKG_NAME]
         
         # 格納先パスの検証
         if len(err_msg) == 0:
@@ -61,6 +60,7 @@ def input_url_path():
         button.button_style='success'
 
     common.delete_file(path.UNIT_S3_JSON_PATH)
+    
     style = {'description_width': 'initial'}
     text_path = Text(
         description = message.get('from_repo_s3', 'file_path'),

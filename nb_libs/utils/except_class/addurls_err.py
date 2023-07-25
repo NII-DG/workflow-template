@@ -3,3 +3,6 @@ class AddurlsError(Exception):
 
 class DidNotFinishError(Exception):
     pass
+
+class UnexpectedError(Exception):
+    pass

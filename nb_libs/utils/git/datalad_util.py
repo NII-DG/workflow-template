@@ -1,19 +1,17 @@
 import csv
-from ..path import path
-from ..gin import sync
-from ..message import message
+from path import path
+from gin import sync
+from message import message
 import git_module
 from datalad import api
-import nb_libs.utils.message.message as mess
-import nb_libs.utils.message.display as display_util
-from nb_libs.utils.except_class.addurls_err import AddurlsError, DidNotFinishError
+from message import message, display
+from except_class.addurls_err import DidNotFinishError, AddurlsError
 
 def create_csv(who_link_dict: dict):
     '''datalad addurlで用いるcsvファイルを作成する
 
         Args: 
             who_link_dict(dict): {who1: link1, who2: link2, ...}の形式の辞書
-    
     '''
     with open(path.ADDURLS_CSV_PATH, mode='w') as f:
         writer = csv.writer(f)
@@ -69,11 +67,11 @@ def addurl():
     try:
         result = api.addurls(save=False, fast=True, urlfile= path.ADDURLS_CSV_PATH, urlformat='{link}', filenameformat='{who}')
     except FileNotFoundError:
-        display_util.display_err(mess.get('from_s3', 'did_not_finish'))
+        display.display_err(message.get('from_s3', 'did_not_finish'))
         raise DidNotFinishError()
 
     for line in result:
         if 'addurls(error)' in line or 'addurls(impossible)' in line:
-            display_util.display_err(mess.get('from_s3', 'create_link_fail'))
+            display.display_err(message.get('from_s3', 'create_link_fail'))
             raise AddurlsError()
     

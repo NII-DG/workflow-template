@@ -4,6 +4,7 @@
 import os
 import shutil
 import json
+from ..path import path as p
 
 TMP_VALIDATION_PATH = '.tmp/validation'
 VALIDATION_RESULTS_PATH = 'validation_results'
@@ -57,7 +58,7 @@ def save_request_id(request_id):
     RETURN
     -----------------
     """
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     file_path = fetch_request_id_file_path()
     if not os.path.exists(TMP_VALIDATION_PATH):
         os.makedirs(TMP_VALIDATION_PATH)
@@ -71,7 +72,7 @@ def get_request_id():
     request_id : str
         Description : Request ID obtained from the response of the verification request API
     """
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     file_path = fetch_request_id_file_path()
     with open(file_path, 'r') as f:
         request_id = f.read()
@@ -82,7 +83,7 @@ def save_verification_results(result):
     RETURN
     -----------------
     """
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     request_id = get_request_id()
     tmp_result_folder = get_tmp_result_folder_path()
     if not os.path.exists(tmp_result_folder):
@@ -117,7 +118,7 @@ def delete_verification_results_and_request_id():
     RETURN
     -----------------
     """
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     request_id = get_request_id()
     tmp_result_folder = get_tmp_result_folder_path()
     if os.path.exists(tmp_result_folder):

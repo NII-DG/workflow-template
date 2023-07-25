@@ -8,10 +8,11 @@ import panel as pn
 import urllib
 import re
 from ..common import common
-from ..params import user_info
+from ..params import user_info, token
 from ..gin import api as gin_api
 from ..gin import sync
 from ..message import message as mess
+from ..path import path as p
 
 
 def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user_auth):
@@ -87,12 +88,9 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
                     access_token = response.json()
 
         # Write out the GIN-fork access token to /home/jovyan/.token.json.
+            token.set_ginfork_token(access_token['sha1'])
 
-            token_dict = {"ginfork_token": access_token['sha1']}
-            with open('/home/jovyan/.token.json', 'w') as f:
-                json.dump(token_dict, f, indent=4)
-
-            os.chdir(os.environ['HOME'])
+            os.chdir(p.HOME_PATH)
             common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
             common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
         except Exception as e:
@@ -120,6 +118,7 @@ def validate_format_username(user_name):
     validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
     return validation.fullmatch(user_name)
 
+
 def validate_format_mail_address(mail_addres):
     """mail address format check
 
@@ -131,6 +130,7 @@ def validate_format_mail_address(mail_addres):
     """
     validation =     re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
     return validation.fullmatch(mail_addres)
+
 
 def initial_gin_user_auth():
     pn.extension()
@@ -156,6 +156,7 @@ def initial_gin_user_auth():
         display(form)
     display(button)
     display(error_message)
+
 
 def submit_user_auth_callback_without_email(user_auth_forms, error_message, submit_button_user_auth, success_private_button):
     """Processing method after click on submit button
@@ -219,12 +220,9 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
                     access_token = response.json()
 
         # Write out the GIN-fork access token to /home/jovyan/.token.json.
+            token.set_ginfork_token(access_token['sha1'])
 
-            token_dict = {"ginfork_token": access_token['sha1']}
-            with open('/home/jovyan/.token.json', 'w') as f:
-                json.dump(token_dict, f, indent=4)
-
-            os.chdir(os.environ['HOME'])
+            os.chdir(p.HOME_PATH)
             common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
 
             pr = parse.urlparse(params['siblings']['ginHttp'])
@@ -257,6 +255,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
             success_private_button.object = pn.pane.HTML(success_private_button.value)
             return
     return callback
+
 
 def initial_gin_user_auth_without_email():
     pn.extension()

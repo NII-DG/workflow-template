@@ -7,7 +7,21 @@ from ..message import display, message
 from ..common import common
 from ..path import path
 
-param_file_path = os.path.join(path.DATA_PATH, 'params.json')
+
+PARAM_FILE_PATH = os.path.join(path.DATA_PATH, 'params.json')
+
+
+def get_params()->dict:
+    """params.jsonからパラメータを取得する。
+
+    RETURN
+    -----------------
+    params : dict
+        Description : parameter for connection
+    """
+    with open(PARAM_FILE_PATH, mode='r') as f:
+            params = json.load(f)
+    return params
 
 
 def update_param_url(remote_origin_url):

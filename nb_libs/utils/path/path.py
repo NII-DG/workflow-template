@@ -17,16 +17,16 @@ PREPARE_UNIT_FROM_S3 = 'prepare_unit_from_s3.ipynb'
 
 # path from inside
 HOME_PATH = os.environ['HOME']
-SYS_PATH = os.path.join(os.environ['HOME'], '.dg-sys')
-FROW_PATH = os.path.join(os.environ['HOME'], FLOW_DIR)
+SYS_PATH = os.path.join(HOME_PATH, '.dg-sys')
+FROW_PATH = os.path.join(HOME_PATH, FLOW_DIR)
 
 DATA_PATH = os.path.join(FROW_PATH, 'data')
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RESEARCH_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)
 
 PKG_INFO_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
-ADDURLS_CSV_PATH = os.path.join(os.environ['HOME'], '.tmp/datalad-addurls.csv')
-RF_FORM_DATA_DIR = os.path.join(os.environ['HOME'], '.tmp/rf_form_data')
+ADDURLS_CSV_PATH = os.path.join(HOME_PATH, '.tmp/datalad-addurls.csv')
+RF_FORM_DATA_DIR = os.path.join(HOME_PATH, '.tmp/rf_form_data')
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')
 
 # path from outside
@@ -44,6 +44,6 @@ def create_experiments_sub_path(experiment_title, sub_path=''):
         experimentsフォルダ配下の絶対パス
     '''
     if len(sub_path) == 0:
-        return os.path.join(os.environ['HOME'], 'experiments', experiment_title)
+        return os.path.join(HOME_PATH, 'experiments', experiment_title)
     else:
-        return os.path.join(os.environ['HOME'], 'experiments', experiment_title, sub_path)
+        return os.path.join(HOME_PATH, 'experiments', experiment_title, sub_path)

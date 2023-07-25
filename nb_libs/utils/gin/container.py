@@ -5,7 +5,7 @@ import json
 from urllib import parse
 from urllib.parse import urljoin
 from ..message import message, display
-from ..params import user_info, token
+from ..params import user_info, token, repository_id
 from ..path import path
 from . import sync, api
 
@@ -26,8 +26,7 @@ def add_container(experiment_title=""):
     ---------------
     """
     try:
-        with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
-            repo_id = f.read()
+        repo_id = repository_id.get_repo_id()
         with open(sync.fetch_param_file_path(), mode='r') as f:
             params = json.load(f)
 

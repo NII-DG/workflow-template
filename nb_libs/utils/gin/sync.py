@@ -14,12 +14,13 @@ import datetime
 from ..git import git_module
 from ..common import common
 from .. import message as mess
-from ..params import token, user_info
+from ..path import path as p
+from ..params import token, user_info, param_json, repository_id
 from . import api as gin_api
 
 
 def fetch_param_file_path() -> str:
-    return '/home/jovyan/WORKFLOWS/data/params.json'
+    return param_json.PARAM_FILE_PATH
 
 
 def fetch_gin_monitoring_assigned_values():
@@ -93,14 +94,8 @@ def fetch_files(dir_path):
 def update_repo_url():
     # HTTPとSSHのリモートURLを最新化する
     # APIリクエストに必要な情報を取得する
-    params = {}
-    with open(fetch_param_file_path(), mode='r') as f:
-        params = json.load(f)
-    os.chdir(os.environ['HOME'])
-    file_path = '.repository_id'
-    f = open(file_path, 'r')
-    repo_id = f.read()
-    f.close()
+    params = param_json.get_params()
+    repo_id = repository_id.get_repo_id()
 
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
     request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
@@ -175,7 +170,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     datalad_error = ''
     try:
 
-        os.chdir(os.environ['HOME'])
+        os.chdir(p.HOME_PATH)
         print('[INFO] Lock git-annex content')
         os.system('git annex lock')
         print('[INFO] Save git-annex content and Register metadata')
@@ -207,7 +202,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             git_commit_msg = '{}(auto adjustment)'.format(message)
             err_key_info = extract_info_from_datalad_update_err(datalad_error)
             file_paths = list[str]()
-            os.chdir(os.environ['HOME'])
+            os.chdir(p.HOME_PATH)
             os.system('git annex lock')
             if 'The following untracked working tree' in err_key_info:
                 file_paths = common.get_filepaths_from_dalalad_error(err_key_info)
@@ -267,7 +262,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             datalad_error = traceback.format_exc()
             error_message = mess.message.get('sync', 'push_error')
         else:
-            os.chdir(os.environ['HOME'])
+            os.chdir(p.HOME_PATH)
             success_message = mess.message.get('sync', 'success')
     finally:
         clear_output()
@@ -370,7 +365,7 @@ def register_metadata_for_annexdata(file_path):
         content_size = os.path.getsize(file_path)
 
         # register_metadata
-        os.chdir(os.environ['HOME'])
+        os.chdir(p.HOME_PATH)
         os.system(f'git annex metadata "{file_path}" -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
     else:
         pass

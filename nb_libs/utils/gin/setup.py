@@ -7,11 +7,12 @@ import subprocess
 from urllib import parse
 from . import api
 from ..gin import sync
-from ..params import token
-from ..message import message, display
+from ..params import token, param_json
+from .. import message as mess
+from ..path import path as p
 
 
-__SSH_KEY_PATH = os.path.join(os.environ['HOME'], ".ssh/id_ed25519")
+__SSH_KEY_PATH = os.path.join(p.HOME_PATH, ".ssh/id_ed25519")
 
 
 def datalad(path:str):
@@ -37,25 +38,23 @@ def upload_ssh_key():
         with open(__SSH_KEY_PATH, mode='r') as f:
             ssh_key = f.read()
 
-        with open(sync.fetch_param_file_path(), mode='r') as f:
-            params = json.load(f)
-
+        params = param_json.get_params()
         pr = parse.urlparse(params['siblings']['ginHttp'])
         response = api.upload_key(pr.scheme, pr.netloc, token.get_ginfork_token(), ssh_key)
         msg = response.json()
 
         if response.status_code == HTTPStatus.CREATED:
-            display.display_info(message.get('ssh_key', 'success'))
+            mess.display.display_info(mess.message.get('ssh_key', 'success'))
         elif msg['message'] == 'Key content has been used as non-deploy key':
-            display.display_warm(message.get('ssh_key', 'already_exist'))
+            mess.display.display_warm(mess.message.get('ssh_key', 'already_exist'))
         else:
             raise Exception
 
     except requests.exceptions.RequestException as e:
-        display.display_err(message.get('ssh_key', 'communication_error'))
+        mess.display.display_err(mess.message.get('ssh_key', 'communication_error'))
         raise e
     except Exception as e:
-        display.display_err(message.get('ssh_key', 'unexpected'))
+        mess.display.display_err(mess.message.get('ssh_key', 'unexpected'))
         raise e
 
 

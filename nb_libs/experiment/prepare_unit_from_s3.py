@@ -38,9 +38,13 @@ def input_url_path():
             with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
                 experiment_title = json.load(f)[EX_PKG_NAME]
         except FileNotFoundError as e:
+            clear_output()
+            display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
             raise FileNotFoundError() from e
         except KeyError as e:
+            clear_output()
+            display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'unexpected'))
             raise KeyError() from e
         

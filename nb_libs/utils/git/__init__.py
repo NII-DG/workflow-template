@@ -1,2 +1,2 @@
-from . import datalad_util
+from . import annex_util
 from . import git_module

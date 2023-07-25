@@ -2,13 +2,14 @@ import os, json, urllib, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
 from datalad import api
+from nb_libs.utils.git import annex_util
 from utils.path import path
 from utils.message import message, display as display_util
 from utils.gin import sync
 from utils.common import common
-from utils.git import datalad_util, git_module
+from utils.git import git_module
 from utils.aws import s3
-from utils.except_class.addurls_err import DidNotFinishError, UnexpectedError
+from utils.except_class.addurls_err import DidNotFinishError
 
 # 辞書のキー
 S3_OBJECT_URL = 's3_object_url'
@@ -91,15 +92,15 @@ def prepare_addurls_data():
             dic = json.load(f)
             input_url = dic[S3_OBJECT_URL]
             dest_path = dic[DEST_FILE_PATH]
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         display_util.display_err(message.get('from_s3', 'did_not_finish'))
-        raise DidNotFinishError()
-    except KeyError:
+        raise DidNotFinishError() from e
+    except KeyError as e:
         display_util.display_err(message.get('from_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError()
+        raise KeyError() from e
     else:
-        datalad_util.create_csv({dest_path: input_url})
+        annex_util.create_csv({dest_path: input_url})
 
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
@@ -108,7 +109,7 @@ def add_url():
         DidNotFinishError: .tmp内のファイルが存在しない場合
         AddurlsError: addurlsに失敗した場合
     """
-    datalad_util.addurl()
+    annex_util.addurl()
     display_util.display_info(message.get('from_s3', 'create_link_success'))
 
 def save_annex():
@@ -126,17 +127,17 @@ def save_annex():
         annex_paths = [dest_path]
         git_module.git_annex_lock(path.HOME_PATH)
         sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=message.get('from_s3', 'data_from_s3'))
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         display_util.display_err(message.get('from_s3', 'did_not_finish'))
-        raise DidNotFinishError()
-    except KeyError:
+        raise DidNotFinishError() from e
+    except KeyError as e:
         display_util.display_err(message.get('from_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError()
-    except Exception:
+        raise KeyError() from e
+    except Exception as e:
         display_util.display_err(message.get('from_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
-        raise Exception
+        raise Exception() from e
     else:
         clear_output()
         display_util.display_info(message.get('from_s3', 'process_success'))
@@ -160,18 +161,18 @@ def get_data():
         annex_paths = [dest_path]
         # Obtain the actual data of the created link.
         api.get(path=annex_paths)
-        datalad_util.annex_to_git(annex_paths, experiment_title)
-    except FileNotFoundError:
+        annex_util.annex_to_git(annex_paths, experiment_title)
+    except FileNotFoundError as e:
         display_util.display_err(message.get('from_s3', 'did_not_finish'))
-        raise DidNotFinishError()
-    except KeyError:
+        raise DidNotFinishError() from e
+    except KeyError as e:
         display_util.display_err(message.get('from_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError()
+        raise KeyError() from e
     except Exception as e:
         display_util.display_err(message.get('from_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
-        raise e
+        raise Exception() from e
     else:
         clear_output()
         display_util.display_info(message.get('from_s3', 'download_success'))
@@ -195,13 +196,13 @@ def prepare_sync() -> dict:
             experiment_title = json.load(f)[EX_PKG_NAME]
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_path = json.load(f)[DEST_FILE_PATH]
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         display_util.display_err(message.get('from_s3', 'did_not_finish'))
-        raise DidNotFinishError()
-    except Exception:
+        raise DidNotFinishError() from e
+    except Exception as e:
         display_util.display_err(message.get('from_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        return
+        raise Exception() from e
 
     annex_paths = [dest_path]
 

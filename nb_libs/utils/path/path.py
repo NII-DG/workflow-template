@@ -38,10 +38,11 @@ def create_experiments_sub_path(experiment_title, sub_path=''):
     '''実験パッケージ配下の絶対パスを生成する
 
     Arg:
-        experiment_title 実験パッケージ名
-        sub_path 実験パッケージ配下のパス
+        experiment_title(str): 実験パッケージ名
+
+        sub_path(str): 実験パッケージ配下のパス
     Return:
-        experimentsフォルダ配下の絶対パス
+        str: 実験パッケージ配下の絶対パス
     '''
     if len(sub_path) == 0:
         return os.path.join(HOME_PATH, 'experiments', experiment_title)

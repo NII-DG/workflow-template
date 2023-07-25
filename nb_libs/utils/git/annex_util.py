@@ -24,7 +24,7 @@ def annex_to_git(datalad_get_paths:list, experiment_title:str):
     ''' git-annex to git
 
         Args:
-            datalad_get_paths(list): 
+            datalad_get_paths(list): パスのリスト
             experiment_title(str): 実験パッケージ名
     '''
     source_paths = []
@@ -56,7 +56,7 @@ def annex_to_git(datalad_get_paths:list, experiment_title:str):
         sync.register_metadata_for_downloaded_annexdata(file_path=file_path)
 
 def addurl():
-    """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
+    """datalad addurlsを実行する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
@@ -66,9 +66,9 @@ def addurl():
     result = ''
     try:
         result = api.addurls(save=False, fast=True, urlfile= path.ADDURLS_CSV_PATH, urlformat='{link}', filenameformat='{who}')
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         display.display_err(message.get('from_s3', 'did_not_finish'))
-        raise DidNotFinishError()
+        raise DidNotFinishError() from e
 
     for line in result:
         if 'addurls(error)' in line or 'addurls(impossible)' in line:

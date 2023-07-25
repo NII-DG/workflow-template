@@ -8,7 +8,7 @@ def access_s3_url(url:str) -> str:
         url(str): S3オブジェクトのURL
 
     Return:
-        エラーメッセージ
+        str: エラーメッセージ
 
     """
     msg = ""
@@ -28,7 +28,8 @@ def validate_input_path(input_paths:list, experiment_title:str) -> str:
     '''格納先パスの検証を行う
         
         Args:
-            (input_path, input_url)のリスト、実験パッケージ名
+            input_paths(list): (input_path, input_url)のリスト
+            experiment_title(str): 実験パッケージ名
         Returns:
             エラーメッセージ
 

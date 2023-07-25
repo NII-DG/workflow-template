@@ -1,7 +1,7 @@
 import json
 import os
 import glob
-from IPython.display import clear_output, display
+from IPython.display import clear_output
 from urllib import parse
 import requests
 from datalad import api
@@ -13,7 +13,7 @@ import hashlib
 import datetime
 from ..git import git_module
 from ..common import common
-from ..message import display
+from .. import message as mess
 from ..params import token, user_info
 from . import api as gin_api
 
@@ -120,7 +120,7 @@ def update_repo_url():
         except FileNotFoundError:
             return is_new_private
         except Exception:
-            display.display_err("想定外のエラーが発生しました。")
+            mess.display.display_err(mess.message.get('DEFAULT', 'unexpected'))
             return is_new_private
 
     if len(res_data['data']) == 0:
@@ -139,13 +139,6 @@ def update_repo_url():
 
 
 SIBLING = 'gin'
-SUCCESS = 'データ同期が完了しました。'
-RESYNC_REPO_RENAME = '同期不良が発生しました(リモートリポジトリ名の変更)。自動調整が実行されたため、同セルを再実行してください。'
-RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)。自動調整が実行されため、同セルを再実行してください。'
-CONNECT_REPO_ERROR = 'リポジトリに接続できません。リポジトリが存在しているか確認してください。'
-CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を解決してください。'
-PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
-UNEXPECTED_ERROR = '想定外のエラーが発生しています。担当者に問い合わせください。'
 
 
 def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str, get_paths:list[str]):
@@ -205,10 +198,10 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 # update URLs of remote repositories
                 update_repo_url()
                 print('[INFO] Update repository URL')
-                warm_message = RESYNC_REPO_RENAME
+                warm_message = mess.message.get('sync', 'resync_repo_rename')
             except:
                 # repository may not exist
-                error_message = CONNECT_REPO_ERROR
+                error_message = mess.message.get('sync', 'connect_repo_error')
         elif 'files would be overwritten by merge:' in datalad_error:
             print('[INFO] Files would be overwritten by merge')
             git_commit_msg = '{}(auto adjustment)'.format(message)
@@ -256,14 +249,14 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 else:
                     result = git_module.git_commmit(git_commit_msg)
                     print(result)
-            warm_message = RESYNC_BY_OVERWRITE
+            warm_message = mess.message.get('sync', 'resync_by_overwrite')
         else:
             # check both modified
             if git_module.is_conflict():
                 print('[INFO] Files is CONFLICT')
-                error_message = CONFLICT_ERROR
+                error_message = mess.message.get('sync', 'conflict_error')
             else:
-                error_message = UNEXPECTED_ERROR
+                error_message = mess.message.get('sync', 'unexpected')
     else:
         try:
             print('[INFO] Push to Remote Repository')
@@ -272,21 +265,21 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.system('git annex unlock')
         except:
             datalad_error = traceback.format_exc()
-            error_message = PUSH_ERROR
+            error_message = mess.message.get('sync', 'push_error')
         else:
             os.chdir(os.environ['HOME'])
-            success_message = SUCCESS
+            success_message = mess.message.get('sync', 'success')
     finally:
         clear_output()
         if success_message:
-            display.display_info(success_message)
+            mess.display.display_info(success_message)
             # GIN-forkの実行環境一覧の更新日時を更新する
             gin_api.patch_container()
             return True
         else:
-            display.display_warm(warm_message)
-            display.display_err(error_message)
-            display.display_log(datalad_error)
+            mess.display.display_warm(warm_message)
+            mess.display.display_err(error_message)
+            mess.display.display_log(datalad_error)
             return False
 
 

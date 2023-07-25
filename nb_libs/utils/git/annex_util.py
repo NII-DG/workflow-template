@@ -46,7 +46,7 @@ def annex_to_git(datalad_get_paths:list, experiment_title:str):
         # Unlock only the paths under the source folder.
         git_module.git_annex_unlock(git_arg_path)
         git_module.git_add(git_arg_path)
-        git_module.git_commmit(message.get('from_s3', 'annex_to_git'))
+        git_module.git_commmit(message.get('from_repo_s3', 'annex_to_git'))
         git_module.git_annex_remove(git_arg_path)
         git_module.git_annex_unannex(git_arg_path)
 
@@ -67,11 +67,11 @@ def addurl():
     try:
         result = api.addurls(save=False, fast=True, urlfile= path.ADDURLS_CSV_PATH, urlformat='{link}', filenameformat='{who}')
     except FileNotFoundError as e:
-        display.display_err(message.get('from_s3', 'did_not_finish'))
+        display.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
 
     for line in result:
         if 'addurls(error)' in line or 'addurls(impossible)' in line:
-            display.display_err(message.get('from_s3', 'create_link_fail'))
+            display.display_err(message.get('from_repo_s3', 'create_link_fail'))
             raise AddurlsError()
     

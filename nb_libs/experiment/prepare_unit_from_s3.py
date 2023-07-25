@@ -9,7 +9,7 @@ from utils.gin import sync
 from utils.common import common
 from utils.git import git_module
 from utils.aws import s3
-from utils.except_class import DidNotFinishError, UnexpectedError
+from utils.except_class import DidNotFinishError
 
 # 辞書のキー
 S3_OBJECT_URL = 's3_object_url'
@@ -34,7 +34,7 @@ def input_url_path():
         
         # URLの検証
         if len(input_url)<=0:
-            err_msg = message.get('from_s3', 'empty_url')
+            err_msg = message.get('from_repo_s3', 'empty_url')
         elif len(msg := (s3.access_s3_url(input_url))) > 0:
             err_msg = msg
         
@@ -56,26 +56,26 @@ def input_url_path():
         with open(path.UNIT_S3_JSON_PATH, mode='w') as f:
             json.dump(data, f, indent=4)
 
-        button.description = message.get('from_s3', 'done_input')
+        button.description = message.get('from_repo_s3', 'done_input')
         button.layout=Layout(width='250px')
         button.button_style='success'
 
     common.delete_file(path.UNIT_S3_JSON_PATH)
     style = {'description_width': 'initial'}
     text_path = Text(
-        description = message.get('from_s3', 'file_path'),
+        description = message.get('from_repo_s3', 'file_path'),
         placeholder='Enter a file path here...',
         layout=Layout(width='700px'),
         style=style
     )
     text_url = Text(
-        description=message.get('from_s3', 'object_url'),
+        description=message.get('from_repo_s3', 'object_url'),
         placeholder='Enter a object URL here...',
         layout=Layout(width='700px'),
         style=style
     )
 
-    button = Button(description=message.get('from_s3', 'end_input'), layout=Layout(width='250px'))
+    button = Button(description=message.get('from_repo_s3', 'end_input'), layout=Layout(width='250px'))
     button.on_click(on_click_callback)
     display(text_url, text_path, button)
 
@@ -93,10 +93,10 @@ def prepare_addurls_data():
             input_url = dic[S3_OBJECT_URL]
             dest_path = dic[DEST_FILE_PATH]
     except FileNotFoundError as e:
-        display_util.display_err(message.get('from_s3', 'did_not_finish'))
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
     except KeyError as e:
-        display_util.display_err(message.get('from_s3', 'unexpected'))
+        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
         raise KeyError() from e
     else:
@@ -110,7 +110,7 @@ def add_url():
         AddurlsError: addurlsに失敗した場合
     """
     annex_util.addurl()
-    display_util.display_info(message.get('from_s3', 'create_link_success'))
+    display_util.display_info(message.get('from_repo_s3', 'create_link_success'))
 
 def save_annex():
     """データ取得履歴を記録する
@@ -126,21 +126,21 @@ def save_annex():
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
         annex_paths = [dest_path]
         git_module.git_annex_lock(path.HOME_PATH)
-        sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=message.get('from_s3', 'data_from_s3'))
+        sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3'))
     except FileNotFoundError as e:
-        display_util.display_err(message.get('from_s3', 'did_not_finish'))
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
     except KeyError as e:
-        display_util.display_err(message.get('from_s3', 'unexpected'))
+        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
         raise KeyError() from e
     except Exception as e:
-        display_util.display_err(message.get('from_s3', 'process_fail'))
+        display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
         raise Exception() from e
     else:
         clear_output()
-        display_util.display_info(message.get('from_s3', 'process_success'))
+        display_util.display_info(message.get('from_repo_s3', 'process_success'))
 
 def get_data():
     """取得データの実データをダウンロードする
@@ -163,19 +163,19 @@ def get_data():
         api.get(path=annex_paths)
         annex_util.annex_to_git(annex_paths, experiment_title)
     except FileNotFoundError as e:
-        display_util.display_err(message.get('from_s3', 'did_not_finish'))
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
     except KeyError as e:
-        display_util.display_err(message.get('from_s3', 'unexpected'))
+        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
         raise KeyError() from e
     except Exception as e:
-        display_util.display_err(message.get('from_s3', 'process_fail'))
+        display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
         raise Exception() from e
     else:
         clear_output()
-        display_util.display_info(message.get('from_s3', 'download_success'))
+        display_util.display_info(message.get('from_repo_s3', 'download_success'))
 
 def prepare_sync() -> dict:
     """同期の準備を行う
@@ -197,10 +197,10 @@ def prepare_sync() -> dict:
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_path = json.load(f)[DEST_FILE_PATH]
     except FileNotFoundError as e:
-        display_util.display_err(message.get('from_s3', 'did_not_finish'))
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
     except Exception as e:
-        display_util.display_err(message.get('from_s3', 'unexpected'))
+        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
         raise Exception() from e
 
@@ -217,7 +217,7 @@ def prepare_sync() -> dict:
     sync_repo_args['gitannex_path'] = annex_paths
     sync_repo_args['gitannex_files'] = annex_paths
     sync_repo_args['get_paths'] = [path.create_experiments_sub_path(experiment_title)]
-    sync_repo_args['message'] = message.get('from_s3', 'prepare_data').format(experiment_title)
+    sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
     
     common.delete_file(path.UNIT_S3_JSON_PATH)
     common.delete_file(path.ADDURLS_CSV_PATH)

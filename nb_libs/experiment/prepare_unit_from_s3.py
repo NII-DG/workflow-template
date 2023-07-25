@@ -8,7 +8,7 @@ from utils.gin import sync
 from utils.common import common
 from utils.git import datalad_util, git_module
 from utils.aws import s3
-from utils.except_class.addurls_err import DidNotFinishError, UnexpectedError
+from utils.except_class import DidNotFinishError, UnexpectedError
 
 # 辞書のキー
 S3_OBJECT_URL = 's3_object_url'

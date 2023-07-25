@@ -5,7 +5,7 @@ from message import message
 import git_module
 from datalad import api
 from message import message, display
-from except_class.addurls_err import DidNotFinishError, AddurlsError
+from except_class import DidNotFinishError, AddurlsError
 
 def create_csv(who_link_dict: dict):
     '''datalad addurlで用いるcsvファイルを作成する

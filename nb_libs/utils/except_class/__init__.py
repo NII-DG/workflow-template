@@ -1,2 +1,2 @@
-from . import addurls_err
-from . import query_err
+from .addurls_err import AddurlsError, DidNotFinishError, UnexpectedError
+from .query_err import QueryError

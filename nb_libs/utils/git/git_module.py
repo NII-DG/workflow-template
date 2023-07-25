@@ -1,6 +1,5 @@
 import json
 import os
-import subprocess
 import re
 from ..common import common
 from ..path import path as p
@@ -230,4 +229,4 @@ def is_conflict() -> bool:
 
 
 def get_remote_url():
-    return subprocess.getoutput('git config --get remote.origin.url')
+    return common.exec_subprocess('git config --get remote.origin.url')

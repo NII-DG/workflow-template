@@ -24,6 +24,7 @@ def annex_to_git(datalad_get_paths:list, experiment_title:str):
 
         Args:
             datalad_get_paths(list): パスのリスト
+
             experiment_title(str): 実験パッケージ名
     '''
     source_paths = []
@@ -46,7 +47,7 @@ def annex_to_git(datalad_get_paths:list, experiment_title:str):
         git_module.git_annex_unlock(git_arg_path)
         git_module.git_add(git_arg_path)
         git_module.git_commmit(message.get('from_repo_s3', 'annex_to_git'))
-        git_module.git_annex_remove(git_arg_path)
+        git_module.git_annex_remove_metadata(git_arg_path)
         git_module.git_annex_unannex(git_arg_path)
 
     # Attach sdDatePablished metadata to data stored in folders other than the source folder.

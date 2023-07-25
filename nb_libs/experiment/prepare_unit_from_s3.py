@@ -1,3 +1,4 @@
+'''prepare_unit_from_s3.ipynbから呼び出されるモジュール'''
 import os, json, urllib, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
@@ -8,7 +9,7 @@ from ..utils.message import message, display as display_util
 from ..utils.gin import sync
 from ..utils.common import common
 from ..utils.aws import s3
-from ..utils.except_class import DidNotFinishError
+from ..utils.except_class import DidNotFinishError, UnexpectedError
 
 # 辞書のキー
 S3_OBJECT_URL = 's3_object_url'
@@ -83,6 +84,7 @@ def prepare_addurls_data():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
+
         KeyError: .tmp内のjsonに指定したキーが存在しない場合
 
     """
@@ -106,6 +108,7 @@ def add_url():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
+
         AddurlsError: addurlsに失敗した場合
     """
     annex_util.addurl()
@@ -116,7 +119,10 @@ def save_annex():
     
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
+
         KeyError: .tmp内のjsonに指定したキーが存在しない場合
+
+        UnexpectedError: 想定外のエラーが発生した場合
     """
     try:
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
@@ -136,7 +142,7 @@ def save_annex():
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
-        raise Exception() from e
+        raise UnexpectedError() from e
     else:
         clear_output()
         display_util.display_info(message.get('from_repo_s3', 'process_success'))
@@ -146,7 +152,10 @@ def get_data():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
+
         KeyError: .tmp内のjsonに指定したキーが存在しない場合
+
+        UnexpectedError: 想定外のエラーが発生した場合
     
     """
     try:
@@ -171,7 +180,7 @@ def get_data():
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
-        raise Exception() from e
+        raise UnexpectedError() from e
     else:
         clear_output()
         display_util.display_info(message.get('from_repo_s3', 'download_success'))
@@ -198,10 +207,10 @@ def prepare_sync() -> dict:
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except Exception as e:
+    except KeyError as e:
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise Exception() from e
+        raise KeyError() from e
 
     annex_paths = [dest_path]
 

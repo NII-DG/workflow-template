@@ -1,5 +1,5 @@
 """
-HTMMを生成して任意のメッセージを表示されるモジュール
+HTMLを生成して任意のメッセージを表示されるモジュール
 jupyterNotebookのセルの実行結果に表示させることを前提としている。
 """
 from IPython.display import display, HTML

@@ -10,6 +10,7 @@ import magic
 import hashlib
 import datetime
 import shutil
+from urllib import parse
 from ..git import git_module
 from ..common import common
 from .. import message as mess
@@ -45,11 +46,11 @@ def update_repo_url():
 
     # APIリクエストに必要な情報を取得する
     params = param_json.get_params()
+    pr = parse.urlparse(params['siblings']['ginHttp'])
     repo_id = repository_id.get_repo_id()
 
     # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
-    request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
-    res = requests.get(request_url)
+    res = gin_api.search_public_repo(pr.scheme, pr.netloc, repo_id)
     res_data = res.json()
     is_new_private = dict()
     is_new_private['is_new'] = False
@@ -59,8 +60,7 @@ def update_repo_url():
         try :
             ginfork_token = token.get_ginfork_token()
             uid = str(user_info.get_user_id())
-            request_url = params['siblings']['ginHttp'] + f'/api/v1/repos/search/user?id={repo_id}&uid={uid}&token={ginfork_token}'
-            res = requests.get(request_url)
+            res = gin_api.search_private_repo(pr.scheme, pr.netloc, repo_id, uid, ginfork_token)
             res_data = res.json()
         except FileNotFoundError:
             return is_new_private

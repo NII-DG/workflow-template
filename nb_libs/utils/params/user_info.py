@@ -7,6 +7,7 @@ import requests
 from ..path import path as p
 from . import param_json
 
+
 file_path = os.path.join(p.SYS_PATH, '.user_info.json')
 
 

@@ -49,7 +49,7 @@ def update_param_url(remote_origin_url):
         if response.status_code == HTTPStatus.OK:
             flg = False
 
-            f = open(param_file_path, 'r')
+            f = open(PARAM_FILE_PATH, 'r')
             df = json.load(f)
             f.close()
 
@@ -61,7 +61,7 @@ def update_param_url(remote_origin_url):
             df["siblings"]["ginHttp"] = http_url
             df["siblings"]["ginSsh"] = response_data["ssh"]
 
-            with open(param_file_path, 'w') as f:
+            with open(PARAM_FILE_PATH, 'w') as f:
                 json.dump(df, f, indent=4)
 
             display.display_info(message.get('param_json','success'))

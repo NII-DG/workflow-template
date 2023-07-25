@@ -1,6 +1,6 @@
 import requests, os
-from message import message
-from path import path
+from ..message import message
+from ..path import path
 
 def access_s3_url(url:str) -> str:
     """S3オブジェクトURLの検証を行う

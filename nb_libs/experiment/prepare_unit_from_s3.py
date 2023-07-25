@@ -2,14 +2,13 @@ import os, json, urllib, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
 from datalad import api
-from nb_libs.utils.git import annex_util
-from utils.path import path
-from utils.message import message, display as display_util
-from utils.gin import sync
-from utils.common import common
-from utils.git import git_module
-from utils.aws import s3
-from utils.except_class import DidNotFinishError
+from ..utils.git import annex_util, git_module
+from ..utils.path import path
+from ..utils.message import message, display as display_util
+from ..utils.gin import sync
+from ..utils.common import common
+from ..utils.aws import s3
+from ..utils.except_class import DidNotFinishError
 
 # 辞書のキー
 S3_OBJECT_URL = 's3_object_url'

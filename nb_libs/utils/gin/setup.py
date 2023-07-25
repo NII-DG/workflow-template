@@ -1,12 +1,10 @@
 """ローカルの初期セットアップ用"""
 import os
-import json
 import requests
 from http import HTTPStatus
 import subprocess
 from urllib import parse
 from . import api
-from ..gin import sync
 from ..params import token, param_json
 from .. import message as mess
 from ..path import path as p

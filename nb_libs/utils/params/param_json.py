@@ -23,6 +23,10 @@ def get_params()->dict:
             params = json.load(f)
     return params
 
+def get_gin_http()->str:
+    params = get_params()
+    return params["siblings"]["ginHttp"]
+
 
 def update_param_url(remote_origin_url:str):
     """param.jsonのsiblings.ginHttpとsiblings.ginSshを更新する。

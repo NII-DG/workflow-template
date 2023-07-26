@@ -159,3 +159,21 @@ def delete_container(scheme, domain, token, server_name, user_id):
         'user_id' : user_id
     }
     return requests.delete(url=api_url, params=params)
+
+def get_repo_metadata(scheme:str, domain:str, token:str, repo_id:str, branch:str):
+    """GIN-forkからリポジトリメタデータを取得する
+
+    Args:
+        scheme (str): [http, https, ssh]
+        domain (str): [GIN-forkドメイン]
+        token (str): [GIN-forkAPIトークン]
+        repo_id (str): [リポジトリID]
+        branch (str): [対象ブランチ]
+
+    Returns:
+        [type]: [description]
+    """
+    sub_url = f"/api/v1/repos/{repo_id}/{branch}/metadata"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {'token' : token}
+    return requests.get(url=api_url, params=params)

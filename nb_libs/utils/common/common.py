@@ -1,6 +1,7 @@
 import subprocess
 import re
 import os
+from utils.except_class import ExecCmdError
 from natsort import natsorted
 
 
@@ -16,7 +17,7 @@ def exec_subprocess(cmd: str, raise_error=True):
     stdout, stderr = child.communicate()
     rt = child.returncode
     if rt != 0 and raise_error:
-        raise Exception(f"command return code is not 0. got {rt}. stderr = {stderr}")
+        raise ExecCmdError(f"command return code is not 0. got {rt}. stderr = {stderr}")
 
     return stdout, stderr, rt
 

@@ -7,3 +7,11 @@ class DidNotFinishError(Exception):
 class UnexpectedError(Exception):
     '''予想外のエラーが発生した場合'''
     pass
+
+class DGTaskError(Exception):
+    '''タスクNotebookのコードセルで例外で処理停止しなければならないエラーが発生した場合'''
+    pass
+
+class ExecCmdError(Exception):
+    '''コマンド実行エラー'''
+    pass

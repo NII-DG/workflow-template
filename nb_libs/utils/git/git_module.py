@@ -21,6 +21,22 @@ def exec_git_status():
     result = stdout.decode('utf-8')
     return result
 
+def exec_git_branch():
+    """execute 'git status' commands
+
+    RETURN
+    ---------------
+    Returns output result
+
+    EXCEPTION
+    ---------------
+
+    """
+    os.chdir(p.HOME_PATH)
+    stdout, stderr, rt = common.exec_subprocess('git branch --contains')
+    result = stdout.decode('utf-8')
+    return result
+
 def exec_git_annex_whereis():
     os.chdir(p.HOME_PATH)
     stdout, stderr, rt = common.exec_subprocess('git annex whereis --json', False)
@@ -231,3 +247,18 @@ def is_conflict() -> bool:
 def get_remote_url():
     stdout, stderr, rt = common.exec_subprocess('git config --get remote.origin.url')
     return stdout.decode('utf-8')
+
+
+def get_current_branch()->str:
+    """現在のブランチを取得する。
+
+    Returns:
+        str: [ブランチ]
+    """
+    result = exec_git_branch()
+    lines = result.split('\n')
+    for l in lines:
+        if '*' in l:
+            # is current branch
+            return l.replace('* ', '')
+    return ''

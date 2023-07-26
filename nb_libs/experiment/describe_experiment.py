@@ -30,7 +30,7 @@ def sync_experiment_description():
     experiment_title = get_current_experiment_title()
 
     if experiment_title is not None:
-        readme_path = path.create_experiments_sub_path(
+        readme_path = path.create_experiments_with_subpath(
             experiment_title, sub_path=path.README_FILE)
         describe_experiment_path = os.path.join(
             path.EXP_DIR_PATH, path.DESCRIBE_EXPERIMENT)

@@ -36,7 +36,7 @@ def sync_snakefile_description():
     experiment_title = get_current_experiment_title()
 
     if experiment_title is not None:
-        snakefile_path = path.create_experiments_sub_path(
+        snakefile_path = path.create_experiments_with_subpath(
             experiment_title, sub_path=path.SNAKE_FILE)
         describe_snakefile_path = os.path.join(
             path.EXP_DIR_PATH, path.DESCRIBE_SNAKEFILE)

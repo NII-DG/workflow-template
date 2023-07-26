@@ -1,11 +1,13 @@
 import os
 import json
 import panel as pn
-from IPython.display import display
+from IPython.display import display, clear_output
 from .. import message as mess
 from .. import path
 from ..gin import sync
 from ..git import git_module as git
+# To remove the git config warning message on module import with execution result
+clear_output()
 
 
 def dg_menu(type='research'):

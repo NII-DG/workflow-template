@@ -10,7 +10,7 @@ def get_AND_elements(list_a, list_b :list)->list:
     return list(and_elements)
 
 
-def decode_subprocess(cmd: str, raise_error=True):
+def decode_exec_subprocess(cmd: str, raise_error=True):
     stdout, stderr, rt = exec_subprocess(cmd, raise_error)
     stdout = stdout.decode('utf-8')
     stderr = stderr.decode('utf-8')

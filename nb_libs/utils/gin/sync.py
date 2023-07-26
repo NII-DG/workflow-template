@@ -95,6 +95,16 @@ def update_repo_url():
     return is_private
 
 
+def datalad_create(dir_path:str):
+    """dataladのデータセット化する
+
+    Args:
+        path (str): データセット化するディレクトリのパス
+    """
+    if os.path.isdir(os.path.join(dir_path, ".datalad")):
+        common.exec_subprocess(cmd=f'datalad create --force {dir_path}')
+
+
 def setup_sync():
     """同期するコンテンツの調整"""
 

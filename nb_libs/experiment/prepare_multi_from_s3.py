@@ -72,7 +72,7 @@ def get_path_to_url_dict() -> dict:
         raise
 
 
-def input_url_path():
+def input_aws_info():
 
     def on_click_callback(clicked_button: Button) -> None:
 
@@ -90,7 +90,6 @@ def input_url_path():
 
         response = bucket.meta.client.get_bucket_location(Bucket=bucket.name)
         aws_region = response[LOCATION_CONSTRAINT]
-        
         
         if len(prefix)==0:
             response = bucket.meta.client.list_objects_v2(Bucket=bucket.name)
@@ -116,7 +115,6 @@ def input_url_path():
         with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
             json.dump(aws_s3_info_dict, f, indent=4)
 
-
         button.description='入力を受け付けました。'
         button.button_style='success'
 
@@ -134,7 +132,6 @@ def input_url_path():
         layout=Layout(width='700px'),
         style=style
     )
-
     input_bucket_name = Text(
         description='*バケット名：',
         placeholder='Enter S3 bucket name here...',
@@ -156,43 +153,36 @@ def input_url_path():
     display(input_aws_access_key_id, input_aws_secret_access_key, input_bucket_name, input_prefix, button)
 
 
+def choose_get_data():
+    try:
+        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
+            multi_s3_dict:dict = json.load(f)
+    except:
+        pass
 
-# def choose_get_data():
-#     try:
-#         with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-#             multi_s3_dict:dict = json.load(f)
-#     except:
-#         pass
-
-#     key_list = multi_s3_dict.keys()
-#     if len(key_list) != 1 or set(key_list) != {AWS_S3_INFO}:
-#         raise
+    key_list = multi_s3_dict.keys()
+    if len(key_list) != 1 or set(key_list) != {AWS_S3_INFO}:
+        raise
     
-#     s3_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
+    s3_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
 
-#     gui_list = []
-#     Eliminate folders from the list of folders and files (paths) retrieved from the S3 bucket, display a GUI for file selection as a file list, and accept input.
-#     for s3_key in s3_key_list:
-#         if s3_key.endswith('/'):
-#             pass
-#         else:
-#             gui_list.append(path)
-#     def generate_dest_list(event):
-#         done_button.button_type = "success"
-#         done_button.name = "選択完了しました。次の処理にお進みください。"
-#         global dest_list
-#         dest_list = []
-#         for i in range(len(column)):
-#             if len(column[i].value) > 0:
-#                 dest_list.append('### ' + column[i].name)
-#             for index in range(len(column[i].value)):
-#                 dest_list.append(pn.widgets.TextInput(name=column[i].value[index], placeholder='Enter a file path here...', width=700))
+    def generate_dest_list(event):
+
+        done_button.button_type = "success"
+        done_button.name = "選択完了しました。次の処理にお進みください。"
+
+        dest_list = []
+        for i in range(len(column)):
+            if len(column[i].value) > 0:
+                dest_list.append('### ' + column[i].name)
+            for index in range(len(column[i].value)):
+                dest_list.append(pn.widgets.TextInput(name=column[i].value[index], placeholder='Enter a file path here...', width=700))
         
-#     column.append(pn.widgets.MultiSelect(name = "S3ファイル", options=gui_list, size=len(gui_list), sizing_mode='stretch_width'))
-#     done_button = pn.widgets.Button(name= "選択を完了する", button_type= "primary")
-#     done_button.on_click(generate_dest_list)
-#     column.append(done_button)
-#     column
+    column.append(pn.widgets.MultiSelect(name = "S3ファイル", options=s3_key_list, size=len(s3_key_list), sizing_mode='stretch_width'))
+    done_button = pn.widgets.Button(name= "選択を完了する", button_type= "primary")
+    done_button.on_click(generate_dest_list)
+    column.append(done_button)
+    column
 
 
 def prepare_addurls_data():

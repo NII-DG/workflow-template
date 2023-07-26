@@ -19,6 +19,7 @@ PREPARE_UNIT_FROM_S3 = 'prepare_unit_from_s3.ipynb'
 HOME_PATH = os.environ['HOME']
 SYS_PATH = os.path.join(HOME_PATH, '.dg-sys')
 FROW_PATH = os.path.join(HOME_PATH, FLOW_DIR)
+EXPERIMENTS_PATH = os.path.join(HOME_PATH, 'experiments')
 
 DATA_PATH = os.path.join(FROW_PATH, 'data')
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RESEARCH_DIR)
@@ -34,7 +35,7 @@ URL_RES_PATH = os.path.join(FLOW_DIR, NOTEBOOK_DIR, RESEARCH_DIR, RESEARCH_TOP)
 URL_EXP_PATH = os.path.join(FLOW_DIR, NOTEBOOK_DIR, EXPERIMENT_DIR, EXPERIMENT_TOP)
 
 
-def create_experiments_sub_path(experiment_title, sub_path=''):
+def create_experiments_with_subpath(experiment_title, sub_path=''):
     '''実験パッケージ配下の絶対パスを生成する
 
     Arg:
@@ -45,6 +46,6 @@ def create_experiments_sub_path(experiment_title, sub_path=''):
         str: 実験パッケージ配下の絶対パス
     '''
     if len(sub_path) == 0:
-        return os.path.join(HOME_PATH, 'experiments', experiment_title)
+        return os.path.join(EXPERIMENTS_PATH, experiment_title)
     else:
-        return os.path.join(HOME_PATH, 'experiments', experiment_title, sub_path)
+        return os.path.join(EXPERIMENTS_PATH, experiment_title, sub_path)

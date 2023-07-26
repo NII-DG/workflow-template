@@ -30,7 +30,7 @@ def dg_menu(type='research'):
     menu_option[msg_mod.get('menu', 'trans_gin')] = 6
 
     # プルダウン形式のセレクターを生成
-    menu_selector = pn.widgets.Select(name=msg_mod.get('menu', 'select'), options=menu_option, value=1, width=300)
+    menu_selector = pn.widgets.Select(name=msg_mod.get('menu', 'select'), options=menu_option, value=1, width=350)
 
     html_output  = pn.pane.HTML()
 

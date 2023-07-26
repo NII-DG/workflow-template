@@ -67,7 +67,7 @@ def git_annex_unlock(path:str):
     result = stdout.decode('utf-8')
     return result
 
-def git_annex_remove(path:str):
+def git_annex_remove_metadata(path:str):
     stdout, stderr, rt = common.exec_subprocess(f'git annex metadata --remove-all "{path}"')
     result = stdout.decode('utf-8')
     return result

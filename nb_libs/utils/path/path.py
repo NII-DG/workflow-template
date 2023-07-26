@@ -24,7 +24,7 @@ DATA_PATH = os.path.join(FROW_PATH, 'data')
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RESEARCH_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)
 
-PKG_INFO_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
+PKG_INFO_JSON_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
 ADDURLS_CSV_PATH = os.path.join(HOME_PATH, '.tmp/datalad-addurls.csv')
 RF_FORM_DATA_DIR = os.path.join(HOME_PATH, '.tmp/rf_form_data')
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')
@@ -38,10 +38,11 @@ def create_experiments_sub_path(experiment_title, sub_path=''):
     '''実験パッケージ配下の絶対パスを生成する
 
     Arg:
-        experiment_title 実験パッケージ名
-        sub_path 実験パッケージ配下のパス
+        experiment_title(str): 実験パッケージ名
+
+        sub_path(str): 実験パッケージ配下のパス
     Return:
-        experimentsフォルダ配下の絶対パス
+        str: 実験パッケージ配下の絶対パス
     '''
     if len(sub_path) == 0:
         return os.path.join(HOME_PATH, 'experiments', experiment_title)

@@ -36,22 +36,32 @@ def dg_menu(type='research'):
 
     def update_selected_value(event):
         selected_value = event.new
-        html_output.height = 80
-        html_output.width = 900
 
         if selected_value == 1:
             html_output.object = ''
+            html_output.height = 10
+            html_output.width = 900
         elif selected_value == 2:
             html_output.object = html_res_name(color='green')
+            html_output.height = 60
+            html_output.width = 900
         elif selected_value == 3:
             html_output.object = path_display.res_top_html()
+            html_output.height = 30
+            html_output.width = 900
         elif selected_value == 4:
             html_text = html_res_name(color='blue') + html_exp_name(color='blue')
             html_output.object = html_text
+            html_output.height = 110
+            html_output.width = 900
         elif selected_value == 5:
             html_output.object = path_display.exp_top_html()
+            html_output.height = 30
+            html_output.width = 900
         elif selected_value == 6:
             html_output.object = gin_link_html()
+            html_output.height = 30
+            html_output.width = 900
 
     menu_selector.param.watch(update_selected_value,'value')
 

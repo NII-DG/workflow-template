@@ -103,6 +103,9 @@ def datalad_create(dir_path:str):
     """
     if not os.path.isdir(os.path.join(dir_path, ".datalad")):
         common.exec_subprocess(cmd=f'datalad create --force {dir_path}')
+        mess.display.display_info(mess.message.get('setup', 'datalad_create_success'))
+    else:
+        mess.display.display_warm(mess.message.get('setup', 'datalad_create_already'))
 
 
 def setup_sync():

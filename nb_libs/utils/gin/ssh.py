@@ -21,6 +21,9 @@ def create_key():
     """SSHキーを作成"""
     if not os.path.isfile(__SSH_KEY_PATH):
         common.exec_subprocess(f'ssh-keygen -t ed25519 -N "" -f {__SSH_KEY_PATH}')
+        mess.display.display_info(mess.message.get('setup', 'ssh_create_success'))
+    else:
+        mess.display.display_warm(mess.message.get('setup', 'ssh_already_create'))
 
 
 def upload_ssh_key():
@@ -36,17 +39,17 @@ def upload_ssh_key():
         msg = response.json()
 
         if response.status_code == HTTPStatus.CREATED:
-            mess.display.display_info(mess.message.get('ssh_key', 'success'))
+            mess.display.display_info(mess.message.get('setup', 'ssh_upload_success'))
         elif msg['message'] == 'Key content has been used as non-deploy key':
-            mess.display.display_warm(mess.message.get('ssh_key', 'already_exist'))
+            mess.display.display_warm(mess.message.get('setup', 'ssh_already_upload'))
         else:
             response.raise_for_status()
 
     except requests.exceptions.RequestException:
-        mess.display.display_err(mess.message.get('ssh_key', 'connection_error'))
+        mess.display.display_err(mess.message.get('setup', 'connection_error'))
         raise
     except Exception:
-        mess.display.display_err(mess.message.get('ssh_key', 'unexpected'))
+        mess.display.display_err(mess.message.get('setup', 'unexpected'))
         raise
 
 

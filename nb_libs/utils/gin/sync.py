@@ -17,6 +17,7 @@ from .. import message as mess
 from ..path import path as p
 from ..params import token, user_info, param_json, repository_id
 from . import api as gin_api
+from . import container
 from ..except_class import RepositoryNotExist, UrlUpdateError
 
 
@@ -293,7 +294,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
         if success_message:
             mess.display.display_info(success_message)
             # GIN-forkの実行環境一覧の更新日時を更新する
-            gin_api.patch_container()
+            container.patch_container()
             return True
         else:
             mess.display.display_warm(warm_message)

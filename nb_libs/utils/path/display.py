@@ -5,7 +5,17 @@ from ..message import message
 from . import path
 
 
-def button_html(url:str, msg:str, target='_self'):
+def button_html(
+        url:str,
+        msg:str,
+        target='_self',
+        a_character_color='#fff',
+        a_font_size='15px',
+        button_width='300px',
+        button_height='30px',
+        button_border_radius='5px',
+        button_background_color='#2185d0',
+        ):
     """画面遷移するボタンのhtmlを生成する
 
     Args:
@@ -13,7 +23,7 @@ def button_html(url:str, msg:str, target='_self'):
         msg (str): 表示する説明
         target (str): target属性の種類(e.g. _blank)
     """
-    return f'<a style="color: red; font-size:20px;"href="{url}" target="{target}" ><button>{msg}</button></a>'
+    return f'<a style="color: {a_character_color}; font-size:{a_font_size};"href="{url}" target="{target}" ><button style="width: {button_width}; height: {button_height}; border-radius: {button_border_radius}; background-color: {button_background_color}; border: 0px none;">{msg}</button></a>'
 
 
 def res_top_html():

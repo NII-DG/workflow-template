@@ -3,6 +3,9 @@ import os, json, urllib, traceback
 from json.decoder import JSONDecodeError
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
+import panel as pn
+pn.extension()
+column = pn.Column()
 from datalad import api
 from ..utils.git import annex_util, git_module
 from ..utils.path import path
@@ -12,8 +15,144 @@ from ..utils.common import common
 from ..utils.aws import s3
 from ..utils.except_class import DidNotFinishError, UnexpectedError
 
+# 辞書のキー
 PATH_TO_URL = 'path_to_url'
 EX_PKG_NAME = 'ex_pkg_name'
+AWS_S3_INFO = 'aws_s3_info'
+PATHS = 'paths'
+
+
+
+def get_experiment_title() -> str:
+    '''ex_pkg_info.jsonを開いて実験パッケージ名を取得する
+
+    Returns:
+        str: 実験パッケージ名
+    
+    Exception:
+        DidNotFinishError: ファイルが存在しない場合
+
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
+    '''
+    try:
+        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
+            return json.load(f)[EX_PKG_NAME]
+    except FileNotFoundError as e:
+        display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+        raise DidNotFinishError() from e
+    except (KeyError, JSONDecodeError):
+        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
+        raise
+
+def get_path_to_url_dict() -> dict:
+    '''prepare_multi_from_s3.jsonを開いてデータを取得する
+
+    Returns:
+        jsonファイルの'path_to_url'の項目
+
+    Exception:
+        DidNotFinishError: ファイルが存在しない場合
+
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
+    '''
+    try:
+        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
+            return json.load(f)[PATH_TO_URL]
+    except FileNotFoundError as e:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        raise DidNotFinishError() from e
+    except (KeyError, JSONDecodeError):
+        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
+        raise
+
+#############################################################################################################################
+
+
+def input_url_path():
+
+
+    from ipywidgets import Text, Button, Layout, Password
+
+    
+
+    def on_click_callback(clicked_button: Button) -> None:
+        button.description='入力を受け付けました。'
+        button.button_style='success'
+
+    # テキストボックス
+    input_aws_access_key_id = Password(
+        description='*AWSアクセスキーID：',
+        placeholder='Enter your AWS access key ID here...',
+        layout=Layout(width='700px'),
+        style=style
+    )
+    input_aws_secret_access_key = Password(
+        description='*AWSシークレットアクセスキー：',
+        placeholder='Enter your AWS secret key here...',
+        layout=Layout(width='700px'),
+        style=style
+    )
+
+    input_bucket_name = Text(
+        description='*バケット名：',
+        placeholder='Enter S3 bucket name here...',
+        layout=Layout(width='700px'),
+        style=style
+    )
+    input_prefix = Text(
+        description='バケットの任意のフォルダパス：',
+        placeholder='Enter bucket folder path here...',
+        layout=Layout(width='700px'),
+        style=style
+    )
+
+    style = {'description_width': 'initial'}
+    button = Button(description='入力を完了する', layout=Layout(width='200px'))
+    button.on_click(on_click_callback)
+    display(input_aws_access_key_id, input_aws_secret_access_key, input_bucket_name, input_prefix, button)
+
+
+
+
+
+
+# def choose_get_data():
+#     try:
+#         with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
+#             multi_s3_dict:dict = json.load(f)
+#     except:
+#         pass
+
+#     key_list = multi_s3_dict.keys()
+#     if len(key_list) != 1 or set(key_list) != {AWS_S3_INFO}:
+#         raise
+    
+#     s3_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
+
+#     gui_list = []
+#     Eliminate folders from the list of folders and files (paths) retrieved from the S3 bucket, display a GUI for file selection as a file list, and accept input.
+#     for s3_key in s3_key_list:
+#         if s3_key.endswith('/'):
+#             pass
+#         else:
+#             gui_list.append(path)
+#     def generate_dest_list(event):
+#         done_button.button_type = "success"
+#         done_button.name = "選択完了しました。次の処理にお進みください。"
+#         global dest_list
+#         dest_list = []
+#         for i in range(len(column)):
+#             if len(column[i].value) > 0:
+#                 dest_list.append('### ' + column[i].name)
+#             for index in range(len(column[i].value)):
+#                 dest_list.append(pn.widgets.TextInput(name=column[i].value[index], placeholder='Enter a file path here...', width=700))
+        
+#     column.append(pn.widgets.MultiSelect(name = "S3ファイル", options=gui_list, size=len(gui_list), sizing_mode='stretch_width'))
+#     done_button = pn.widgets.Button(name= "選択を完了する", button_type= "primary")
+#     done_button.on_click(generate_dest_list)
+#     column.append(done_button)
+#     column
+
 
 def prepare_addurls_data():
     """リポジトリへのリンク登録のためのcsvファイルを作成する
@@ -24,19 +163,7 @@ def prepare_addurls_data():
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
     """
-    try:
-        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-            path_to_url_dict = json.load(f)
-            
-    except FileNotFoundError as e:
-        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
-        raise DidNotFinishError() from e
-    except (KeyError, JSONDecodeError):
-        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
-        display_util.display_log(traceback.format_exc())
-        raise
-    else:
-        annex_util.create_csv(path_to_url_dict[PATH_TO_URL])
+    annex_util.create_csv(get_path_to_url_dict())
 
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
@@ -60,22 +187,15 @@ def save_annex():
 
         UnexpectedError: 想定外のエラーが発生した場合
     """
+
+    path_to_url_dict = get_path_to_url_dict()
+    annex_file_paths = list(path_to_url_dict.keys())
     try:
-        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-            path_to_url_dict:dict = json.load(f)[PATH_TO_URL]
-        annex_file_paths = list(path_to_url_dict.keys())
         git_module.git_annex_lock(path.HOME_PATH)
         sync.save_annex_and_register_metadata(gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3'))
-    except FileNotFoundError as e:
-        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
-        raise DidNotFinishError() from e
-    except (KeyError, JSONDecodeError):
-        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
-        display_util.display_log(traceback.format_exc())
-        raise
+
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
-        display_util.display_log(traceback.format_exc())
         raise UnexpectedError() from e
     else:
         clear_output()
@@ -95,24 +215,14 @@ def get_data():
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
-        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
-            experiment_title = json.load(f)[EX_PKG_NAME]
-        with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
-            path_to_url_dict = json.load(f)[PATH_TO_URL]
+        experiment_title = get_experiment_title()
+        path_to_url_dict = get_path_to_url_dict()
         annex_file_paths = list(path_to_url_dict.keys())
         # Obtain the actual data of the created link.
         api.get(path=annex_file_paths)
         annex_util.annex_to_git(annex_file_paths, experiment_title)
-    except FileNotFoundError as e:
-        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
-        raise DidNotFinishError() from e
-    except (KeyError, JSONDecodeError):
-        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
-        display_util.display_log(traceback.format_exc())
-        raise
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
-        display_util.display_log(traceback.format_exc())
         raise UnexpectedError() from e
     else:
         clear_output()
@@ -132,20 +242,8 @@ def prepare_sync() -> dict:
 
     display(Javascript('IPython.notebook.save_checkpoint();'))
     
-    try:
-        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
-            experiment_title = json.load(f)[EX_PKG_NAME]
-        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-            path_to_url_dict:dict = json.load(f)[PATH_TO_URL]
-        
-    except FileNotFoundError as e:
-        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
-        raise DidNotFinishError() from e
-    except (KeyError, JSONDecodeError):
-        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
-        display_util.display_log(traceback.format_exc())
-        raise
-
+    experiment_title = get_experiment_title()
+    path_to_url_dict = get_path_to_url_dict()
     annex_file_paths = list(path_to_url_dict.keys())
     git_file_paths = []
 
@@ -154,7 +252,7 @@ def prepare_sync() -> dict:
             git_file_paths.append(annex_file_path)
 
     annex_file_paths = list(set(annex_file_paths) - set(git_file_paths))
-    git_file_paths.append(path.EXP_DIR_PATH + path.PREPARE_UNIT_FROM_S3)
+    git_file_paths.append(path.EXP_DIR_PATH + path.PREPARE_MULTI_FROM_S3)
 
     sync_repo_args = dict()
     sync_repo_args['git_path'] = git_file_paths

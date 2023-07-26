@@ -24,7 +24,7 @@ def get_params()->dict:
     return params
 
 
-def update_param_url(remote_origin_url):
+def update_param_url(remote_origin_url:str):
     """param.jsonのsiblings.ginHttpとsiblings.ginSshを更新する。
 
     ARG

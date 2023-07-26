@@ -1,10 +1,11 @@
 
+import requests
 from utils.params import repository_id, token, param_json
 from utils.git import git_module
-from utils.metadata import metadata
 from utils.message import display, message
 from utils.except_class import DidNotFinishError, UnexpectedError, DGTaskError, ExecCmdError
 import requests
+from utils.repo_metadata import metadata
 
 def prepare_matadata():
 

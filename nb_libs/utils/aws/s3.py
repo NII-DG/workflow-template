@@ -59,7 +59,7 @@ def validate_input_path(input_paths:list, experiment_title:str) -> str:
             return message.get('from_repo_s3', 'different_ext').format(input_path)
 
         # 既存のファイルと重複がないこと
-        elif os.path.isfile(path.create_experiments_sub_path(experiment_title, input_path)):
+        elif os.path.isfile(path.create_experiments_with_subpath(experiment_title, input_path)):
             return message.get('from_repo_s3', 'already_exist').format(input_path)
 
         # input_path内での重複がないこと

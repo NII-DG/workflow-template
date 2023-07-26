@@ -60,7 +60,7 @@ def input_url_path():
 
         data = dict()
         data[S3_OBJECT_URL] = urllib.parse.unquote(input_url)
-        data[DEST_FILE_PATH] = path.create_experiments_sub_path(experiment_title, input_path)
+        data[DEST_FILE_PATH] = path.create_experiments_with_subpath(experiment_title, input_path)
         
         os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
         with open(path.UNIT_S3_JSON_PATH, mode='w') as f:
@@ -225,7 +225,7 @@ def prepare_sync() -> dict:
 
     annex_paths = [dest_path]
 
-    if dest_path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
+    if dest_path.startswith(path.create_experiments_with_subpath(experiment_title, 'source/')):
         git_path.append(dest_path)
 
     annex_paths = list(set(annex_paths) - set(git_path))
@@ -235,7 +235,7 @@ def prepare_sync() -> dict:
     sync_repo_args['git_path'] = git_path
     sync_repo_args['gitannex_path'] = annex_paths
     sync_repo_args['gitannex_files'] = annex_paths
-    sync_repo_args['get_paths'] = [path.create_experiments_sub_path(experiment_title)]
+    sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
     sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
     
     common.delete_file(path.UNIT_S3_JSON_PATH)

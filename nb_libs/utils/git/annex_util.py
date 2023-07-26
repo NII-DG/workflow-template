@@ -29,7 +29,7 @@ def annex_to_git(datalad_get_paths:list, experiment_title:str):
     '''
     source_paths = []
     for datalad_get_path in datalad_get_paths:
-        if datalad_get_path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
+        if datalad_get_path.startswith(path.create_experiments_with_subpath(experiment_title, 'source/')):
             source_paths.append(datalad_get_path)
 
     if len(source_paths) > 0:

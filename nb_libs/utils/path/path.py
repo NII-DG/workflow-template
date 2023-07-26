@@ -14,6 +14,7 @@ EXPERIMENT_DIR = "experiment"
 RESEARCH_TOP = 'base_FLOW.ipynb'
 EXPERIMENT_TOP = 'experiment.ipynb'
 PREPARE_UNIT_FROM_S3 = 'prepare_unit_from_s3.ipynb'
+PREPARE_MULTI_FROM_S3 = 'prepare_multi_from_s3.ipynb'
 
 # path from inside
 ## /home/jovyan
@@ -37,6 +38,7 @@ RF_FORM_DATA_DIR = os.path.join(HOME_PATH, '.tmp/rf_form_data')
 
 ## File under /home/jovyan/.tmp/rf_form_data/
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')
+MULTI_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_multi_from_s3.json')
 
 # path from outside
 URL_RES_PATH = os.path.join(FLOW_DIR, NOTEBOOK_DIR, RESEARCH_DIR, RESEARCH_TOP)

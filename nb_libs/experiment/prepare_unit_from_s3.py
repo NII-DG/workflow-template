@@ -1,10 +1,12 @@
 '''prepare_unit_from_s3.ipynbから呼び出されるモジュール'''
-import os, json, urllib, traceback
+import os, json, traceback
+from urllib  import parse
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
+from json.decoder import JSONDecodeError
 from datalad import api
 from ..utils.git import annex_util, git_module
-from ..utils.path import path
+from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
 from ..utils.gin import sync
 from ..utils.common import common
@@ -19,13 +21,18 @@ EX_PKG_NAME = 'ex_pkg_name'
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
 
+    Exception:
+        FileNotFoundError: 実験パッケージ名を記録したjsonファイルが存在しない場合
+
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
+
     """
     def on_click_callback(clicked_button: Button) -> None:
 
         common.delete_file(path.UNIT_S3_JSON_PATH)
 
-        input_url = text_url.value
-        input_path = text_path.value
+        input_url = str(text_url.value)
+        input_path = str(text_path.value)
         err_msg = ""
         
         # URLの検証
@@ -37,20 +44,20 @@ def input_url_path():
         try:
             with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
                 experiment_title = json.load(f)[EX_PKG_NAME]
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             clear_output()
             display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
-            raise FileNotFoundError() from e
-        except KeyError as e:
+            raise
+        except (KeyError, JSONDecodeError):
             clear_output()
             display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'unexpected'))
-            raise KeyError() from e
+            raise
         
         # 格納先パスの検証
         if len(err_msg) == 0:
-            err_msg = s3.validate_input_path([(input_path, input_url)], experiment_title)
+            err_msg = validate.validate_input_path([(input_path, input_url)], experiment_title)
 
         if len(err_msg) > 0:
             button.layout=Layout(width='700px')
@@ -59,8 +66,8 @@ def input_url_path():
             return
 
         data = dict()
-        data[S3_OBJECT_URL] = urllib.parse.unquote(input_url)
-        data[DEST_FILE_PATH] = path.create_experiments_sub_path(experiment_title, input_path)
+        data[S3_OBJECT_URL] = parse.unquote(input_url)
+        data[DEST_FILE_PATH] = path.create_experiments_with_subpath(experiment_title, input_path)
         
         os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
         with open(path.UNIT_S3_JSON_PATH, mode='w') as f:
@@ -96,23 +103,23 @@ def prepare_addurls_data():
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
 
-        KeyError: .tmp内のjsonに指定したキーが存在しない場合
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
     """
     try:
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dic = json.load(f)
             input_url = dic[S3_OBJECT_URL]
-            dest_path = dic[DEST_FILE_PATH]
+            dest_file_path = dic[DEST_FILE_PATH]
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except KeyError as e:
+    except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError() from e
+        raise
     else:
-        annex_util.create_csv({dest_path: input_url})
+        annex_util.create_csv({dest_file_path: input_url})
 
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
@@ -131,25 +138,25 @@ def save_annex():
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
 
-        KeyError: .tmp内のjsonに指定したキーが存在しない場合
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
         UnexpectedError: 想定外のエラーが発生した場合
     """
     try:
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
-            dest_path = json.load(f)[DEST_FILE_PATH]
+            dest_file_path = json.load(f)[DEST_FILE_PATH]
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
-        annex_paths = [dest_path]
+        annex_file_paths = [dest_file_path]
         git_module.git_annex_lock(path.HOME_PATH)
-        sync.save_annex_and_register_metadata(gitannex_path=annex_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3'))
+        sync.save_annex_and_register_metadata(gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3'))
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except KeyError as e:
+    except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError() from e
+        raise
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
@@ -164,7 +171,7 @@ def get_data():
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
 
-        KeyError: .tmp内のjsonに指定したキーが存在しない場合
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
         UnexpectedError: 想定外のエラーが発生した場合
     
@@ -175,19 +182,19 @@ def get_data():
         with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
             experiment_title = json.load(f)[EX_PKG_NAME]
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
-            dest_path = json.load(f)[DEST_FILE_PATH]
+            dest_file_path = json.load(f)[DEST_FILE_PATH]
 
-        annex_paths = [dest_path]
+        annex_file_paths = [dest_file_path]
         # Obtain the actual data of the created link.
-        api.get(path=annex_paths)
-        annex_util.annex_to_git(annex_paths, experiment_title)
+        api.get(path=annex_file_paths)
+        annex_util.annex_to_git(annex_file_paths, experiment_title)
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except KeyError as e:
+    except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError() from e
+        raise
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
@@ -203,39 +210,40 @@ def prepare_sync() -> dict:
         dict: syncs_with_repoの引数が入った辞書
     
     Exception:
-        DidNotFinishError: .tmp内のファイルが存在しない場合
+        DidNotFinishError: jsonファイルの形式が想定通りでない場合
 
+        KeyError, JSONDecodeError: .tmp内のjsonファイルの形式が不正な場合
     """
 
     display(Javascript('IPython.notebook.save_checkpoint();'))
 
-    git_path = []
+    git_file_paths = []
     try:
         with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
             experiment_title = json.load(f)[EX_PKG_NAME]
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
-            dest_path = json.load(f)[DEST_FILE_PATH]
+            dest_file_path = json.load(f)[DEST_FILE_PATH]
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except KeyError as e:
+    except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError() from e
+        raise
 
-    annex_paths = [dest_path]
+    annex_file_paths = [dest_file_path]
 
-    if dest_path.startswith(path.create_experiments_sub_path(experiment_title, 'source/')):
-        git_path.append(dest_path)
+    if dest_file_path.startswith(path.create_experiments_with_subpath(experiment_title, 'source/')):
+        git_file_paths.append(dest_file_path)
 
-    annex_paths = list(set(annex_paths) - set(git_path))
-    git_path.append(path.EXP_DIR_PATH + path.PREPARE_UNIT_FROM_S3)
+    annex_file_paths = list(set(annex_file_paths) - set(git_file_paths))
+    git_file_paths.append(path.EXP_DIR_PATH + path.PREPARE_UNIT_FROM_S3)
 
     sync_repo_args = dict()
-    sync_repo_args['git_path'] = git_path
-    sync_repo_args['gitannex_path'] = annex_paths
-    sync_repo_args['gitannex_files'] = annex_paths
-    sync_repo_args['get_paths'] = [path.create_experiments_sub_path(experiment_title)]
+    sync_repo_args['git_path'] = git_file_paths
+    sync_repo_args['gitannex_path'] = annex_file_paths
+    sync_repo_args['gitannex_files'] = annex_file_paths
+    sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
     sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
     
     common.delete_file(path.UNIT_S3_JSON_PATH)

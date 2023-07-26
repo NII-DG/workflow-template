@@ -53,15 +53,7 @@ def dg_menu(type='research'):
             html_output.object = gin_link_html()
 
     menu_selector.param.watch(update_selected_value,'value')
-    css = """
-/* ここにCSSスタイルを記述 */
-a.selected-option {
-    color: blue;
-    font-size: 1000px;
-}
-"""
 
-    pn.config.raw_css.append(css)
     display(pn.Column(menu_selector, html_output))
 
 def html_res_name(color='black'):

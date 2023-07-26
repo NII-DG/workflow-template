@@ -22,6 +22,12 @@ def button_html(
         url (str): リンク先のURL
         msg (str): 表示する説明
         target (str): target属性の種類(e.g. _blank)
+        a_character_color (str): (linkのスタイル) 文字カラー
+        a_font_size (str): (リンクのスタイル) フォントサイズ
+        button_width (str): (ボタンのスタイル) 幅
+        button_height (str): (ボタンのスタイル) 高さ
+        button_border_radius (str): (ボタンのスタイル) 角の丸み
+        button_background_color (str): (ボタンのスタイル) 背景色
     """
     return f'<a style="color: {a_character_color}; font-size:{a_font_size};"href="{url}" target="{target}" ><button style="width: {button_width}; height: {button_height}; border-radius: {button_border_radius}; background-color: {button_background_color}; border: 0px none;">{msg}</button></a>'
 

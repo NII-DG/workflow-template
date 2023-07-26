@@ -1,12 +1,14 @@
 import os
 import json
 import panel as pn
-from IPython.display import display
+from IPython.display import display, clear_output
 from .. import message as mess
 from .. import path
 from ..common import common
 from ..gin import sync
 from ..git import git_module as git
+# To remove the git config warning message on module import with execution result
+clear_output()
 
 
 def dg_menu(type='research'):
@@ -52,8 +54,8 @@ def dg_menu(type='research'):
             html_output.object = gin_link_html()
 
     menu_selector.param.watch(update_selected_value,'value')
-    display(pn.Column(menu_selector, html_output))
 
+    display(pn.Column(menu_selector, html_output))
 
 def html_res_name(color='black'):
     """研究名を表示する"""

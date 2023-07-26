@@ -5,6 +5,9 @@ from ..utils.path import path
 from ..utils.message import message, display
 from ..utils.params import param_json
 from ..utils.git import git_module
+from IPython.display import clear_output
+# To remove the git config warning message on module import with execution result
+clear_output()
 
 def organize_flow(workflow_identifier:str):
     """リサーチフローの最適化処理

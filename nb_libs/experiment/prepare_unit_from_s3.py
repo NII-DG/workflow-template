@@ -3,6 +3,7 @@ import os, json, traceback
 from urllib  import parse
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
+from json.decoder import JSONDecodeError
 from datalad import api
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
@@ -19,6 +20,11 @@ EX_PKG_NAME = 'ex_pkg_name'
 
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
+
+    Exception:
+        FileNotFoundError: 実験パッケージ名を記録したjsonファイルが存在しない場合
+
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
     """
     def on_click_callback(clicked_button: Button) -> None:
@@ -38,16 +44,16 @@ def input_url_path():
         try:
             with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
                 experiment_title = json.load(f)[EX_PKG_NAME]
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             clear_output()
             display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
-            raise FileNotFoundError() from e
-        except KeyError as e:
+            raise
+        except (KeyError, JSONDecodeError):
             clear_output()
             display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'unexpected'))
-            raise KeyError() from e
+            raise
         
         # 格納先パスの検証
         if len(err_msg) == 0:
@@ -97,7 +103,7 @@ def prepare_addurls_data():
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
 
-        KeyError: .tmp内のjsonに指定したキーが存在しない場合
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
     """
     try:
@@ -108,10 +114,10 @@ def prepare_addurls_data():
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except KeyError as e:
+    except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError() from e
+        raise
     else:
         annex_util.create_csv({dest_file_path: input_url})
 
@@ -132,7 +138,7 @@ def save_annex():
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
 
-        KeyError: .tmp内のjsonに指定したキーが存在しない場合
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
         UnexpectedError: 想定外のエラーが発生した場合
     """
@@ -147,10 +153,10 @@ def save_annex():
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except KeyError as e:
+    except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError() from e
+        raise
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
@@ -165,7 +171,7 @@ def get_data():
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
 
-        KeyError: .tmp内のjsonに指定したキーが存在しない場合
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
         UnexpectedError: 想定外のエラーが発生した場合
     
@@ -185,10 +191,10 @@ def get_data():
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except KeyError as e:
+    except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError() from e
+        raise
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         display_util.display_log(traceback.format_exc())
@@ -204,8 +210,9 @@ def prepare_sync() -> dict:
         dict: syncs_with_repoの引数が入った辞書
     
     Exception:
-        DidNotFinishError: .tmp内のファイルが存在しない場合
+        DidNotFinishError: jsonファイルの形式が想定通りでない場合
 
+        KeyError, JSONDecodeError: .tmp内のjsonファイルの形式が不正な場合
     """
 
     display(Javascript('IPython.notebook.save_checkpoint();'))
@@ -219,10 +226,10 @@ def prepare_sync() -> dict:
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
-    except KeyError as e:
+    except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         display_util.display_log(traceback.format_exc())
-        raise KeyError() from e
+        raise
 
     annex_file_paths = [dest_file_path]
 

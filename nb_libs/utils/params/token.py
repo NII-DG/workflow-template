@@ -1,24 +1,39 @@
 """ .token.jsonファイル操作クラス
 """
-
 import os
 import json
 from http import HTTPStatus
 from urllib import parse
-import sys
 from ..common import common
 from ..gin import api
 from ..message import display, message
+from ..path import path
 
-def get_ginfork_token():
-    """$HOME/.token.jsonからginfork_tokenを取得する。
+
+file_path = os.path.join(path.SYS_PATH,'.token.json')
+
+
+def set_ginfork_token(token):
+    """.token.jsonにginfork_tokenを書き込む。
+
+    ARG
+    -----------------
+    token : str
+        Description : token for gin-fork
+    """
+    token_dict = {"ginfork_token": token}
+    with open(file_path, 'w') as f:
+        json.dump(token_dict, f, indent=4)
+
+
+def get_ginfork_token()->str:
+    """.token.jsonからginfork_tokenを取得する。
+
     RETURN
     -----------------
     ginfork_token : str
         Description : token for gin-fork
     """
-    os.chdir(os.environ['HOME'])
-    file_path = '.token.json'
     with open(file_path, 'r') as f:
         data = json.load(f)
     ginfork_token = data['ginfork_token']

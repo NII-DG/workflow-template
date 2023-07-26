@@ -2,18 +2,20 @@
 """
 
 import os
+from ..path import path as p
 
 
-def get_repo_id():
+file_path = os.path.join(p.HOME_PATH, '.repository_id')
+
+
+def get_repo_id()->str:
     """$HOME/.repository_idからリポジトリIDを取得する。
+
     RETURN
     -----------------
     repo_id : str
         Description : リポジトリID
     """
-    os.chdir(os.environ['HOME'])
-    file_path = '.repository_id'
-    f = open(file_path, 'r')
-    repo_id = f.read()
-    f.close()
+    with open(file_path, 'r') as f:
+        repo_id = f.read()
     return repo_id

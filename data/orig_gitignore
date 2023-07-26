@@ -1,0 +1,23 @@
+# .gitignore
+
+/.cache/
+/.conda/
+/.config/
+/.ipython/
+/.local/
+/.tmp/
+/.bashrc
+/.bash_logout
+/.profile
+/.netrc
+.ipynb_checkpoints/
+.fonts/
+.jupyter/
+.npm/
+.ssh/
+.jupyter-server-log.txt
+.gitconfig
+.repository_id
+.dg-sys/
+.github
+__pycache__/

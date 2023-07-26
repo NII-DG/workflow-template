@@ -6,7 +6,7 @@ import requests
 import time
 
 
-def repos_search_by_repo_id(scheme, domain, repo_id):
+def search_public_repo(scheme, domain, repo_id,):
     """GIN_API : api/v1/repos/search リクエストメソッド
 
     ARG
@@ -27,12 +27,16 @@ def repos_search_by_repo_id(scheme, domain, repo_id):
     ---------------
     接続の確立不良 : requests.exceptions.RequestException
     """
-    request_url = parse.urlunparse((scheme, domain, "api/v1/repos/search", "", "id=" + repo_id, ""))
-    return requests.get(request_url)
+    sub_url = "/api/v1/repos/search"
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {
+        'id' : repo_id,
+    }
+    return requests.get(url=api_url, params=params)
 
 
-def repos(scheme, domain, owner_repo_nm, token=''):
-    """GIN_API : api/v1/repos/$repoOwnerNm/$repoNm リクエストメソッド
+def search_repo(scheme, domain, repo_id, user_id, token):
+    """GIN_API : api/v1/repos/search/user リクエストメソッド
 
     ARG
     ---------------
@@ -40,8 +44,12 @@ def repos(scheme, domain, owner_repo_nm, token=''):
         Description : プロトコル名(http, https, ssh)
     domain : str
         Description : ドメイン名
-    owner_repo_nm : str
-        Description : リポジトリオーナ名/リポジトリ名
+    repo_id : str
+        Description : レポジトリID
+    user_id : str
+        Description : ユーザーID
+    token : str
+        Description : token
 
     RETURN
     ---------------
@@ -52,14 +60,15 @@ def repos(scheme, domain, owner_repo_nm, token=''):
     ---------------
     接続の確立不良 : requests.exceptions.RequestException
     """
-
-    sub_url = parse.urljoin("api/v1/repos/", "./" + owner_repo_nm)
+    sub_url = "/api/v1/repos/search/user"
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
-    if len(token) > 0:
-        params = {'token' : token}
-        return requests.get(url=api_url, params=params)
-    else:
-        return requests.get(url=api_url)
+    params = {
+        'id' : repo_id,
+        'uid' : user_id,
+        'token' : token
+    }
+    return requests.get(url=api_url, params=params)
+
 
 def delete_access_token(scheme, domain, token):
     sub_url = "api/v1/user/token/delete"
@@ -109,7 +118,7 @@ def upload_key(scheme:str, domain:str, token:str, pubkey:str):
         "title": "system-generated-"+str(time.time()),
         "key": pubkey
     }
-    return requests.post(url=api_url, params=params,data=data)
+    return requests.post(url=api_url, params=params, data=data)
 
 
 def add_container(scheme, domain, token,
@@ -119,10 +128,10 @@ def add_container(scheme, domain, token,
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     params = {'token' : token}
     data = {
-            "repo_id": repo_id,
-            "user_id": user_id,
-            "server_name": server_name,
-            "url":ipynb_url
+        "repo_id": repo_id,
+        "user_id": user_id,
+        "server_name": server_name,
+        "url":ipynb_url
     }
     if len(pkg_title) > 0:
         data["experiment_package"] = pkg_title

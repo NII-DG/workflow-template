@@ -1,8 +1,8 @@
 import json
 import os
-import subprocess
 import re
 from ..common import common
+from ..path import path as p
 
 
 def exec_git_status():
@@ -16,49 +16,49 @@ def exec_git_status():
     ---------------
 
     """
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     stdout, stderr, rt = common.exec_subprocess('git status')
     result = stdout.decode('utf-8')
     return result
 
 def exec_git_annex_whereis():
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     stdout, stderr, rt = common.exec_subprocess('git annex whereis --json', False)
     result = stdout.decode('utf-8')
     return result
 
 def git_annex_add(path:str):
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     stdout, stderr, rt = common.exec_subprocess('git annex add "{}"'.format(path), False)
     result = stdout.decode('utf-8')
     return result
 
 def git_add(path:str):
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     stdout, stderr, rt = common.exec_subprocess('git add "{}"'.format(path), False)
     result = stdout.decode('utf-8')
     return result
 
 def git_commmit(msg:str):
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     stdout, stderr, rt = common.exec_subprocess('git commit -m "{}"'.format(msg), False)
     result = stdout.decode('utf-8')
     return result
 
 def git_mv(src :str, dest : str):
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     stdout, stderr, rt = common.exec_subprocess('git mv "{}" "{}"'.format(src, dest), False)
     result = stdout.decode('utf-8')
     return result
 
 def git_ls_files(path:str):
-    os.chdir(os.environ['HOME'])
+    os.chdir(p.HOME_PATH)
     stdout, stderr, rt = common.exec_subprocess('git ls-files -s "{}"'.format(path), False)
     result = stdout.decode('utf-8')
     return result
 
-def git_annex_lock():
-    stdout, stderr, rt = common.exec_subprocess('git_annex_lock')
+def git_annex_lock(path:str):
+    stdout, stderr, rt = common.exec_subprocess(f'git annex lock "{path}"')
     result = stdout.decode('utf-8')
     return result
 
@@ -67,7 +67,7 @@ def git_annex_unlock(path:str):
     result = stdout.decode('utf-8')
     return result
 
-def git_annex_remove(path:str):
+def git_annex_remove_metadata(path:str):
     stdout, stderr, rt = common.exec_subprocess(f'git annex metadata --remove-all "{path}"')
     result = stdout.decode('utf-8')
     return result
@@ -229,4 +229,5 @@ def is_conflict() -> bool:
 
 
 def get_remote_url():
-    return subprocess.getoutput('git config --get remote.origin.url')
+    stdout, stderr, rt = common.exec_subprocess('git config --get remote.origin.url')
+    return stdout.decode('utf-8')

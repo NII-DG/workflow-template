@@ -7,6 +7,7 @@ from pathlib import Path
 from lxml import etree
 from nbformat import read, NO_CONVERT
 from itertools import chain, zip_longest
+from ..path import path as dg_path
 
 
 title_font_size = 10
@@ -152,7 +153,7 @@ def _find_matching_notebook(notebooks, title):
 def _embed_info_in_one_rect(elem, nb_headers, nb_name):
     headers = nb_headers[nb_name]
     nb_file = nb_headers[nb_name]['path']
-    nb_file = nb_file.replace('WORKFLOWS/FLOW/', 'FLOW/')
+    nb_file = nb_file.replace(dg_path.RES_DIR_PATH, '.')
     rect_elem = elem.getprevious()
     rect = (
         (int(rect_elem.attrib['x']), int(rect_elem.attrib['y'])),

@@ -5,7 +5,7 @@ import json
 from urllib import parse
 from urllib.parse import urljoin
 from ..message import message, display
-from ..params import user_info, token
+from ..params import user_info, token, repository_id, param_json
 from ..path import path
 from . import sync, api
 
@@ -26,10 +26,8 @@ def add_container(experiment_title=""):
     ---------------
     """
     try:
-        with open(os.environ['HOME'] + '/.repository_id', 'r') as f:
-            repo_id = f.read()
-        with open(sync.fetch_param_file_path(), mode='r') as f:
-            params = json.load(f)
+        repo_id = repository_id.get_repo_id()
+        params = param_json.get_params()
 
         pr = parse.urlparse(params['siblings']['ginHttp'])
         uid = str(user_info.get_user_id())
@@ -40,7 +38,10 @@ def add_container(experiment_title=""):
         # experiment
         if len(experiment_title) > 0:
             url = urljoin(url, path.URL_EXP_PATH)
-            response = api.add_container(scheme=pr.scheme, domain=pr.netloc, token=user_token, repo_id=repo_id, user_id=uid, server_name=server_name, ipynb_url=url, pkg_title=experiment_title)
+            response = api.add_container(
+                scheme=pr.scheme, domain=pr.netloc,
+                token=user_token, repo_id=repo_id, user_id=uid, server_name=server_name, ipynb_url=url, pkg_title=experiment_title
+                )
 
         # research
         else:
@@ -52,11 +53,11 @@ def add_container(experiment_title=""):
         elif response.json()["error"].startswith("Error 1062"):
             display.display_warm(message.get('container_api', 'add_already_exist'))
         else:
-            raise Exception
+            raise response.raise_for_status()
 
-    except requests.exceptions.RequestException as e:
-        display.display_err(message.get('container_api', 'communication_error'))
-        raise e
+    except requests.exceptions.RequestException:
+        display.display_err(message.get('container_api', 'connection_error'))
+        raise
     except Exception:
         display.display_err(message.get('container_api', 'unexpected'))
         raise
@@ -86,13 +87,11 @@ def patch_container():
         uid = str(user_info.get_user_id())
 
         response = api.patch_container(pr.scheme, pr.netloc, user_token, server_name, uid)
+        response.raise_for_status()
 
-        if response.status_code != requests.codes.ok:
-            raise Exception
-
-    except requests.exceptions.RequestException as e:
-        display.display_err(message.get('container_api', 'communication_error'))
-        raise e
+    except requests.exceptions.RequestException:
+        display.display_err(message.get('container_api', 'connection_error'))
+        raise
     except Exception:
         display.display_err(message.get('container_api', 'unexpected'))
         raise
@@ -125,11 +124,11 @@ def delete_container():
         if response.status_code == requests.codes.ok:
             display.display_info(message.get('container_api', 'delete_success'))
         else:
-            raise Exception
+            response.raise_for_status()
 
-    except requests.exceptions.RequestException as e:
-        display.display_err(message.get('container_api', 'communication_error'))
-        raise e
+    except requests.exceptions.RequestException:
+        display.display_err(message.get('container_api', 'connection_error'))
+        raise
     except Exception:
         display.display_err(message.get('container_api', 'unexpected'))
         raise

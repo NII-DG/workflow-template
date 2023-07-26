@@ -5,6 +5,9 @@ from ..utils.path import path
 from ..utils.message import message, display
 from ..utils.params import param_json
 from ..utils.git import git_module
+from IPython.display import clear_output
+# To remove the git config warning message on module import with execution result
+clear_output()
 
 def organize_flow(workflow_identifier:str):
     """リサーチフローの最適化処理
@@ -34,8 +37,8 @@ def update_gin_url():
     try:
         # update param json
         param_json.update_param_url(url)
-    except requests.exceptions.RequestException as e:
-        display.display_err(message.get('param_json', 'communication_error'))
-        raise e
-    except Exception as e:
-        raise e
+    except requests.exceptions.RequestException:
+        display.display_err(message.get('param_json', 'connection_error'))
+        raise
+    except Exception:
+        raise

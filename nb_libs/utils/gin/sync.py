@@ -1,8 +1,6 @@
 import json
 import os
-import glob
-from IPython.display import clear_output, display
-from urllib import parse
+from IPython.display import clear_output
 import requests
 from datalad import api
 import traceback
@@ -11,20 +9,28 @@ from subprocess import PIPE
 import magic
 import hashlib
 import datetime
+import shutil
+from urllib import parse
 from ..git import git_module
 from ..common import common
-from ..message import display
-from ..params import token, user_info
+from .. import message as mess
+from ..path import path as p
+from ..params import token, user_info, param_json, repository_id
 from . import api as gin_api
+from ..except_class import RepositoryNotExist, UrlUpdateError
+
+
+SIBLING = 'gin'
 
 
 def fetch_param_file_path() -> str:
-    return '/home/jovyan/WORKFLOWS/data/params.json'
+    return param_json.PARAM_FILE_PATH
 
 
 def fetch_gin_monitoring_assigned_values():
-    # dmp.jsonからcontentSize, workflowIdentifier, datasetStructureの値を取得する
-    dmp_file_path = '/home/jovyan/dmp.json'
+    """dmp.jsonからcontentSize, workflowIdentifier, datasetStructureの値を取得する"""
+
+    dmp_file_path = os.path.join(p.HOME_PATH, 'dmp.json')
     with open(dmp_file_path, mode='r') as f:
         dmp_json = json.load(f)
     assigned_values = {
@@ -39,117 +45,106 @@ def get_datasetStructure():
     return assigned_values['datasetStructure']
 
 
-def fetch_ssh_config_path():
-    ssh_config_path = '/home/jovyan/.ssh/config'
-    return ssh_config_path
-
-
-def config_GIN(ginHttp):
-    """リポジトリホスティングサーバのURLからドメイン名を抽出してコンテナに対してSHH通信を信頼させるメソッド
-        この時、/home/jovyan/.ssh/configファイルに設定値を出力する。
-    ARG
-    ---------------------------
-    ginHttp : str
-        Description : リポジトリホスティングサーバのURL ex : http://dg01.dg.rcos.nii.ac.jp
-    """
-    # SSHホスト（＝GIN）を信頼する設定
-    path = fetch_ssh_config_path()
-    s = ''
-    pr = parse.urlparse(ginHttp)
-    ginDomain = pr.netloc
-    if os.path.exists(path):
-        with open(path, 'r') as f:
-            s = f.read()
-        if s.find('host ' + ginDomain + '\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null') == -1:
-            # 設定が無い場合は追記する
-            with open('/home/jovyan/.ssh/config', mode='a') as f:
-                write_GIN_config(mode='a', ginDomain=ginDomain)
-        else:
-            # すでにGINを信頼する設定があれば何もしない
-            pass
-    else:
-        # 設定ファイルが無い場合は新規作成して設定を書きこむ
-        with open('/home/jovyan/.ssh/config', mode='w') as f:
-            write_GIN_config(mode='w', ginDomain=ginDomain)
-
-
-def write_GIN_config(mode, ginDomain):
-    path = fetch_ssh_config_path()
-    with open(path, mode) as f:
-        f.write('\nhost ' + ginDomain + '\n')
-        f.write('\tStrictHostKeyChecking no\n')
-        f.write('\tUserKnownHostsFile=/dev/null\n')
-
-
-def fetch_files(dir_path):
-    """引数に与えたディレクトリパス以下にあるファイルのリストを作成して返す"""
-    data_list = []
-    files = glob.glob(dir_path + "/*")
-    for f in files:
-        data_list += [f]
-    return data_list
-
-
 def update_repo_url():
-    # HTTPとSSHのリモートURLを最新化する
-    # APIリクエストに必要な情報を取得する
-    params = {}
-    with open(fetch_param_file_path(), mode='r') as f:
-        params = json.load(f)
-    os.chdir(os.environ['HOME'])
-    file_path = '.repository_id'
-    f = open(file_path, 'r')
-    repo_id = f.read()
-    f.close()
+    """HTTPとSSHのリモートURLを最新化する
 
-    # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
-    request_url = params['siblings']['ginHttp'] + '/api/v1/repos/search?id=' + repo_id
-    res = requests.get(request_url)
-    res_data = res.json()
-    is_new_private = dict()
-    is_new_private['is_new'] = False
-    is_new_private['is_private'] = None
+    Returns:
+        bool: プライベートリポジトリかどうか
 
-    if len(res_data['data']) == 0:
-        try :
+    Raises:
+        requests.exceptions.RequestException: 接続の確立不良
+        FileNotFoundError: 処理に必要なファイルが存在しない
+        RepositoryNotExist: リモートリポジトリの情報が取得できない
+        UrlUpdateError: 想定外のエラーにより最新化に失敗した
+    """
+
+    try:
+        # APIリクエストに必要な情報を取得する
+        params = param_json.get_params()
+        pr = parse.urlparse(params['siblings']['ginHttp'])
+        repo_id = repository_id.get_repo_id()
+
+        # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
+        res = gin_api.search_public_repo(pr.scheme, pr.netloc, repo_id)
+        res_data = res.json()
+        if len(res_data['data']) == 0:
+            # 初期設定前の場合は取れない
             ginfork_token = token.get_ginfork_token()
             uid = str(user_info.get_user_id())
-            request_url = params['siblings']['ginHttp'] + f'/api/v1/repos/search/user?id={repo_id}&uid={uid}&token={ginfork_token}'
-            res = requests.get(request_url)
+            res = gin_api.search_repo(pr.scheme, pr.netloc, repo_id, uid, ginfork_token)
             res_data = res.json()
-        except FileNotFoundError:
-            return is_new_private
-        except Exception:
-            display.display_err("想定外のエラーが発生しました。")
-            return is_new_private
 
+        res.raise_for_status()
+        if len(res_data['data']) == 0:
+            raise RepositoryNotExist
+
+        ssh_url = res_data['data'][0]['ssh_url']
+        http_url = res_data['data'][0]['html_url'] + '.git'
+        update_list = [[SIBLING, ssh_url],['origin', http_url]]
+        for update_target in update_list:
+            result = subprocess.run('git remote set-url ' + update_target[0] + ' ' + update_target[1], shell=True, stdout=PIPE, stderr=PIPE, text=True)
+            if 'No such remote' in result.stderr:
+                subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
+
+    except (requests.exceptions.RequestException, RepositoryNotExist, FileNotFoundError):
+        raise
+    except Exception as e:
+        raise UrlUpdateError from e
+
+    is_private = res_data['data'][0]['private']
+    return is_private
+
+
+def setup_sync():
+    """同期するコンテンツの調整"""
+
+    # S3にあるデータをGIN-forkに同期しないための設定
+    common.exec_subprocess(cmd='git annex untrust here')
+    common.exec_subprocess(cmd='git annex --force trust web')
+
+    # 元ファイルからコピーして.gitignoreを作成
+    file_path = os.path.join(p.HOME_PATH, '.gitignore')
+    orig_file_path = os.path.join(p.DATA_PATH, 'orig_gitignore')
+    if os.path.isfile(file_path):
+        shutil.copy(orig_file_path, file_path)
+
+
+def setup_sibling():
+    """siblingの登録"""
+
+    ginfork_token = token.get_ginfork_token()
+    repo_id = repository_id.get_repo_id()
+    user_id = user_info.get_user_id()
+    params = param_json.get_params()
+    pr = parse.urlparse(params['siblings']['ginHttp'])
+    response = gin_api.search_repo(pr.scheme, pr.netloc, repo_id, user_id, ginfork_token)
+    response.raise_for_status() # ステータスコードが200番台でない場合はraise HTTPError
+    res_data = response.json()
     if len(res_data['data']) == 0:
-        return is_new_private
-
+            raise RepositoryNotExist
     ssh_url = res_data['data'][0]['ssh_url']
     http_url = res_data['data'][0]['html_url'] + '.git'
-    update_list = [['gin', ssh_url],['origin', http_url]]
-    for update_target in update_list:
-        result = subprocess.run('git remote set-url ' + update_target[0] + ' ' + update_target[1], shell=True, stdout=PIPE, stderr=PIPE, text=True)
-        if 'No such remote' in result.stderr:
-            subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
-    is_new_private['is_new'] = True
-    is_new_private['is_private'] = res_data['data'][0]['private']
-    return is_new_private
+    # Note:
+    #   action='add'では既に存在する場合にIncompleteResultsErrorになる
+    #   action='config'では無ければ追加、あれば上書き
+    #   refs: https://docs.datalad.org/en/stable/generated/datalad.api.siblings.html
+    api.siblings(action='configure', name='origin', url=http_url)
+    api.siblings(action='configure', name=SIBLING, url=ssh_url)
 
 
-SIBLING = 'gin'
-SUCCESS = 'データ同期が完了しました。'
-RESYNC_REPO_RENAME = '同期不良が発生しました(リモートリポジトリ名の変更)。自動調整が実行されたため、同セルを再実行してください。'
-RESYNC_BY_OVERWRITE = '同期不良が発生しました(ファイルの変更)。自動調整が実行されため、同セルを再実行してください。'
-CONNECT_REPO_ERROR = 'リポジトリに接続できません。リポジトリが存在しているか確認してください。'
-CONFLICT_ERROR = 'リポジトリ側の変更と競合しました。競合を解決してください。'
-PUSH_ERROR = 'リポジトリへの同期に失敗しました。'
-UNEXPECTED_ERROR = '想定外のエラーが発生しています。担当者に問い合わせください。'
+def push_annex_branch():
+    """git-annexブランチをpushする
+
+    Note:
+        リポジトリ名の変更時に正常動作するために必要
+        リモートにgit-annexブランチが無い場合、リポジトリ名が変更されるとpushできない
+    """
+    common.exec_subprocess(cmd=f'git push {SIBLING} git-annex:git-annex')
 
 
 def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files :list[str], message:str, get_paths:list[str]):
     """synchronize with the repository
+
     ARG
     ---------------
     git_path : str or list(str)
@@ -166,12 +161,6 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     bool
         Description : 同期の成功判定
 
-    EXCEPTION
-    ---------------
-    CONNECT_REPO_ERROR
-    CONFLICT_ERROR
-    PUSH_ERROR
-
     memo:
         update()を最初にするとgit annex lockができない。addをする必要がある。
     """
@@ -182,7 +171,7 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     datalad_error = ''
     try:
 
-        os.chdir(os.environ['HOME'])
+        os.chdir(p.HOME_PATH)
         print('[INFO] Lock git-annex content')
         os.system('git annex lock')
         print('[INFO] Save git-annex content and Register metadata')
@@ -205,16 +194,20 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 # update URLs of remote repositories
                 update_repo_url()
                 print('[INFO] Update repository URL')
-                warm_message = RESYNC_REPO_RENAME
-            except:
+                warm_message = mess.message.get('sync', 'resync_repo_rename')
+            except RepositoryNotExist:
                 # repository may not exist
-                error_message = CONNECT_REPO_ERROR
+                error_message = mess.message.get('sync', 'connect_repo_error')
+            except requests.exceptions.RequestException:
+                error_message = mess.message.get('sync', 'connection_error')
+            except UrlUpdateError:
+                error_message = mess.message.get('sync', 'unexpected')
         elif 'files would be overwritten by merge:' in datalad_error:
             print('[INFO] Files would be overwritten by merge')
             git_commit_msg = '{}(auto adjustment)'.format(message)
             err_key_info = extract_info_from_datalad_update_err(datalad_error)
             file_paths = list[str]()
-            os.chdir(os.environ['HOME'])
+            os.chdir(p.HOME_PATH)
             os.system('git annex lock')
             if 'The following untracked working tree' in err_key_info:
                 file_paths = common.get_filepaths_from_dalalad_error(err_key_info)
@@ -256,14 +249,14 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 else:
                     result = git_module.git_commmit(git_commit_msg)
                     print(result)
-            warm_message = RESYNC_BY_OVERWRITE
+            warm_message = mess.message.get('sync', 'resync_by_overwrite')
         else:
             # check both modified
             if git_module.is_conflict():
                 print('[INFO] Files is CONFLICT')
-                error_message = CONFLICT_ERROR
+                error_message = mess.message.get('sync', 'conflict_error')
             else:
-                error_message = UNEXPECTED_ERROR
+                error_message = mess.message.get('sync', 'unexpected')
     else:
         try:
             print('[INFO] Push to Remote Repository')
@@ -272,21 +265,21 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.system('git annex unlock')
         except:
             datalad_error = traceback.format_exc()
-            error_message = PUSH_ERROR
+            error_message = mess.message.get('sync', 'push_error')
         else:
-            os.chdir(os.environ['HOME'])
-            success_message = SUCCESS
+            os.chdir(p.HOME_PATH)
+            success_message = mess.message.get('sync', 'success')
     finally:
         clear_output()
         if success_message:
-            display.display_info(success_message)
+            mess.display.display_info(success_message)
             # GIN-forkの実行環境一覧の更新日時を更新する
             gin_api.patch_container()
             return True
         else:
-            display.display_warm(warm_message)
-            display.display_err(error_message)
-            display.display_log(datalad_error)
+            mess.display.display_warm(warm_message)
+            mess.display.display_err(error_message)
+            mess.display.display_log(datalad_error)
             return False
 
 
@@ -302,9 +295,9 @@ def extract_info_from_datalad_update_err(raw_msg:str)->str:
     return err_detail_info[start_index:end_index]
 
 
-
 def save_annex_and_register_metadata(gitannex_path :list[str], gitannex_files:list[str], message:str):
     """datalad save and metadata assignment (content_size, sha256, mime_type) to git annex files
+
     ARG
     ---------------
     git_path : str or list(str)
@@ -354,6 +347,7 @@ def push():
 
 def register_metadata_for_annexdata(file_path):
     """register_metadata(content_size, sha256, mime_type) for specified file
+
     ARG
     ---------------
     file_path : str
@@ -377,13 +371,15 @@ def register_metadata_for_annexdata(file_path):
         content_size = os.path.getsize(file_path)
 
         # register_metadata
-        os.chdir(os.environ['HOME'])
+        os.chdir(p.HOME_PATH)
         os.system(f'git annex metadata "{file_path}" -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
     else:
         pass
 
+
 def register_metadata_for_downloaded_annexdata(file_path):
     """register metadata(sd_date_published)for the specified file
+
     ARG
     ---------------
     file_path : str

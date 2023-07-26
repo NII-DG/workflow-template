@@ -4,7 +4,7 @@ from IPython.display import display, SVG
 from ..path import path
 
 
-def display_flow(flow_type:str):
+def display_flow(flow_type='research'):
     """フロー図を表示する
 
     Args:
@@ -32,6 +32,6 @@ def display_flow(flow_type:str):
     if not os.path.isfile(diag_path):
         shutil.copy(orig_diag_path, diag_path)
 
-    font_path = os.path.join(os.environ['HOME'], '.fonts/ipag.ttf')
+    font_path = os.path.join(path.HOME_PATH, '.fonts/ipag.ttf')
     util.generate_svg_diag(output=svg_path, diag=diag_path, dir_util=notebook_dir, font=font_path,)
     display(SVG(filename=svg_path))

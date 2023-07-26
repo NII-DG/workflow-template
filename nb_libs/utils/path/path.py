@@ -16,11 +16,14 @@ EXPERIMENT_TOP = 'experiment.ipynb'
 PREPARE_UNIT_FROM_S3 = 'prepare_unit_from_s3.ipynb'
 
 # path from inside
+## /home/jovyan
 HOME_PATH = os.environ['HOME']
+## Directory directly under /home/jovyan
 SYS_PATH = os.path.join(HOME_PATH, '.dg-sys')
 FROW_PATH = os.path.join(HOME_PATH, FLOW_DIR)
 EXPERIMENTS_PATH = os.path.join(HOME_PATH, 'experiments')
 
+## Directory under /home/jovyan/WORKFLOWS
 DATA_PATH = os.path.join(FROW_PATH, 'data')
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RESEARCH_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)

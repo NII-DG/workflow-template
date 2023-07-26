@@ -1,12 +1,12 @@
 
 from utils.params import repository_id, token, param_json
 from utils.git import git_module
-from utils.gin import api as gin_api
+from utils.metadata import metadata
 from utils.message import display, message
-from urllib import parse
 from utils.except_class import DidNotFinishError, UnexpectedError, DGTaskError, ExecCmdError
+import requests
 
-def get_matadata():
+def prepare_matadata():
 
 
     # リポジトリIDの用意
@@ -81,10 +81,15 @@ def get_matadata():
 
 
     # リポジトリメタデータを取得
-    pr = parse.urlparse(gin_http)
-    response = gin_api.get_repo_metadata(
-        scheme=pr.scheme,
-        domain=pr.netloc,
-        token=gin_api_token,
-        repo_id=repo_id,
-        branch=branch)
+    try :
+        repo_metadata = metadata.get_metadata_from_repo(gin_http, gin_api_token, repo_id, branch)
+    except requests.exceptions.RequestException as e:
+        # GIN-forkへの通信不良
+        msg = message.get('DEFAULT', 'gin_connection_error')
+        display.display_err(msg)
+        raise DGTaskError() from e
+    except Exception as e:
+        # 想定外のエラーの場合
+        msg = message.get('DEFAULT', 'unexpected')
+        display.display_err(msg)
+        raise DGTaskError() from e

@@ -125,24 +125,30 @@ def setup_sync():
 def setup_sibling():
     """siblingの登録"""
 
-    ginfork_token = token.get_ginfork_token()
-    repo_id = repository_id.get_repo_id()
-    user_id = user_info.get_user_id()
-    params = param_json.get_params()
-    pr = parse.urlparse(params['siblings']['ginHttp'])
-    response = gin_api.search_repo(pr.scheme, pr.netloc, repo_id, user_id, ginfork_token)
-    response.raise_for_status() # ステータスコードが200番台でない場合はraise HTTPError
-    res_data = response.json()
-    if len(res_data['data']) == 0:
-            raise RepositoryNotExist
-    ssh_url = res_data['data'][0]['ssh_url']
-    http_url = res_data['data'][0]['html_url'] + '.git'
-    # Note:
-    #   action='add'では既に存在する場合にIncompleteResultsErrorになる
-    #   action='config'では無ければ追加、あれば上書き
-    #   refs: https://docs.datalad.org/en/stable/generated/datalad.api.siblings.html
-    api.siblings(action='configure', name='origin', url=http_url)
-    api.siblings(action='configure', name=SIBLING, url=ssh_url)
+    try:
+        ginfork_token = token.get_ginfork_token()
+        repo_id = repository_id.get_repo_id()
+        user_id = user_info.get_user_id()
+        params = param_json.get_params()
+        pr = parse.urlparse(params['siblings']['ginHttp'])
+        response = gin_api.search_repo(pr.scheme, pr.netloc, repo_id, user_id, ginfork_token)
+        response.raise_for_status() # ステータスコードが200番台でない場合はraise HTTPError
+        res_data = response.json()
+        if len(res_data['data']) == 0:
+                raise RepositoryNotExist
+        ssh_url = res_data['data'][0]['ssh_url']
+        http_url = res_data['data'][0]['html_url'] + '.git'
+        # Note:
+        #   action='add'では既に存在する場合にIncompleteResultsErrorになる
+        #   action='config'では無ければ追加、あれば上書き
+        #   refs: https://docs.datalad.org/en/stable/generated/datalad.api.siblings.html
+        api.siblings(action='configure', name='origin', url=http_url)
+        api.siblings(action='configure', name=SIBLING, url=ssh_url)
+    except Exception:
+        raise
+    else:
+        clear_output()
+
 
 
 def push_annex_branch():

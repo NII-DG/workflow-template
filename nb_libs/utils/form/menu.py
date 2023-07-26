@@ -90,5 +90,5 @@ def gin_link_html():
     except Exception:
         pass
 
-    url = common.convert_url_remove_user_token(git.get_remote_url())
+    url , _ = common.convert_url_remove_user_token(git.get_remote_url())
     return path.display.button_html(url=url, msg=mess.message.get('menu', 'trans_gin'), target='_blank')

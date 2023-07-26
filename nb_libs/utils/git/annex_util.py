@@ -65,7 +65,6 @@ def addurl():
         AddurlsError: addurlsに失敗した場合
 
     """
-    result = ''
     try:
         api.addurls(save=False, fast=True, urlfile= path.ADDURLS_CSV_PATH, urlformat='{link}', filenameformat='{who}')
     except FileNotFoundError as e:

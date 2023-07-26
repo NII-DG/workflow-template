@@ -1,5 +1,6 @@
 '''prepare_unit_from_s3.ipynbから呼び出されるモジュール'''
-import os, json, urllib, traceback
+import os, json, traceback
+from urllib  import parse
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
 from datalad import api
@@ -59,7 +60,7 @@ def input_url_path():
             return
 
         data = dict()
-        data[S3_OBJECT_URL] = urllib.parse.unquote(input_url)
+        data[S3_OBJECT_URL] = parse.unquote(input_url)
         data[DEST_FILE_PATH] = path.create_experiments_with_subpath(experiment_title, input_path)
         
         os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)

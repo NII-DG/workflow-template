@@ -71,9 +71,6 @@ def get_path_to_url_dict() -> dict:
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         raise
 
-# あとで消す
-# ここまで共通関数
-#############################################################################################################################
 
 def input_url_path():
 

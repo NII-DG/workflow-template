@@ -18,7 +18,7 @@ def create_ref_readme():
 
     if experiment_title is not None:
         readme_path = os.path.join(
-            '..', '..', '..', 'experiments', experiment_title, path.README_FILE)
+            '..', '..', '..', '..', 'edit', 'experiments', experiment_title, path.README_FILE)
         display(HTML(button_html(readme_path, message.get(
             MESSAGE_SECTION_NAME, 'readme_ref_title'), target='_blank')))
     else:

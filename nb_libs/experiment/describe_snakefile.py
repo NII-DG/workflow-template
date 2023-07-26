@@ -17,11 +17,12 @@ def create_ref_snakefile():
 
     if experiment_title is not None:
         snakefile_path = os.path.join(
-            '..', '..', '..', 'experiments', experiment_title, path.SNAKE_FILE)
+            '..', '..', '..', '..', 'edit', 'experiments', experiment_title, path.SNAKE_FILE)
         display(HTML(button_html(snakefile_path, message.get(
             MESSAGE_SECTION_NAME, 'snakefile_ref_title'), target='_blank')))
     else:
-        display_util.display_err(message.get('experiment_error', 'experiment_setup_unfinished'))
+        display_util.display_err(message.get(
+            'experiment_error', 'experiment_setup_unfinished'))
 
 
 def create_ref_how_to_make_snakefile():
@@ -45,5 +46,6 @@ def sync_snakefile_description():
         return sync.syncs_with_repo(git_path=git_path, gitannex_path=[], gitannex_files=[],
                                     message=experiment_title + log_suffix, get_paths=[])
     else:
-        display_util.display_err(message.get('experiment_error', 'experiment_setup_unfinished'))
+        display_util.display_err(message.get(
+            'experiment_error', 'experiment_setup_unfinished'))
         return False

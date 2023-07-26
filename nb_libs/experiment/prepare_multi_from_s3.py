@@ -1,8 +1,12 @@
-import os, json, requests, urllib, csv, subprocess, traceback
+'''prepare_multi_from_s3.ipynbから呼び出されるモジュール'''
+import os, json, urllib, traceback
 from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
 from datalad import api
-import nb_libs.utils.path.path as path
-import nb_libs.utils.message.message as mess
-import nb_libs.utils.message.display as display_util
-import nb_libs.utils.gin.sync as sync
+from ..utils.git import annex_util, git_module
+from ..utils.path import path
+from ..utils.message import message, display as display_util
+from ..utils.gin import sync
+from ..utils.common import common
+from ..utils.aws import s3
+from ..utils.except_class import DidNotFinishError, UnexpectedError

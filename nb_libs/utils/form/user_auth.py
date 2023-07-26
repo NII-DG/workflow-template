@@ -51,12 +51,12 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
         ## mail addres
         if  len(mail_addres) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','mailaddress_empty_error')
+            submit_button_user_auth.name = mess.get('user_auth','emailaddress_empty_error')
             return
 
         if not validate_format_mail_address(mail_addres):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','mailaddress_pattern_error')
+            submit_button_user_auth.name = mess.get('user_auth','emailaddress_pattern_error')
             return
 
         # If the entered value passes validation, a request for user authentication to GIN-fork is sent.

@@ -13,6 +13,7 @@ from ..except_class import UnexpectedError
 
 SSH_PATH = os.path.join(p.HOME_PATH, ".ssh")
 __SSH_KEY_PATH = os.path.join(SSH_PATH, "id_ed25519")
+__SSH_PUB_KEY_PATH = os.path.join(SSH_PATH, "id_ed25519.pub")
 __SSH_CONFIG = os.path.join(SSH_PATH, "config")
 
 
@@ -26,7 +27,7 @@ def upload_ssh_key():
     """GIN-forkへ公開鍵を登録"""
 
     try:
-        with open(__SSH_KEY_PATH, mode='r') as f:
+        with open(__SSH_PUB_KEY_PATH, mode='r') as f:
             ssh_key = f.read()
 
         params = param_json.get_params()

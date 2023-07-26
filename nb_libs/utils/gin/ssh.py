@@ -18,7 +18,7 @@ __SSH_CONFIG = os.path.join(SSH_PATH, "config")
 
 def create_key():
     """SSHキーを作成"""
-    if os.path.isfile(__SSH_KEY_PATH):
+    if not os.path.isfile(__SSH_KEY_PATH):
         common.exec_subprocess(f'ssh-keygen -t ed25519 -N "" -f {__SSH_KEY_PATH}')
 
 

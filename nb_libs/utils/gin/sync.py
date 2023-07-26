@@ -101,7 +101,7 @@ def datalad_create(dir_path:str):
     Args:
         path (str): データセット化するディレクトリのパス
     """
-    if os.path.isdir(os.path.join(dir_path, ".datalad")):
+    if not os.path.isdir(os.path.join(dir_path, ".datalad")):
         common.exec_subprocess(cmd=f'datalad create --force {dir_path}')
 
 

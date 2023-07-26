@@ -13,7 +13,7 @@ def button_html(url:str, msg:str, target='_self'):
         msg (str): 表示する説明
         target (str): target属性の種類(e.g. _blank)
     """
-    return f'<a href="{url}" target="{target}" ><button>{msg}</button></a>'
+    return f'<a style="color: red; font-size:20px;"href="{url}" target="{target}" ><button>{msg}</button></a>'
 
 
 def res_top_html():

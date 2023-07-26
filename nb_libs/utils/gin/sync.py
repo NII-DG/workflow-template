@@ -42,42 +42,45 @@ def get_datasetStructure():
 
 
 def update_repo_url():
-    """HTTPとSSHのリモートURLを最新化する"""
+    """HTTPとSSHのリモートURLを最新化する
 
-    # APIリクエストに必要な情報を取得する
-    params = param_json.get_params()
-    pr = parse.urlparse(params['siblings']['ginHttp'])
-    repo_id = repository_id.get_repo_id()
+    Returns:
+        dict: (is_new:最新化できたかどうか, is_private:プライベートリポジトリかどうか)
+    """
 
-    # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
-    res = gin_api.search_public_repo(pr.scheme, pr.netloc, repo_id)
-    res_data = res.json()
     is_new_private = dict()
     is_new_private['is_new'] = False
     is_new_private['is_private'] = None
 
-    if len(res_data['data']) == 0:
-        try :
+    try:
+        # APIリクエストに必要な情報を取得する
+        params = param_json.get_params()
+        pr = parse.urlparse(params['siblings']['ginHttp'])
+        repo_id = repository_id.get_repo_id()
+
+        # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
+        res = gin_api.search_public_repo(pr.scheme, pr.netloc, repo_id)
+        res_data = res.json()
+
+        if len(res_data['data']) == 0:
             ginfork_token = token.get_ginfork_token()
             uid = str(user_info.get_user_id())
             res = gin_api.search_private_repo(pr.scheme, pr.netloc, repo_id, uid, ginfork_token)
             res_data = res.json()
-        except FileNotFoundError:
-            return is_new_private
-        except Exception:
-            mess.display.display_err(mess.message.get('DEFAULT', 'unexpected'))
-            return is_new_private
+            if len(res_data['data']) == 0:
+                return is_new_private
 
-    if len(res_data['data']) == 0:
+        ssh_url = res_data['data'][0]['ssh_url']
+        http_url = res_data['data'][0]['html_url'] + '.git'
+        update_list = [['gin', ssh_url],['origin', http_url]]
+        for update_target in update_list:
+            result = subprocess.run('git remote set-url ' + update_target[0] + ' ' + update_target[1], shell=True, stdout=PIPE, stderr=PIPE, text=True)
+            if 'No such remote' in result.stderr:
+                subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
+
+    except Exception:
         return is_new_private
 
-    ssh_url = res_data['data'][0]['ssh_url']
-    http_url = res_data['data'][0]['html_url'] + '.git'
-    update_list = [['gin', ssh_url],['origin', http_url]]
-    for update_target in update_list:
-        result = subprocess.run('git remote set-url ' + update_target[0] + ' ' + update_target[1], shell=True, stdout=PIPE, stderr=PIPE, text=True)
-        if 'No such remote' in result.stderr:
-            subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
     is_new_private['is_new'] = True
     is_new_private['is_private'] = res_data['data'][0]['private']
     return is_new_private

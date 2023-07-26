@@ -28,9 +28,13 @@ DATA_PATH = os.path.join(FROW_PATH, 'data')
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RESEARCH_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)
 
+## File under /home/jovyan/.dg-sys/
 PKG_INFO_JSON_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
+
+## File under /home/jovyan/.tmp/
 ADDURLS_CSV_PATH = os.path.join(HOME_PATH, '.tmp/datalad-addurls.csv')
 RF_FORM_DATA_DIR = os.path.join(HOME_PATH, '.tmp/rf_form_data')
+
 ## File under /home/jovyan/.tmp/rf_form_data/
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')
 

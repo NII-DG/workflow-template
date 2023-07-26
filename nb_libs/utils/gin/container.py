@@ -53,9 +53,9 @@ def add_container(experiment_title=""):
         else:
             raise Exception
 
-    except requests.exceptions.RequestException as e:
-        display.display_err(message.get('container_api', 'communication_error'))
-        raise e
+    except requests.exceptions.RequestException:
+        display.display_err(message.get('container_api', 'connection_error'))
+        raise
     except Exception:
         display.display_err(message.get('container_api', 'unexpected'))
         raise
@@ -89,9 +89,9 @@ def patch_container():
         if response.status_code != requests.codes.ok:
             raise Exception
 
-    except requests.exceptions.RequestException as e:
-        display.display_err(message.get('container_api', 'communication_error'))
-        raise e
+    except requests.exceptions.RequestException:
+        display.display_err(message.get('container_api', 'connection_error'))
+        raise
     except Exception:
         display.display_err(message.get('container_api', 'unexpected'))
         raise
@@ -126,9 +126,9 @@ def delete_container():
         else:
             raise Exception
 
-    except requests.exceptions.RequestException as e:
-        display.display_err(message.get('container_api', 'communication_error'))
-        raise e
+    except requests.exceptions.RequestException:
+        display.display_err(message.get('container_api', 'connection_error'))
+        raise
     except Exception:
         display.display_err(message.get('container_api', 'unexpected'))
         raise

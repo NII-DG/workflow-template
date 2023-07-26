@@ -41,15 +41,15 @@ def upload_ssh_key():
         else:
             raise UnexpectedError
 
-    except requests.exceptions.RequestException as e:
-        mess.display.display_err(mess.message.get('ssh_key', 'communication_error'))
-        raise e
-    except UnexpectedError as e:
+    except requests.exceptions.RequestException:
+        mess.display.display_err(mess.message.get('ssh_key', 'connection_error'))
+        raise
+    except UnexpectedError:
         mess.display.display_err(mess.message.get('ssh_key', 'unexpected'))
-        raise e
-    except Exception as e:
+        raise
+    except Exception:
         mess.display.display_err(mess.message.get('ssh_key', 'unexpected'))
-        raise e
+        raise
 
 
 def trust_gin():

@@ -56,7 +56,11 @@ def dg_menu(type='research'):
 
 def html_res_name(color='black'):
     """研究名を表示する"""
-    sync.update_repo_url()
+    try:
+        sync.update_repo_url()
+    except Exception:
+        pass
+
     research_title = git.get_remote_url().split('/')[-1].replace('.git', '')
     msg = mess.message.get('menu', 'research_title').format(research_title)
     return mess.display.creat_html_msg(msg=msg, fore=color, tag='h1')
@@ -78,6 +82,10 @@ def html_exp_name(color='black'):
 
 def gin_link_html():
     """GIN-forkへの遷移のためのhtmlを生成する"""
-    sync.update_repo_url()
+    try:
+        sync.update_repo_url()
+    except Exception:
+        pass
+
     url = git.get_remote_url()
     return path.display.button_html(url=url, msg=mess.message.get('menu', 'trans_gin'), target='_blank')

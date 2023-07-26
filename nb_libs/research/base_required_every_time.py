@@ -11,8 +11,8 @@ def del_build_token():
     try:
         # delete build token(only private)
         token.del_build_token_by_remote_origin_url(url)
-    except requests.exceptions.RequestException as e:
-        display.display_err(message.get('build_token', 'communication_error'))
-        raise e
-    except Exception as e:
-        raise e
+    except requests.exceptions.RequestException:
+        display.display_err(message.get('build_token', 'connection_error'))
+        raise
+    except Exception:
+        raise

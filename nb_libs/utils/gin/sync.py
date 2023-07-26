@@ -17,6 +17,7 @@ from .. import message as mess
 from ..path import path as p
 from ..params import token, user_info, param_json, repository_id
 from . import api as gin_api
+from ..except_class import RepositoryNotExist, UrlUpdateError
 
 
 def fetch_param_file_path() -> str:
@@ -45,12 +46,13 @@ def update_repo_url():
     """HTTPとSSHのリモートURLを最新化する
 
     Returns:
-        dict: (is_new:最新化できたかどうか, is_private:プライベートリポジトリかどうか)
-    """
+        bool: プライベートリポジトリかどうか
 
-    is_new_private = dict()
-    is_new_private['is_new'] = False
-    is_new_private['is_private'] = None
+    Raises:
+        requests.exceptions.RequestException: 接続の確立不良
+        RepositoryNotExist: リモートリポジトリの情報が取得できない
+        UrlUpdateError: 想定外のエラーによりURLの最新化に失敗した
+    """
 
     try:
         # APIリクエストに必要な情報を取得する
@@ -61,14 +63,15 @@ def update_repo_url():
         # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
         res = gin_api.search_public_repo(pr.scheme, pr.netloc, repo_id)
         res_data = res.json()
-
         if len(res_data['data']) == 0:
             ginfork_token = token.get_ginfork_token()
             uid = str(user_info.get_user_id())
             res = gin_api.search_private_repo(pr.scheme, pr.netloc, repo_id, uid, ginfork_token)
             res_data = res.json()
-            if len(res_data['data']) == 0:
-                return is_new_private
+
+        res.raise_for_status()
+        if len(res_data['data']) == 0:
+            raise RepositoryNotExist
 
         ssh_url = res_data['data'][0]['ssh_url']
         http_url = res_data['data'][0]['html_url'] + '.git'
@@ -78,12 +81,15 @@ def update_repo_url():
             if 'No such remote' in result.stderr:
                 subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
-    except Exception:
-        return is_new_private
+    except requests.exceptions.RequestException:
+        raise
+    except RepositoryNotExist:
+        raise
+    except Exception as e:
+        raise UrlUpdateError from e
 
-    is_new_private['is_new'] = True
-    is_new_private['is_private'] = res_data['data'][0]['private']
-    return is_new_private
+    is_private = res_data['data'][0]['private']
+    return is_private
 
 
 SIBLING = 'gin'
@@ -167,9 +173,13 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 update_repo_url()
                 print('[INFO] Update repository URL')
                 warm_message = mess.message.get('sync', 'resync_repo_rename')
-            except:
+            except RepositoryNotExist:
                 # repository may not exist
                 error_message = mess.message.get('sync', 'connect_repo_error')
+            except requests.exceptions.RequestException:
+                error_message = mess.message.get('sync', 'connection_error')
+            except UrlUpdateError:
+                error_message = mess.message.get('sync', 'unexpected')
         elif 'files would be overwritten by merge:' in datalad_error:
             print('[INFO] Files would be overwritten by merge')
             git_commit_msg = '{}(auto adjustment)'.format(message)

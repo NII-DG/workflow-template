@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import RequestException
 from ..message import message
 
 def access_s3_url(url:str) -> str:
@@ -19,7 +20,7 @@ def access_s3_url(url:str) -> str:
             msg = message.get('from_repo_s3', 'wrong_or_private')
         else:
             msg = message.get('from_repo_s3', 'unexpected')
-    except requests.exceptions.RequestException:
+    except RequestException:
         msg = message.get('from_repo_s3', 'wrong_or_private')
     return msg
     

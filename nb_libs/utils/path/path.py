@@ -16,18 +16,26 @@ EXPERIMENT_TOP = 'experiment.ipynb'
 PREPARE_UNIT_FROM_S3 = 'prepare_unit_from_s3.ipynb'
 
 # path from inside
+## /home/jovyan
 HOME_PATH = os.environ['HOME']
+## Directory directly under /home/jovyan
 SYS_PATH = os.path.join(HOME_PATH, '.dg-sys')
 FROW_PATH = os.path.join(HOME_PATH, FLOW_DIR)
 EXPERIMENTS_PATH = os.path.join(HOME_PATH, 'experiments')
 
+## Directory under /home/jovyan/WORKFLOWS
 DATA_PATH = os.path.join(FROW_PATH, 'data')
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RESEARCH_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)
 
+## File under /home/jovyan/.dg-sys/
 PKG_INFO_JSON_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
+
+## File under /home/jovyan/.tmp/
 ADDURLS_CSV_PATH = os.path.join(HOME_PATH, '.tmp/datalad-addurls.csv')
 RF_FORM_DATA_DIR = os.path.join(HOME_PATH, '.tmp/rf_form_data')
+
+## File under /home/jovyan/.tmp/rf_form_data/
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')
 
 # path from outside

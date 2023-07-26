@@ -4,7 +4,7 @@ from IPython.display import display, SVG
 from ..path import path
 
 
-def display_flow(flow_type:str):
+def display_flow(flow_type='research'):
     """フロー図を表示する
 
     Args:

@@ -39,13 +39,10 @@ def upload_ssh_key():
         elif msg['message'] == 'Key content has been used as non-deploy key':
             mess.display.display_warm(mess.message.get('ssh_key', 'already_exist'))
         else:
-            raise UnexpectedError
+            response.raise_for_status()
 
     except requests.exceptions.RequestException:
         mess.display.display_err(mess.message.get('ssh_key', 'connection_error'))
-        raise
-    except UnexpectedError:
-        mess.display.display_err(mess.message.get('ssh_key', 'unexpected'))
         raise
     except Exception:
         mess.display.display_err(mess.message.get('ssh_key', 'unexpected'))

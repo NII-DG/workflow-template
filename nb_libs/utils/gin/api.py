@@ -35,7 +35,7 @@ def search_public_repo(scheme, domain, repo_id,):
     return requests.get(url=api_url, params=params)
 
 
-def search_private_repo(scheme, domain, repo_id, user_id, token):
+def search_repo(scheme, domain, repo_id, user_id, token):
     """GIN_API : api/v1/repos/search/user リクエストメソッド
 
     ARG

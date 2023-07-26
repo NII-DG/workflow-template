@@ -20,6 +20,9 @@ from . import api as gin_api
 from ..except_class import RepositoryNotExist, UrlUpdateError
 
 
+SIBLING = 'gin'
+
+
 def fetch_param_file_path() -> str:
     return param_json.PARAM_FILE_PATH
 
@@ -50,8 +53,9 @@ def update_repo_url():
 
     Raises:
         requests.exceptions.RequestException: 接続の確立不良
+        FileNotFoundError: 処理に必要なファイルが存在しない
         RepositoryNotExist: リモートリポジトリの情報が取得できない
-        UrlUpdateError: 想定外のエラーによりURLの最新化に失敗した
+        UrlUpdateError: 想定外のエラーにより最新化に失敗した
     """
 
     try:
@@ -64,9 +68,10 @@ def update_repo_url():
         res = gin_api.search_public_repo(pr.scheme, pr.netloc, repo_id)
         res_data = res.json()
         if len(res_data['data']) == 0:
+            # 初期設定前の場合は取れない
             ginfork_token = token.get_ginfork_token()
             uid = str(user_info.get_user_id())
-            res = gin_api.search_private_repo(pr.scheme, pr.netloc, repo_id, uid, ginfork_token)
+            res = gin_api.search_repo(pr.scheme, pr.netloc, repo_id, uid, ginfork_token)
             res_data = res.json()
 
         res.raise_for_status()
@@ -75,15 +80,13 @@ def update_repo_url():
 
         ssh_url = res_data['data'][0]['ssh_url']
         http_url = res_data['data'][0]['html_url'] + '.git'
-        update_list = [['gin', ssh_url],['origin', http_url]]
+        update_list = [[SIBLING, ssh_url],['origin', http_url]]
         for update_target in update_list:
             result = subprocess.run('git remote set-url ' + update_target[0] + ' ' + update_target[1], shell=True, stdout=PIPE, stderr=PIPE, text=True)
             if 'No such remote' in result.stderr:
                 subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
-    except requests.exceptions.RequestException:
-        raise
-    except RepositoryNotExist:
+    except (requests.exceptions.RequestException, RepositoryNotExist, FileNotFoundError):
         raise
     except Exception as e:
         raise UrlUpdateError from e
@@ -92,25 +95,50 @@ def update_repo_url():
     return is_private
 
 
-SIBLING = 'gin'
-
-
 def setup_sync():
-    """特定のデータをGIN-forkに同期しないための設定"""
+    """同期するコンテンツの調整"""
 
     # S3にあるデータをGIN-forkに同期しないための設定
     common.exec_subprocess(cmd='git annex untrust here')
     common.exec_subprocess(cmd='git annex --force trust web')
 
-    # .gitignoreを作成
+    # 元ファイルからコピーして.gitignoreを作成
     file_path = os.path.join(p.HOME_PATH, '.gitignore')
     orig_file_path = os.path.join(p.DATA_PATH, 'orig_gitignore')
     if os.path.isfile(file_path):
         shutil.copy(orig_file_path, file_path)
 
 
+def setup_sibling():
+    """siblingの登録"""
+
+    ginfork_token = token.get_ginfork_token()
+    repo_id = repository_id.get_repo_id()
+    user_id = user_info.get_user_id()
+    params = param_json.get_params()
+    pr = parse.urlparse(params['siblings']['ginHttp'])
+    response = gin_api.search_repo(pr.scheme, pr.netloc, repo_id, user_id, ginfork_token)
+    response.raise_for_status() # ステータスコードが200番台でない場合はraise HTTPError
+    res_data = response.json()
+    if len(res_data['data']) == 0:
+            raise RepositoryNotExist
+    ssh_url = res_data['data'][0]['ssh_url']
+    http_url = res_data['data'][0]['html_url'] + '.git'
+    # Note:
+    #   action='add'では既に存在する場合にIncompleteResultsErrorになる
+    #   action='config'では無ければ追加、あれば上書き
+    #   refs: https://docs.datalad.org/en/stable/generated/datalad.api.siblings.html
+    api.siblings(action='configure', name='origin', url=http_url)
+    api.siblings(action='configure', name=SIBLING, url=ssh_url)
+
+
 def push_annex_branch():
-    """git-annexブランチをpushする"""
+    """git-annexブランチをpushする
+
+    Note:
+        リポジトリ名の変更時に正常動作するために必要
+        リモートにgit-annexブランチが無い場合、リポジトリ名が変更されるとpushできない
+    """
     common.exec_subprocess(cmd=f'git push {SIBLING} git-annex:git-annex')
 
 
@@ -132,12 +160,6 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     ---------------
     bool
         Description : 同期の成功判定
-
-    EXCEPTION
-    ---------------
-    CONNECT_REPO_ERROR
-    CONFLICT_ERROR
-    PUSH_ERROR
 
     memo:
         update()を最初にするとgit annex lockができない。addをする必要がある。

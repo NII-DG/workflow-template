@@ -4,6 +4,7 @@ import panel as pn
 from IPython.display import display
 from .. import message as mess
 from .. import path
+from ..common import common
 from ..gin import sync
 from ..git import git_module as git
 
@@ -87,5 +88,5 @@ def gin_link_html():
     except Exception:
         pass
 
-    url = git.get_remote_url()
+    url = common.convert_url_remove_user_token(git.get_remote_url())
     return path.display.button_html(url=url, msg=mess.message.get('menu', 'trans_gin'), target='_blank')

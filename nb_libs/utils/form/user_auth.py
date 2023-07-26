@@ -11,6 +11,7 @@ from ..common import common
 from ..params import user_info, token
 from ..gin import api as gin_api
 from ..gin import sync
+from ..git import git_module as git
 from ..message import message as mess
 from ..path import path as p
 
@@ -247,7 +248,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
             submit_button_user_auth.name = mess.get('build_container', 'new_experimnet')
             error_message.object = pn.pane.HTML(error_message.value)
 
-            remote_http_url = common.exec_subprocess(cmd='git config --get remote.origin.url')[0].decode()[:-1]
+            remote_http_url = git.get_remote_url()
             pos = remote_http_url.find("://")
             remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{launch_token}@{remote_http_url[pos+3:]}"
             url = "https://binder.cs.rcos.nii.ac.jp/v2/git/" + urllib.parse.quote(remote_http_url, safe='') + "/HEAD?filepath=WORKFLOWS/experiment.ipynb"

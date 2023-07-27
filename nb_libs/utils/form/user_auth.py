@@ -4,6 +4,7 @@ from IPython.display import clear_output, display
 from urllib import parse
 import requests
 from http import HTTPStatus
+import traceback
 import panel as pn
 import urllib
 import re
@@ -83,19 +84,19 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             # Set user info
             res_data = response.json()
             user_info.set_user_info(user_id=res_data['id'])
-            common.exec_subprocess(cmd='git config --global user.name {}'.format(res_data['name']))
+            common.exec_subprocess(cmd='git config --global user.name {}'.format(res_data['user_name']))
             common.exec_subprocess(cmd='git config --global user.email {}'.format(res_data['email']))
 
         except requests.exceptions.RequestException as e:
             submit_button_user_auth.button_type = 'warning'
             submit_button_user_auth.name = m.get('user_auth','connection_error')
-            error_message.value = 'ERROR : {}'.format(str(e))
+            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = m.get('user_auth','unexpected')
-            error_message.value = 'ERROR : {}'.format(str(e))
+            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:

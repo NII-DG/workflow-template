@@ -4,15 +4,12 @@ from json.decoder import JSONDecodeError
 from ipywidgets import Text, Button, Layout, Password
 from IPython.display import display, clear_output, Javascript
 import panel as pn
-pn.extension()
-column = pn.Column()
 from datalad import api
 from ..utils.git import annex_util, git_module
-from ..utils.path import path
+from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
 from ..utils.gin import sync
 from ..utils.common import common
-from ..utils.aws import s3
 from ..utils.except_class import DidNotFinishError, UnexpectedError
 
 # 辞書のキー
@@ -24,6 +21,7 @@ AWS_REGION_CODE = 'aws_region_code'
 BUCKET = 'bucket'
 PREFIX = 'prefix'
 PATHS = 'paths'
+SELECTED_PATHS = 'selected_paths'
 
 LOCATION_CONSTRAINT = 'LocationConstraint'
 CONTENTS = 'Contents'
@@ -105,12 +103,12 @@ def input_aws_info():
                     s3_contens_key_list.append(content[KEY])
 
         aws_s3_info_dict = dict()
-        data = dict()
-        data[AWS_REGION_CODE] = aws_region
-        data[BUCKET] = bucket_name
-        data[PREFIX] = prefix
-        data[PATHS] = s3_contens_key_list
-        aws_s3_info_dict[AWS_S3_INFO] = data
+        aws_s3_info_dict[AWS_S3_INFO] = {
+            AWS_REGION_CODE: aws_region,
+            BUCKET: bucket_name,
+            PREFIX:prefix,
+            PATHS: s3_contens_key_list
+        }
 
         with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
             json.dump(aws_s3_info_dict, f, indent=4)
@@ -162,29 +160,98 @@ def choose_get_data():
 
     key_list = multi_s3_dict.keys()
     if len(key_list) != 1 or set(key_list) != {AWS_S3_INFO}:
-        raise
-    
+        raise    
     s3_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
 
     def generate_dest_list(event):
+        try:
+            done_button.button_type = "success"
+            done_button.name = "選択完了しました。次の処理にお進みください。"
+            s3_key_list = column[0].value
 
-        done_button.button_type = "success"
-        done_button.name = "選択完了しました。次の処理にお進みください。"
-
-        dest_list = []
-        for i in range(len(column)):
-            if len(column[i].value) > 0:
-                dest_list.append('### ' + column[i].name)
-            for index in range(len(column[i].value)):
-                dest_list.append(pn.widgets.TextInput(name=column[i].value[index], placeholder='Enter a file path here...', width=700))
+            with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
+                multi_s3_dict:dict = json.load(f)
+            multi_s3_dict[SELECTED_PATHS] = s3_key_list
+            with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
+                json.dump(multi_s3_dict, f, indent=4)
+            
+        except Exception as e:
+            done_button.button_type = "danger"
+            done_button.name = str(e)
         
+    pn.extension()
+    column = pn.Column()
     column.append(pn.widgets.MultiSelect(name = "S3ファイル", options=s3_key_list, size=len(s3_key_list), sizing_mode='stretch_width'))
     done_button = pn.widgets.Button(name= "選択を完了する", button_type= "primary")
-    done_button.on_click(generate_dest_list)
     column.append(done_button)
-    column
+    done_button.on_click(generate_dest_list)
+    display(column)
 
 
+def input_path():
+    
+    def verify_input_text(event):
+        try:
+            experiment_title = get_experiment_title()
+            input_path_url_list = [(line.value_input, line.name) for line in column if 'TextInput' in str(type(line))]
+
+            # 格納先パスの検証
+            err_msg = validate.validate_input_path(input_path_url_list, experiment_title)
+            if len(err_msg) > 0:
+                done_button.button_type = "danger"
+                done_button.name = err_msg
+                return
+            else:
+                done_button.button_type = "success"
+                done_button.name = "入力を完了しました。次の処理にお進みください。"
+        
+            with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
+                multi_s3_dict:dict = json.load(f)
+
+            bucket_name = multi_s3_dict[AWS_S3_INFO][BUCKET]
+            aws_region = multi_s3_dict[AWS_S3_INFO][AWS_REGION_CODE]            
+
+            path_to_url_dict = dict()
+            for input_path, input_url in input_path_url_list:
+                input_path = path.create_experiments_with_subpath(experiment_title, input_path)
+                input_url = input_url.replace(" ", "+")
+                input_url = 'https://{}.s3.{}.amazonaws.com/{}'.format(bucket_name, aws_region, input_url)
+                path_to_url_dict[input_path] = input_url
+
+            multi_s3_dict[PATH_TO_URL] = path_to_url_dict
+            with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
+                json.dump(multi_s3_dict, f, indent=4)
+
+        except Exception as e:
+            done_button.button_type = "danger"
+            done_button.name = str(e)
+
+    try:
+        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
+            multi_s3_dict:dict = json.load(f)
+    except Exception as e:
+        pass
+    key_list = multi_s3_dict.keys()
+#     if len(key_list) != 2 or set(key_list) != {AWS_S3_INFO, SELECTED_PATHS}:
+#         raise
+
+    selected_paths = multi_s3_dict[SELECTED_PATHS]
+
+    done_button = pn.widgets.Button(name= "入力を完了する", button_type= "primary")
+    done_button.on_click(verify_input_text)
+
+    pn.extension()
+    column = pn.Column()
+    dest_list = []
+    dest_list.append("### S3ファイル")
+    for selected_path in selected_paths:
+        dest_list.append(pn.widgets.TextInput(name=selected_path, placeholder='Enter a file path here...', width=700))
+    for gui in dest_list:
+        column.append(gui)
+    column.append(done_button)
+    display(column)
+    
+    
 def prepare_addurls_data():
     """リポジトリへのリンク登録のためのcsvファイルを作成する
 

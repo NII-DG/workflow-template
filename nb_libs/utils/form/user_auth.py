@@ -84,7 +84,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             # Set user info
             res_data = response.json()
             user_info.set_user_info(user_id=res_data['id'])
-            common.exec_subprocess(cmd='git config --global user.name {}'.format(res_data['user_name']))
+            common.exec_subprocess(cmd='git config --global user.name {}'.format(res_data['username']))
             common.exec_subprocess(cmd='git config --global user.email {}'.format(res_data['email']))
 
         except requests.exceptions.RequestException as e:

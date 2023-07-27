@@ -9,3 +9,8 @@ class RepositoryNotExist(Exception):
 class UrlUpdateError(Exception):
     """HTTPとSSHのリモートURLが最新化できなかった時のエラー"""
     pass
+
+
+class Unauthorized(Exception):
+    """認証が通らなかった時のエラー"""
+    pass

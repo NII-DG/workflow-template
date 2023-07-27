@@ -6,10 +6,12 @@ from utils.message import display, message
 from utils.except_class import DidNotFinishError, UnexpectedError, DGTaskError, ExecCmdError
 import requests
 from utils.repo_metadata import metadata
+from utils.gin import api as gin_api
+from urllib import parse
+from typing import Any
+from http import HTTPStatus
 
-def prepare_matadata():
-
-
+def prepare_matadata()->Any:
     # リポジトリIDの用意
     try:
         repo_id = repository_id.get_repo_id()
@@ -80,10 +82,23 @@ def prepare_matadata():
         display.display_err(msg)
         raise DGTaskError() from e
 
-
     # リポジトリメタデータを取得
     try :
-        repo_metadata = metadata.get_metadata_from_repo(gin_http, gin_api_token, repo_id, branch)
+        pr = parse.urlparse(gin_http)
+        response = gin_api.get_repo_metadata(
+            scheme=pr.scheme,
+            domain=pr.netloc,
+            token=gin_api_token,
+            repo_id=repo_id,
+            branch=branch)
+        if response.status_code == HTTPStatus.OK:
+            # 200 OK -> GIN-forkリポジトリメタデータの返却
+            return response.json()
+        else:
+            # GIN-forkリポジトリメタデータが取得できない場合
+            msg = message.get('DEFAULT', 'unexpected')
+            display.display_err(msg)
+            raise DGTaskError('Fail Getting GIN-fork Repository Metadata. GIN-fork API [api/v1/repos/:repo_id/:branch_name:/metadata]')
     except requests.exceptions.RequestException as e:
         # GIN-forkへの通信不良
         msg = message.get('DEFAULT', 'gin_connection_error')
@@ -94,3 +109,11 @@ def prepare_matadata():
         msg = message.get('DEFAULT', 'unexpected')
         display.display_err(msg)
         raise DGTaskError() from e
+
+def not_exec_pre_cell():
+    msg = message.get('nb_exec', 'not_exec_pre_cell')
+    display.display_err(msg)
+    raise DGTaskError('The immediately preceding cell may not have been executed')
+
+
+def pkg_metadata(raw_metadata)->Any:

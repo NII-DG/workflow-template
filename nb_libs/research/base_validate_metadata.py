@@ -416,14 +416,14 @@ def select_done_save():
 
             ## del tmp file
             done_button.button_type = 'success'
-            done_button.name = message.get('DEFAULT', 'unexpected')
+            done_button.name = message.get('metadata', 'complete_prepare_sync')
             pass
         elif selected_value == 1:
             # not record
             ## del tmp file
 
             done_button.button_type = 'success'
-            done_button.name = message.get('DEFAULT', 'unexpected')
+            done_button.name = message.get('metadata', 'complete_del_verification_data')
             pass
         else:
             # undefined

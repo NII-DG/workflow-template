@@ -6,27 +6,30 @@ from urllib import parse
 from . import api
 from ..params import token, param_json
 from ..common import common
-from .. import message as mess
+from ..message import message as msg_mod, display as msg_display
 from ..path import path as p
-from ..except_class import UnexpectedError
 
 
 SSH_PATH = os.path.join(p.HOME_PATH, ".ssh")
 __SSH_KEY_PATH = os.path.join(SSH_PATH, "id_ed25519")
+__SSH_PUB_KEY_PATH = os.path.join(SSH_PATH, "id_ed25519.pub")
 __SSH_CONFIG = os.path.join(SSH_PATH, "config")
 
 
 def create_key():
     """SSHキーを作成"""
-    if os.path.isfile(__SSH_KEY_PATH):
+    if not os.path.isfile(__SSH_KEY_PATH):
         common.exec_subprocess(f'ssh-keygen -t ed25519 -N "" -f {__SSH_KEY_PATH}')
+        msg_display.display_info(msg_mod.get('setup', 'ssh_create_success'))
+    else:
+        msg_display.display_warm(msg_mod.get('setup', 'ssh_already_create'))
 
 
 def upload_ssh_key():
     """GIN-forkへ公開鍵を登録"""
 
     try:
-        with open(__SSH_KEY_PATH, mode='r') as f:
+        with open(__SSH_PUB_KEY_PATH, mode='r') as f:
             ssh_key = f.read()
 
         params = param_json.get_params()
@@ -35,17 +38,17 @@ def upload_ssh_key():
         msg = response.json()
 
         if response.status_code == HTTPStatus.CREATED:
-            mess.display.display_info(mess.message.get('ssh_key', 'success'))
+            msg_display.display_info(msg_mod.get('setup', 'ssh_upload_success'))
         elif msg['message'] == 'Key content has been used as non-deploy key':
-            mess.display.display_warm(mess.message.get('ssh_key', 'already_exist'))
+            msg_display.display_warm(msg_mod.get('setup', 'ssh_already_upload'))
         else:
             response.raise_for_status()
 
     except requests.exceptions.RequestException:
-        mess.display.display_err(mess.message.get('ssh_key', 'connection_error'))
+        msg_display.display_err(msg_mod.get('setup', 'connection_error'))
         raise
     except Exception:
-        mess.display.display_err(mess.message.get('ssh_key', 'unexpected'))
+        msg_display.display_err(msg_mod.get('setup', 'unexpected'))
         raise
 
 

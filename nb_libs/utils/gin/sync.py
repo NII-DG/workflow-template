@@ -13,10 +13,11 @@ import shutil
 from urllib import parse
 from ..git import git_module
 from ..common import common
-from .. import message as mess
+from ..message import message as msg_mod, display as msg_display
 from ..path import path as p
 from ..params import token, user_info, param_json, repository_id
 from . import api as gin_api
+from . import container
 from ..except_class import RepositoryNotExist, UrlUpdateError
 
 
@@ -53,7 +54,6 @@ def update_repo_url():
 
     Raises:
         requests.exceptions.RequestException: 接続の確立不良
-        FileNotFoundError: 処理に必要なファイルが存在しない
         RepositoryNotExist: リモートリポジトリの情報が取得できない
         UrlUpdateError: 想定外のエラーにより最新化に失敗した
     """
@@ -86,7 +86,9 @@ def update_repo_url():
             if 'No such remote' in result.stderr:
                 subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
-    except (requests.exceptions.RequestException, RepositoryNotExist, FileNotFoundError):
+    except requests.exceptions.RequestException:
+        raise
+    except RepositoryNotExist:
         raise
     except Exception as e:
         raise UrlUpdateError from e
@@ -95,7 +97,20 @@ def update_repo_url():
     return is_private
 
 
-def setup_sync():
+def datalad_create(dir_path:str):
+    """dataladのデータセット化する
+
+    Args:
+        path (str): データセット化するディレクトリのパス
+    """
+    if not os.path.isdir(os.path.join(dir_path, ".datalad")):
+        common.exec_subprocess(cmd=f'datalad create --force {dir_path}')
+        msg_display.display_info(msg_mod.get('setup', 'datalad_create_success'))
+    else:
+        msg_display.display_warm(msg_mod.get('setup', 'datalad_create_already'))
+
+
+def prepare_sync():
     """同期するコンテンツの調整"""
 
     # S3にあるデータをGIN-forkに同期しないための設定
@@ -112,33 +127,34 @@ def setup_sync():
 def setup_sibling():
     """siblingの登録"""
 
-    ginfork_token = token.get_ginfork_token()
-    repo_id = repository_id.get_repo_id()
-    user_id = user_info.get_user_id()
-    params = param_json.get_params()
-    pr = parse.urlparse(params['siblings']['ginHttp'])
-    response = gin_api.search_repo(pr.scheme, pr.netloc, repo_id, user_id, ginfork_token)
-    response.raise_for_status() # ステータスコードが200番台でない場合はraise HTTPError
-    res_data = response.json()
-    if len(res_data['data']) == 0:
-            raise RepositoryNotExist
-    ssh_url = res_data['data'][0]['ssh_url']
-    http_url = res_data['data'][0]['html_url'] + '.git'
-    # Note:
-    #   action='add'では既に存在する場合にIncompleteResultsErrorになる
-    #   action='config'では無ければ追加、あれば上書き
-    #   refs: https://docs.datalad.org/en/stable/generated/datalad.api.siblings.html
-    api.siblings(action='configure', name='origin', url=http_url)
-    api.siblings(action='configure', name=SIBLING, url=ssh_url)
+    try:
+        ginfork_token = token.get_ginfork_token()
+        repo_id = repository_id.get_repo_id()
+        user_id = user_info.get_user_id()
+        params = param_json.get_params()
+        pr = parse.urlparse(params['siblings']['ginHttp'])
+        response = gin_api.search_repo(pr.scheme, pr.netloc, repo_id, user_id, ginfork_token)
+        response.raise_for_status() # ステータスコードが200番台でない場合はraise HTTPError
+        res_data = response.json()
+        if len(res_data['data']) == 0:
+                raise RepositoryNotExist
+        ssh_url = res_data['data'][0]['ssh_url']
+        http_url = res_data['data'][0]['html_url'] + '.git'
+        # Note:
+        #   action='add'では既に存在する場合にIncompleteResultsErrorになる
+        #   action='config'では無ければ追加、あれば上書き
+        #   refs: https://docs.datalad.org/en/stable/generated/datalad.api.siblings.html
+        api.siblings(action='configure', name='origin', url=http_url)
+        api.siblings(action='configure', name=SIBLING, url=ssh_url)
+    except Exception:
+        raise
+    else:
+        clear_output()
+
 
 
 def push_annex_branch():
-    """git-annexブランチをpushする
-
-    Note:
-        リポジトリ名の変更時に正常動作するために必要
-        リモートにgit-annexブランチが無い場合、リポジトリ名が変更されるとpushできない
-    """
+    """git-annexブランチをpushする"""
     common.exec_subprocess(cmd=f'git push {SIBLING} git-annex:git-annex')
 
 
@@ -194,14 +210,14 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 # update URLs of remote repositories
                 update_repo_url()
                 print('[INFO] Update repository URL')
-                warm_message = mess.message.get('sync', 'resync_repo_rename')
+                warm_message = msg_mod.get('sync', 'resync_repo_rename')
             except RepositoryNotExist:
                 # repository may not exist
-                error_message = mess.message.get('sync', 'connect_repo_error')
+                error_message = msg_mod.get('sync', 'connect_repo_error')
             except requests.exceptions.RequestException:
-                error_message = mess.message.get('sync', 'connection_error')
+                error_message = msg_mod.get('sync', 'connection_error')
             except UrlUpdateError:
-                error_message = mess.message.get('sync', 'unexpected')
+                error_message = msg_mod.get('sync', 'unexpected')
         elif 'files would be overwritten by merge:' in datalad_error:
             print('[INFO] Files would be overwritten by merge')
             git_commit_msg = '{}(auto adjustment)'.format(message)
@@ -249,14 +265,14 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 else:
                     result = git_module.git_commmit(git_commit_msg)
                     print(result)
-            warm_message = mess.message.get('sync', 'resync_by_overwrite')
+            warm_message = msg_mod.get('sync', 'resync_by_overwrite')
         else:
             # check both modified
             if git_module.is_conflict():
                 print('[INFO] Files is CONFLICT')
-                error_message = mess.message.get('sync', 'conflict_error')
+                error_message = msg_mod.get('sync', 'conflict_error')
             else:
-                error_message = mess.message.get('sync', 'unexpected')
+                error_message = msg_mod.get('sync', 'unexpected')
     else:
         try:
             print('[INFO] Push to Remote Repository')
@@ -265,21 +281,21 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.system('git annex unlock')
         except:
             datalad_error = traceback.format_exc()
-            error_message = mess.message.get('sync', 'push_error')
+            error_message = msg_mod.get('sync', 'push_error')
         else:
             os.chdir(p.HOME_PATH)
-            success_message = mess.message.get('sync', 'success')
+            success_message = msg_mod.get('sync', 'success')
     finally:
         clear_output()
         if success_message:
-            mess.display.display_info(success_message)
+            msg_display.display_info(success_message)
             # GIN-forkの実行環境一覧の更新日時を更新する
-            gin_api.patch_container()
+            container.patch_container()
             return True
         else:
-            mess.display.display_warm(warm_message)
-            mess.display.display_err(error_message)
-            mess.display.display_log(datalad_error)
+            msg_display.display_warm(warm_message)
+            msg_display.display_err(error_message)
+            msg_display.display_log(datalad_error)
             return False
 
 

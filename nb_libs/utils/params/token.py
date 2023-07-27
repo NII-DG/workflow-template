@@ -10,7 +10,7 @@ from ..message import display, message
 from ..path import path
 
 
-file_path = os.path.join(path.SYS_PATH,'.token.json')
+FILE_PATH = os.path.join(path.SYS_PATH,'.token.json')
 
 
 def set_ginfork_token(token):
@@ -22,7 +22,7 @@ def set_ginfork_token(token):
         Description : token for gin-fork
     """
     token_dict = {"ginfork_token": token}
-    with open(file_path, 'w') as f:
+    with open(FILE_PATH, 'w') as f:
         json.dump(token_dict, f, indent=4)
 
 
@@ -34,7 +34,7 @@ def get_ginfork_token()->str:
     ginfork_token : str
         Description : token for gin-fork
     """
-    with open(file_path, 'r') as f:
+    with open(FILE_PATH, 'r') as f:
         data = json.load(f)
     ginfork_token = data['ginfork_token']
     return ginfork_token

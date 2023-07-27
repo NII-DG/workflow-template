@@ -2,8 +2,8 @@ import os
 import json
 import panel as pn
 from IPython.display import display, clear_output
-from .. import message as mess
-from .. import path
+from ..message import message as msg_mod, display as msg_display
+from ..path import path, display as path_display
 from ..common import common
 from ..gin import sync
 from ..git import git_module as git
@@ -20,38 +20,48 @@ def dg_menu(type='research'):
     menu_option['--'] = 1
 
     if type == 'research':
-        menu_option[mess.message.get('menu', 'show_name_only_res')] = 2
-        menu_option[mess.message.get('menu', 'trans_reserch_top')] = 3
+        menu_option[msg_mod.get('menu', 'show_name_only_res')] = 2
+        menu_option[msg_mod.get('menu', 'trans_reserch_top')] = 3
 
     elif type == 'experiment':
-        menu_option[mess.message.get('menu', 'show_name')] = 4
-        menu_option[mess.message.get('menu', 'trans_experiment_top')] = 5
+        menu_option[msg_mod.get('menu', 'show_name')] = 4
+        menu_option[msg_mod.get('menu', 'trans_experiment_top')] = 5
 
-    menu_option[mess.message.get('menu', 'trans_gin')] = 6
+    menu_option[msg_mod.get('menu', 'trans_gin')] = 6
 
     # プルダウン形式のセレクターを生成
-    menu_selector = pn.widgets.Select(name=mess.message.get('menu', 'select'), options=menu_option, value=1, width=300)
+    menu_selector = pn.widgets.Select(name=msg_mod.get('menu', 'select'), options=menu_option, value=1, width=350)
 
     html_output  = pn.pane.HTML()
 
     def update_selected_value(event):
         selected_value = event.new
-        html_output.height = 80
-        html_output.width = 900
 
         if selected_value == 1:
             html_output.object = ''
+            html_output.height = 10
+            html_output.width = 900
         elif selected_value == 2:
             html_output.object = html_res_name(color='green')
+            html_output.height = 60
+            html_output.width = 900
         elif selected_value == 3:
-            html_output.object = path.display.res_top_html()
+            html_output.object = path_display.res_top_html()
+            html_output.height = 30
+            html_output.width = 900
         elif selected_value == 4:
             html_text = html_res_name(color='blue') + html_exp_name(color='blue')
             html_output.object = html_text
+            html_output.height = 110
+            html_output.width = 900
         elif selected_value == 5:
-            html_output.object = path.display.exp_top_html()
+            html_output.object = path_display.exp_top_html()
+            html_output.height = 30
+            html_output.width = 900
         elif selected_value == 6:
             html_output.object = gin_link_html()
+            html_output.height = 30
+            html_output.width = 900
 
     menu_selector.param.watch(update_selected_value,'value')
 
@@ -65,8 +75,8 @@ def html_res_name(color='black'):
         pass
 
     research_title = git.get_remote_url().split('/')[-1].replace('.git', '')
-    msg = mess.message.get('menu', 'research_title').format(research_title)
-    return mess.display.creat_html_msg(msg=msg, fore=color, tag='h1')
+    msg = msg_mod.get('menu', 'research_title').format(research_title)
+    return msg_display.creat_html_msg(msg=msg, fore=color, tag='h1')
 
 
 def html_exp_name(color='black'):
@@ -79,8 +89,8 @@ def html_exp_name(color='black'):
     except Exception:
         experiment_title = '-'
 
-    msg = mess.message.get('menu', 'experiment_title').format(experiment_title)
-    return mess.display.creat_html_msg(msg=msg, fore=color, tag='h1')
+    msg = msg_mod.get('menu', 'experiment_title').format(experiment_title)
+    return msg_display.creat_html_msg(msg=msg, fore=color, tag='h1')
 
 
 def gin_link_html():
@@ -90,5 +100,5 @@ def gin_link_html():
     except Exception:
         pass
 
-    url = common.convert_url_remove_user_token(git.get_remote_url())
-    return path.display.button_html(url=url, msg=mess.message.get('menu', 'trans_gin'), target='_blank')
+    url , _ = common.convert_url_remove_user_token(git.get_remote_url())
+    return path_display.button_html(url=url, msg=msg_mod.get('menu', 'trans_gin'), target='_blank')

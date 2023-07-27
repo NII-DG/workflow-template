@@ -169,7 +169,7 @@ def layout_error_text():
     return pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
 
 
-def submit_user_auth_callback_without_email(user_auth_forms, error_message, submit_button_user_auth, success_private_button):
+def submit_build_for_private_callback(user_auth_forms, error_message, submit_button_user_auth, success_private_button):
     """Processing method after click on submit button
 
     Check form values, authenticate users, and update RF configuration files.
@@ -184,61 +184,24 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
         user_name = user_auth_forms[0].value
         password = user_auth_forms[1].value
         # validate value
-        ## user name
-        if len(user_name) <= 0:
-            submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = m.get('user_auth','username_empty_error')
-            return
-
-        if not validate_format_username(user_name):
-            submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = m.get('user_auth','username_pattern_error')
-            return
-
-        ## password
-        if len(password) <= 0:
-            submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = m.get('user_auth','password_empty_error')
+        if not validate_user_auth(user_name, password, submit_button_user_auth):
             return
 
         # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
         # GIN API Basic Authentication
         # refs: https://docs.python-requests.org/en/master/user/authentication/
         try:
-            params = {}
-            with open(sync.fetch_param_file_path(), mode='r') as f:
-                params = json.load(f)
-
-            baseURL = params['siblings']['ginHttp'] + '/api/v1/users/'
-            response = requests.get(baseURL + user_name + '/tokens', auth=(user_name, password))
+            params = param_json.get_params()
+            pr = parse.urlparse(params['siblings']['ginHttp'])
+            response = gin_api.get_token_for_auth(pr.scheme, pr.netloc, user_name, password)
 
             ## Unauthorized
             if response.status_code == HTTPStatus.UNAUTHORIZED:
-                submit_button_user_auth.button_type = 'warning'
-                submit_button_user_auth.name = m.get('user_auth','unauthorized')
-                return
+                raise Unauthorized
+            response.raise_for_status()
 
-            user_info.set_user_info(user_name)
-
-            ## Check to see if there is an existing token
-            access_token = dict()
-            tokens = response.json()
-            if len(tokens) >= 1:
-                access_token = response.json()[-1]
-            elif len(tokens) < 1:
-                response = requests.post(baseURL + user_name + '/tokens', data={"name": "system-generated"}, auth=(user_name, password))
-                if response.status_code == HTTPStatus.CREATED:
-                    access_token = response.json()
-
-        # Write out the GIN-fork access token to /home/jovyan/.token.json.
-            token.set_ginfork_token(access_token['sha1'])
-
-            os.chdir(p.HOME_PATH)
-            common.exec_subprocess(cmd='git config --global user.name {}'.format(user_name))
-
-            pr = parse.urlparse(params['siblings']['ginHttp'])
             # get building token
-            launch_token_res = gin_api.create_token_for_launch(scheme=pr.scheme, domain=pr.netloc, token=access_token['sha1'])
+            launch_token_res = gin_api.create_token_for_launch(scheme=pr.scheme, domain=pr.netloc, token=token.get_ginfork_token())
             launch_token = ''
             if launch_token_res.status_code == HTTPStatus.CREATED:
                 launch_token_response_data = launch_token_res.json()
@@ -247,10 +210,20 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
                 err_msg = 'Fail to create buildling token from GIN-fork API. status_code : {}'.format(launch_token_res.status_code)
                 raise Exception(err_msg)
 
+        except Unauthorized:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = m.get('user_auth','unauthorized')
+            return
+        except requests.exceptions.RequestException as e:
+            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.name = m.get('user_auth','connection_error')
+            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
+            error_message.object = pn.pane.HTML(error_message.value)
+            return
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = m.get('user_auth','unexpected')
-            error_message.value = 'ERROR : {}'.format(str(e))
+            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:
@@ -268,23 +241,20 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
     return callback
 
 
-def initial_gin_user_auth_without_email():
+def initial_build_for_private():
     pn.extension()
 
-    # user name form
-    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder= m.get('user_auth','username_help'), width=700)
-    # password form
-    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=700)
-    user_auth_forms = [user_name_form, password_form]
+    # form of user name and password
+    user_auth_forms = create_user_auth_forms()
 
     # Instance for exception messages
-    error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
+    error_message = layout_error_text()
 
     button = pn.widgets.Button(name= m.get('user_auth','end_input'), button_type= "primary", width=700)
     succecc_private_button = pn.widgets.StaticText(value='', sizing_mode='stretch_width')
 
     # Define processing after clicking the submit button
-    button.on_click(submit_user_auth_callback_without_email(user_auth_forms, error_message, button, succecc_private_button))
+    button.on_click(submit_build_for_private_callback(user_auth_forms, error_message, button, succecc_private_button))
 
     clear_output()
     for form in user_auth_forms:
@@ -292,3 +262,40 @@ def initial_gin_user_auth_without_email():
     display(button)
     display(error_message)
     display(succecc_private_button)
+
+
+
+def submit_init_experiment_callback(forms, error_message, submit_button):
+
+    def callback(event):
+        user_name = forms[0].value
+        password = forms[1].value
+
+        # validate value
+        if not validate_user_auth(user_name, password, submit_button):
+            return
+
+    return callback
+
+
+def initial_experiment():
+    pn.extension()
+
+    # form of user name and password
+    user_auth_forms = create_user_auth_forms()
+
+    imput_forms = user_auth_forms.extend([])
+
+    # Instance for exception messages
+    error_message = layout_error_text()
+
+    button = pn.widgets.Button(name= m.get('DEFAULT','end_input'), button_type= "primary", width=700)
+
+    # Define processing after clicking the submit button
+    button.on_click(submit_user_auth_callback(imput_forms, error_message, button))
+
+    clear_output()
+    for form in imput_forms:
+        display(form)
+    display(button)
+    display(error_message)

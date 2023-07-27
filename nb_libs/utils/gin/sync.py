@@ -13,7 +13,7 @@ import shutil
 from urllib import parse
 from ..git import git_module
 from ..common import common
-from .. import message as mess
+from ..message import message as msg_mod, display as msg_display
 from ..path import path as p
 from ..params import token, user_info, param_json, repository_id
 from . import api as gin_api
@@ -104,9 +104,9 @@ def datalad_create(dir_path:str):
     """
     if not os.path.isdir(os.path.join(dir_path, ".datalad")):
         common.exec_subprocess(cmd=f'datalad create --force {dir_path}')
-        mess.display.display_info(mess.message.get('setup', 'datalad_create_success'))
+        msg_display.display_info(msg_mod.get('setup', 'datalad_create_success'))
     else:
-        mess.display.display_warm(mess.message.get('setup', 'datalad_create_already'))
+        msg_display.display_warm(msg_mod.get('setup', 'datalad_create_already'))
 
 
 def setup_sync():
@@ -214,14 +214,14 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 # update URLs of remote repositories
                 update_repo_url()
                 print('[INFO] Update repository URL')
-                warm_message = mess.message.get('sync', 'resync_repo_rename')
+                warm_message = msg_mod.get('sync', 'resync_repo_rename')
             except RepositoryNotExist:
                 # repository may not exist
-                error_message = mess.message.get('sync', 'connect_repo_error')
+                error_message = msg_mod.get('sync', 'connect_repo_error')
             except requests.exceptions.RequestException:
-                error_message = mess.message.get('sync', 'connection_error')
+                error_message = msg_mod.get('sync', 'connection_error')
             except UrlUpdateError:
-                error_message = mess.message.get('sync', 'unexpected')
+                error_message = msg_mod.get('sync', 'unexpected')
         elif 'files would be overwritten by merge:' in datalad_error:
             print('[INFO] Files would be overwritten by merge')
             git_commit_msg = '{}(auto adjustment)'.format(message)
@@ -269,14 +269,14 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 else:
                     result = git_module.git_commmit(git_commit_msg)
                     print(result)
-            warm_message = mess.message.get('sync', 'resync_by_overwrite')
+            warm_message = msg_mod.get('sync', 'resync_by_overwrite')
         else:
             # check both modified
             if git_module.is_conflict():
                 print('[INFO] Files is CONFLICT')
-                error_message = mess.message.get('sync', 'conflict_error')
+                error_message = msg_mod.get('sync', 'conflict_error')
             else:
-                error_message = mess.message.get('sync', 'unexpected')
+                error_message = msg_mod.get('sync', 'unexpected')
     else:
         try:
             print('[INFO] Push to Remote Repository')
@@ -285,21 +285,21 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             os.system('git annex unlock')
         except:
             datalad_error = traceback.format_exc()
-            error_message = mess.message.get('sync', 'push_error')
+            error_message = msg_mod.get('sync', 'push_error')
         else:
             os.chdir(p.HOME_PATH)
-            success_message = mess.message.get('sync', 'success')
+            success_message = msg_mod.get('sync', 'success')
     finally:
         clear_output()
         if success_message:
-            mess.display.display_info(success_message)
+            msg_display.display_info(success_message)
             # GIN-forkの実行環境一覧の更新日時を更新する
             container.patch_container()
             return True
         else:
-            mess.display.display_warm(warm_message)
-            mess.display.display_err(error_message)
-            mess.display.display_log(datalad_error)
+            msg_display.display_warm(warm_message)
+            msg_display.display_err(error_message)
+            msg_display.display_log(datalad_error)
             return False
 
 

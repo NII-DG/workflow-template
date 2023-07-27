@@ -12,7 +12,7 @@ from ..params import user_info, token
 from ..gin import api as gin_api
 from ..gin import sync
 from ..git import git_module as git
-from ..message import message as mess
+from ..message import message as m
 from ..path import path as p
 
 
@@ -34,29 +34,29 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
         ## user name
         if len(user_name) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','username_empty_error')
+            submit_button_user_auth.name = m.get('user_auth','username_empty_error')
             return
 
         if not validate_format_username(user_name):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','username_pattern_error')
+            submit_button_user_auth.name = m.get('user_auth','username_pattern_error')
             return
 
         ## password
         if len(password) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','password_empty_error')
+            submit_button_user_auth.name = m.get('user_auth','password_empty_error')
             return
 
         ## mail addres
         if  len(mail_addres) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','emailaddress_empty_error')
+            submit_button_user_auth.name = m.get('user_auth','emailaddress_empty_error')
             return
 
         if not validate_format_mail_address(mail_addres):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','emailaddress_pattern_error')
+            submit_button_user_auth.name = m.get('user_auth','emailaddress_pattern_error')
             return
 
         # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
@@ -73,7 +73,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             ## Unauthorized
             if response.status_code == HTTPStatus.UNAUTHORIZED:
                 submit_button_user_auth.button_type = 'warning'
-                submit_button_user_auth.name = mess.get('user_auth','unauthorized')
+                submit_button_user_auth.name = m.get('user_auth','unauthorized')
                 return
 
             user_info.set_user_info(user_name)
@@ -96,13 +96,13 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             common.exec_subprocess(cmd='git config --global user.email {}'.format(mail_addres))
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
-            submit_button_user_auth.name = mess.get('user_auth','unexpected')
+            submit_button_user_auth.name = m.get('user_auth','unexpected')
             error_message.value = 'ERROR : {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:
             submit_button_user_auth.button_type = 'success'
-            submit_button_user_auth.name = mess.get('user_auth','success')
+            submit_button_user_auth.name = m.get('user_auth','success')
             return
     return callback
 
@@ -136,17 +136,17 @@ def validate_format_mail_address(mail_addres):
 def initial_gin_user_auth():
     pn.extension()
     # user name form
-    user_name_form = pn.widgets.TextInput(name=mess.get('user_auth','username_title'), placeholder=mess.get('user_auth','username_help'), width=700)
+    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder=m.get('user_auth','username_help'), width=700)
     # password form
-    password_form = pn.widgets.PasswordInput(name=mess.get('user_auth','password_title'), placeholder=mess.get('user_auth','password_help'), width=700)
+    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=700)
     # email address form
-    mail_address_form = pn.widgets.TextInput(name=mess.get('user_auth','emailaddress_title'), placeholder=mess.get('user_auth','emailaddress_help'), width=700)
+    mail_address_form = pn.widgets.TextInput(name=m.get('user_auth','emailaddress_title'), placeholder=m.get('user_auth','emailaddress_help'), width=700)
     user_auth_forms = [user_name_form, password_form, mail_address_form]
 
     # Instance for exception messages
     error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
 
-    button = pn.widgets.Button(name= mess.get('user_auth','end_input'), button_type= "primary", width=700)
+    button = pn.widgets.Button(name= m.get('user_auth','end_input'), button_type= "primary", width=700)
 
 
     # Define processing after clicking the submit button
@@ -177,18 +177,18 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
         ## user name
         if len(user_name) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','username_empty_error')
+            submit_button_user_auth.name = m.get('user_auth','username_empty_error')
             return
 
         if not validate_format_username(user_name):
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','username_pattern_error')
+            submit_button_user_auth.name = m.get('user_auth','username_pattern_error')
             return
 
         ## password
         if len(password) <= 0:
             submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = mess.get('user_auth','password_empty_error')
+            submit_button_user_auth.name = m.get('user_auth','password_empty_error')
             return
 
         # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
@@ -205,7 +205,7 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
             ## Unauthorized
             if response.status_code == HTTPStatus.UNAUTHORIZED:
                 submit_button_user_auth.button_type = 'warning'
-                submit_button_user_auth.name = mess.get('user_auth','unauthorized')
+                submit_button_user_auth.name = m.get('user_auth','unauthorized')
                 return
 
             user_info.set_user_info(user_name)
@@ -239,20 +239,20 @@ def submit_user_auth_callback_without_email(user_auth_forms, error_message, subm
 
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
-            submit_button_user_auth.name = mess.get('user_auth','unexpected')
+            submit_button_user_auth.name = m.get('user_auth','unexpected')
             error_message.value = 'ERROR : {}'.format(str(e))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:
             submit_button_user_auth.button_type = 'success'
-            submit_button_user_auth.name = mess.get('build_container', 'new_experimnet')
+            submit_button_user_auth.name = m.get('build_container', 'new_experimnet')
             error_message.object = pn.pane.HTML(error_message.value)
 
             remote_http_url = git.get_remote_url()
             pos = remote_http_url.find("://")
             remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{launch_token}@{remote_http_url[pos+3:]}"
             url = "https://binder.cs.rcos.nii.ac.jp/v2/git/" + urllib.parse.quote(remote_http_url, safe='') + "/HEAD?filepath=WORKFLOWS/experiment.ipynb"
-            success_private_button.value = f'<button onclick="window.open(\'{url}\')">'+ mess.get('build_container', 'build_button') +'</button>'
+            success_private_button.value = f'<button onclick="window.open(\'{url}\')">'+ m.get('build_container', 'build_button') +'</button>'
             success_private_button.object = pn.pane.HTML(success_private_button.value)
             return
     return callback
@@ -262,15 +262,15 @@ def initial_gin_user_auth_without_email():
     pn.extension()
 
     # user name form
-    user_name_form = pn.widgets.TextInput(name=mess.get('user_auth','username_title'), placeholder= mess.get('user_auth','username_help'), width=700)
+    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder= m.get('user_auth','username_help'), width=700)
     # password form
-    password_form = pn.widgets.PasswordInput(name=mess.get('user_auth','password_title'), placeholder=mess.get('user_auth','password_help'), width=700)
+    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=700)
     user_auth_forms = [user_name_form, password_form]
 
     # Instance for exception messages
     error_message = pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
 
-    button = pn.widgets.Button(name= mess.get('user_auth','end_input'), button_type= "primary", width=700)
+    button = pn.widgets.Button(name= m.get('user_auth','end_input'), button_type= "primary", width=700)
     succecc_private_button = pn.widgets.StaticText(value='', sizing_mode='stretch_width')
 
     # Define processing after clicking the submit button

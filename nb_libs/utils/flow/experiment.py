@@ -40,7 +40,7 @@ def parse_headers(nb_path):
         (' '.join(line0.split()[1:]),
          line1.split("。")[0] if line1 is not None else '')
         for (line0, line1) in zip_longest(lines, lines[1:])
-        if line0.startswith('# ') or line0.startswith('## ')
+        if line0.startswith('# ') or line0.startswith('## ') and ("## 共通メニュー" not in line0)
     ]
     # 最初の見出しはtitle, 残りはheadersとして返す
     return {

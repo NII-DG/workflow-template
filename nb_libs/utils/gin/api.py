@@ -4,7 +4,6 @@ GIN frok APIの通信メソッド群
 from urllib import parse
 import requests
 import time
-import os
 
 
 def search_public_repo(scheme, domain, repo_id,):
@@ -90,14 +89,14 @@ def get_server_info(scheme, domain):
 
 
 def get_token_for_auth(scheme, domain, user_name, password):
-    sub_url = os.path.join('api/v1/users', user_name, 'tokens')
+    sub_url = 'api/v1/users/' + user_name + '/tokens'
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     auth = (user_name, password)
     return requests.get(url=api_url, auth=auth)
 
 
 def create_token_for_auth(scheme, domain, user_name, password):
-    sub_url = os.path.join('api/v1/users', user_name, 'tokens')
+    sub_url = 'api/v1/users/' + user_name + '/tokens'
     api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
     auth = (user_name, password)
     data={"name": "system-generated"}

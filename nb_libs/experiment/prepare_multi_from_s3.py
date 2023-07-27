@@ -115,40 +115,38 @@ def input_aws_info():
         with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
             json.dump(aws_s3_info_dict, f, indent=4)
 
-        button.description='入力を受け付けました。'
+        button.description=message.get('from_repo_s3','done_input')
         button.button_style='success'
 
     # テキストボックス
     style = {'description_width': 'initial'}
     input_aws_access_key_id = Password(
-        description='*AWSアクセスキーID：',
-        placeholder='Enter your AWS access key ID here...',
+        description=message.get('from_repo_s3', 'access_key_id'),
+        placeholder=message.get('from_repo_s3', 'enter_access_key_id'),
         layout=Layout(width='700px'),
         style=style
     )
     input_aws_secret_access_key = Password(
-        description='*AWSシークレットアクセスキー：',
-        placeholder='Enter your AWS secret key here...',
+        description= message.get('from_repo_s3', 'secret_access_key'),
+        placeholder=message.get('from_repo_s3', 'enter_secret_access_key'),
         layout=Layout(width='700px'),
         style=style
     )
     input_bucket_name = Text(
-        description='*バケット名：',
-        placeholder='Enter S3 bucket name here...',
+        description=message.get('from_repo_s3','bucket_name'),
+        placeholder=message.get('from_repo_s3','enter_bucket_name'),
         layout=Layout(width='700px'),
         style=style,
-        value='test-data-rf'
     )
     input_prefix = Text(
-        description='バケットの任意のフォルダパス：',
-        placeholder='Enter bucket folder path here...',
+        description=message.get('from_repo_s3','folder_path'),
+        placeholder=message.get('from_repo_s3','enter_folder_path'),
         layout=Layout(width='700px'),
         style=style,
-        value='pick_folder/'
     )
 
     common.delete_file(path.MULTI_S3_JSON_PATH)
-    button = Button(description='入力を完了する', layout=Layout(width='200px'))
+    button = Button(description=message.get('from_repo_s3','end_input'), layout=Layout(width='200px'))
     button.on_click(on_click_callback)
     display(input_aws_access_key_id, input_aws_secret_access_key, input_bucket_name, input_prefix, button)
 
@@ -170,7 +168,7 @@ def choose_get_data():
     def generate_dest_list(event):
         try:
             done_button.button_type = "success"
-            done_button.name = "選択完了しました。次の処理にお進みください。"
+            done_button.name = message.get('from_repo_s3','done_choose')
             s3_key_list = column[0].value
 
             with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
@@ -185,8 +183,8 @@ def choose_get_data():
         
     pn.extension()
     column = pn.Column()
-    column.append(pn.widgets.MultiSelect(name = "S3ファイル", options=s3_key_list, size=len(s3_key_list), sizing_mode='stretch_width'))
-    done_button = pn.widgets.Button(name= "選択を完了する", button_type= "primary")
+    column.append(pn.widgets.MultiSelect(name = message.get('from_repo_s3','s3_file'), options=s3_key_list, size=len(s3_key_list), sizing_mode='stretch_width'))
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3','end_choose'), button_type= "primary")
     column.append(done_button)
     done_button.on_click(generate_dest_list)
     display(column)
@@ -208,7 +206,7 @@ def input_path():
                 return
             else:
                 done_button.button_type = "success"
-                done_button.name = "入力を完了しました。次の処理にお進みください。"
+                done_button.name = message.get('from_repo_s3', 'done_input')
         
             with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
                 multi_s3_dict:dict = json.load(f)
@@ -242,15 +240,15 @@ def input_path():
 
     selected_paths = multi_s3_dict[SELECTED_PATHS]
 
-    done_button = pn.widgets.Button(name= "入力を完了する", button_type= "primary")
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3','end_input'), button_type= "primary")
     done_button.on_click(verify_input_text)
 
     pn.extension()
     column = pn.Column()
     dest_list = []
-    dest_list.append("### S3ファイル")
+    dest_list.append(message.get('from_repo_s3','h3_s3_file'))
     for selected_path in selected_paths:
-        dest_list.append(pn.widgets.TextInput(name=selected_path, placeholder='Enter a file path here...', width=700))
+        dest_list.append(pn.widgets.TextInput(name=selected_path, placeholder=message.get('from_repo_s3','enter_a_file_path'), width=700))
     for gui in dest_list:
         column.append(gui)
     column.append(done_button)

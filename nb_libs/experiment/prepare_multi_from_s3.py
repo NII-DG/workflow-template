@@ -71,6 +71,8 @@ def get_path_to_url_dict() -> dict:
 
 
 def input_aws_info():
+    '''AWS接続情報を入力するフォームを出力する
+    '''
 
     def on_click_callback(clicked_button: Button) -> None:
 
@@ -152,6 +154,8 @@ def input_aws_info():
 
 
 def choose_get_data():
+    '''取得データを選択するフォームを出力する
+    '''
     try:
         with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
             multi_s3_dict:dict = json.load(f)
@@ -189,7 +193,8 @@ def choose_get_data():
 
 
 def input_path():
-    
+    '''データの格納先を入力するフォームを出力する
+    '''
     def verify_input_text(event):
         try:
             experiment_title = get_experiment_title()

@@ -78,23 +78,41 @@ def input_aws_info():
 
         common.delete_file(path.MULTI_S3_JSON_PATH)
 
+        access_key_id = input_aws_access_key_id.value
+        secret_access_key = input_aws_secret_access_key.value
         bucket_name = input_bucket_name.value
         prefix = input_prefix.value
 
+        if len(access_key_id) == 0:
+            button.layout=Layout(width='700px')
+            button.description=message.get('from_repo_s3','empty_access_key_id')
+            button.button_style='danger'
+            return
+        elif len(secret_access_key) == 0:
+            button.layout=Layout(width='700px')
+            button.description=message.get('from_repo_s3','empty_secret_access_key')
+            button.button_style='danger'
+            return
+        elif len(bucket_name) == 0:
+            button.layout=Layout(width='700px')
+            button.description=message.get('from_repo_s3','empty_bucket_name')
+            button.button_style='danger'
+            return
+
         s3 = boto3.resource(
             's3',
-            aws_access_key_id = input_aws_access_key_id.value,
-            aws_secret_access_key = input_aws_secret_access_key.value,
+            aws_access_key_id = access_key_id,
+            aws_secret_access_key = secret_access_key
         )
         bucket = s3.Bucket(bucket_name)
 
-        response = bucket.meta.client.get_bucket_location(Bucket=bucket.name)
+        response = bucket.meta.client.get_bucket_location(Bucket=bucket_name)
         aws_region = response[LOCATION_CONSTRAINT]
         
         if len(prefix)==0:
-            response = bucket.meta.client.list_objects_v2(Bucket=bucket.name)
+            response = bucket.meta.client.list_objects_v2(Bucket=bucket_name)
         else:
-            response = bucket.meta.client.list_objects_v2(Bucket=bucket.name, Prefix=prefix)
+            response = bucket.meta.client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
 
         s3_contens_key_list = []
         if not CONTENTS in response:
@@ -108,7 +126,7 @@ def input_aws_info():
         aws_s3_info_dict[AWS_S3_INFO] = {
             AWS_REGION_CODE: aws_region,
             BUCKET: bucket_name,
-            PREFIX:prefix,
+            PREFIX: prefix,
             PATHS: s3_contens_key_list
         }
 

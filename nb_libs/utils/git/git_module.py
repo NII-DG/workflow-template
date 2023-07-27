@@ -229,5 +229,7 @@ def is_conflict() -> bool:
 
 
 def get_remote_url():
-    stdout, stderr, rt = common.exec_subprocess('git config --get remote.origin.url')
-    return stdout.decode('utf-8')
+    stdout, stderr, rt = common.decode_exec_subprocess('git config --get remote.origin.url')
+    lines = stdout.split('\n')
+    url = lines[0]
+    return url

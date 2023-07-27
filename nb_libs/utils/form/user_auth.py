@@ -123,10 +123,10 @@ def initial_gin_user_auth():
     pn.extension()
 
     # form of user name and password
-    user_auth_forms =user_auth_forms()
+    user_auth_forms = create_user_auth_forms()
 
     # Instance for exception messages
-    error_message = error_text()
+    error_message = layout_error_text()
 
     button = pn.widgets.Button(name= m.get('user_auth','end_input'), button_type= "primary", width=700)
 
@@ -141,7 +141,7 @@ def initial_gin_user_auth():
     display(error_message)
 
 
-def user_auth_forms():
+def create_user_auth_forms():
     # user name form
     user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder=m.get('user_auth','username_help'), width=700)
     # password form
@@ -149,7 +149,7 @@ def user_auth_forms():
     return [user_name_form, password_form]
 
 
-def error_text():
+def layout_error_text():
     return pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
 
 

@@ -495,7 +495,7 @@ def select_done_save():
     # option[message.get('metadata', 'non_record')] = 1
 
     # プルダウン形式のセレクターを生成
-    menu_selector = pn.widgets.Select(name=message.get('metadata', 'record_form'), options=option, value=0, width=350)
+    menu_selector = pn.widgets.Select(name=message.get('metadata', 'record_form'), options=option, width=350)
     done_button = pn.widgets.Button(name=message.get('metadata', 'end_choose'), button_type= "primary")
     html_output = pn.pane.HTML()
 

@@ -335,11 +335,15 @@ def save_annex():
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
         UnexpectedError: 想定外のエラーが発生した場合
     """
-    path_to_url_dict = get_path_to_url_dict()
+    multi_s3_dict = get_multi_s3_dict()
+    bucket_name = multi_s3_dict[AWS_S3_INFO][BUCKET]
+    path_to_url_dict = multi_s3_dict[PATH_TO_URL]
     annex_file_paths = list(path_to_url_dict.keys())
+
     try:
         git_module.git_annex_lock(path.HOME_PATH)
-        sync.save_annex_and_register_metadata(gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3'))
+        sync.save_annex_and_register_metadata(
+            gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3_bucket').format(bucket_name))
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         raise UnexpectedError() from e

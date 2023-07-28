@@ -279,6 +279,7 @@ def submit_init_experiment_callback(input_forms, input_radios, error_message, su
 
 
         if paramfolder_name is not None:
+            pass
 
 
 

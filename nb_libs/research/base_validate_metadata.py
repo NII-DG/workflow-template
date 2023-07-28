@@ -1,25 +1,22 @@
-
 import shutil
 import requests
-from utils.params import repository_id, token, param_json
-from utils.git import git_module
-from utils.message import display as msg_display, message
-from utils.except_class import DidNotFinishError, UnexpectedError, DGTaskError, ExecCmdError
-from utils.dg_core import api as core_api
-from utils.path import path
+import os
+import time
+import json
+import panel as pn
+from ..utils.params import repository_id, token, param_json
+from ..utils.git import git_module
+from ..utils.message import display as msg_display, message
+from ..utils.except_class import DGTaskError, ExecCmdError
+from ..utils.dg_core import api as core_api
+from ..utils.path import path
 import requests
-from utils.repo_metadata import metadata
-from utils.gin import api as gin_api
-from utils.common import raise_error
+from ..utils.gin import api as gin_api
 from urllib import parse
 from typing import Any
 from http import HTTPStatus
 from dg_packager.ro_generator.gin_ro_generator import GinRoGenerator
 from dg_packager.error.error import JsonValidationError, RoPkgError
-import os
-import time
-import json
-import panel as pn
 from IPython.display import clear_output, display
 
 
@@ -134,7 +131,7 @@ def pkg_metadata(metadata)->Any:
 
     # convert GIN-fork metadata to ro-crate
     try:
-        ro_crate =GinRoGenerator.Generate(raw_metadata=metadata)
+        ro_crate = GinRoGenerator.Generate(raw_metadata=metadata)
         msg = message.get('metadata', 'complete_pkg')
         msg_display.display_info(msg)
         return ro_crate
@@ -394,6 +391,10 @@ def output_result(request_id):
     msg_display.display_msg(result)
 
 
+def get_non_saving_data():
+    return message.get('metadata', 'non_saving_data')
+
+
 def has_result_in_tmp():
     """Existence check of the validation result file set
 
@@ -405,7 +406,7 @@ def has_result_in_tmp():
     try :
         request_id = get_request_id()
     except FileNotFoundError as e:
-        warm_err = message.get('metadata', 'non_saving_data')
+        warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
 
@@ -415,20 +416,20 @@ def has_result_in_tmp():
     ### ro_crate.json
     if not os.path.isfile(os.path.join(tmp_result_folder, RO_CRATE_FILE_NAME)):
         # ro_crate.json does not exist
-        warm_err = message.get('metadata', 'non_saving_data')
+        warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
     ### entity_ids.json
     if not os.path.isfile(os.path.join(tmp_result_folder, ENTITY_IDS_FILE_NAME)):
         # entity_ids.json does not exist
-        warm_err = message.get('metadata', 'non_saving_data')
+        warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
         pass
     ### results.json
     if not os.path.isfile(os.path.join(tmp_result_folder, RESULTS_FILE_NAME)):
         # results.json does not exist
-        warm_err = message.get('metadata', 'non_saving_data')
+        warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
 
@@ -550,7 +551,7 @@ def del_selection_info_file():
     if os.path.exists(form_data_path):
         os.remove(form_data_path)
 
-def sync()->(bool|None):
+def sync():
 
     form_data_path = os.path.join(path.RF_FORM_DATA_DIR, RF_FORM_DATA_FILE)
 
@@ -572,7 +573,7 @@ def sync()->(bool|None):
         # If the selection information file does not exist
         # No previous cell has been executed.
         msg = message.get('nb_exec', 'not_exec_pre_cell')
-        msg_display.display_warm(msg)
+        msg_display.display_err(msg)
         return None
 
 

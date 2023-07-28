@@ -487,10 +487,12 @@ def select_done_save():
     # Generate and display selection forms
     pn.extension()
 
-    option = {}
+    record = message.get('metadata', 'record')
+    non_record = message.get('metadata', 'non_record')
+    option = [record, non_record]
     # generate options
-    option[message.get('metadata', 'record')] = 0
-    option[message.get('metadata', 'non_record')] = 1
+    # option[message.get('metadata', 'record')] = 0
+    # option[message.get('metadata', 'non_record')] = 1
 
     # プルダウン形式のセレクターを生成
     menu_selector = pn.widgets.Select(name=message.get('metadata', 'record_form'), options=option, value=0, width=350)
@@ -498,9 +500,9 @@ def select_done_save():
     html_output = pn.pane.HTML()
 
     def selected(event):
-        selected_value = event.new
+        selected_value = menu_selector.value
 
-        if selected_value == 0:
+        if selected_value == record:
             # record
             ## Record selection information.
             record_selection_info(True)
@@ -508,7 +510,7 @@ def select_done_save():
             selected_name = message.get('metadata', 'record')
             done_button.name = message.get('metadata', 'reception_completed').format(selected_name)
             return
-        elif selected_value == 1:
+        elif selected_value == non_record:
             # not record
             ## Record selection information.
             record_selection_info(False)

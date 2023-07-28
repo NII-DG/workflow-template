@@ -191,6 +191,8 @@ def verify_metadata(ro_crate)->Any:
             ## record request_id
             request_id = req_body['request_id']
             tmp_save_request_id(request_id)
+            msg = message.get('metadata', 'complete_verification_req')
+            msg_display.display_info(msg)
             return True
         else:
             # 想定外のエラーの場合
@@ -492,7 +494,7 @@ def select_done_save():
 
     # プルダウン形式のセレクターを生成
     menu_selector = pn.widgets.Select(name=message.get('metadata', 'record_form'), options=option, value=0, width=350)
-    done_button = pn.widgets.Button(name= "選択を完了する", button_type= "primary")
+    done_button = pn.widgets.Button(name=message.get('metadata', 'end_choose'), button_type= "primary")
     html_output = pn.pane.HTML()
 
     def selected(event):
@@ -500,23 +502,19 @@ def select_done_save():
 
         if selected_value == 0:
             # record
-            ## copy tmp file to repository
-            copy_tmp_results_to_repository()
-            ## del tmp file
-            # del_result_in_tmp()
             ## Record selection information.
             record_selection_info(True)
             done_button.button_type = 'success'
-            done_button.name = message.get('metadata', 'complete_prepare_sync')
+            selected_name = message.get('metadata', 'record')
+            done_button.name = message.get('metadata', 'reception_completed').format(selected_name)
             return
         elif selected_value == 1:
             # not record
-            ## del tmp file
-            # del_result_in_tmp()
             ## Record selection information.
             record_selection_info(False)
             done_button.button_type = 'success'
-            done_button.name = message.get('metadata', 'complete_del_verification_data')
+            selected_name = message.get('metadata', 'non_record')
+            done_button.name = message.get('metadata', 'reception_completed').format(selected_name)
             return
         else:
             # undefined
@@ -586,11 +584,15 @@ def prepare_sync_arg(mode : bool) -> tuple[list[str], str]:
 
     # create git path
     git_path = []
-    ## this task notebook
-    git_path.append(os.path.join(path.RES_DIR_PATH, path.BASE_VALIDATE_METADATA))
+
     if mode:
+        ## copy tmp file to repository
+        copy_tmp_results_to_repository()
         ## add /home/jovyan/validation_results
         git_path.append(path.VALIDATION_RESULTS_DIR_PATH)
+
+    ## this task notebook
+    git_path.append(os.path.join(path.RES_DIR_PATH, path.BASE_VALIDATE_METADATA))
 
     commit_msg = 'メタデータ検証'
 

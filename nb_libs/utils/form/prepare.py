@@ -1,5 +1,3 @@
-import json
-import os
 from IPython.display import clear_output, display
 from urllib import parse
 import requests
@@ -11,10 +9,8 @@ import re
 from ..common import common
 from ..params import user_info, token, param_json
 from ..gin import api as gin_api
-from ..gin import sync
 from ..git import git_module as git
 from ..message import message as m
-from ..path import path as p
 from ..except_class import Unauthorized
 
 
@@ -148,10 +144,11 @@ def initial_gin_user_auth():
     button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
 
     clear_output()
-    for form in user_auth_forms:
-        display(form)
-    display(button)
-    display(error_message)
+    display(pn.Column(*user_auth_forms, button, error_message))
+    # for form in user_auth_forms:
+    #    display(form)
+    #display(button)
+    #display(error_message)
 
 
 def create_user_auth_forms():
@@ -259,103 +256,3 @@ def initial_build_for_private():
     display(button)
     display(error_message)
     display(succecc_private_button)
-
-
-
-def submit_init_experiment_callback(input_forms, input_radios, error_message, submit_button):
-
-    def callback(event):
-        # form values
-        user_name = input_forms[0].value
-        password = input_forms[1].value
-        package_name = input_forms[2].value
-        paramfolder_name = None
-        if len(input_forms) > 3:
-            paramfolder_name = input_forms[4].value
-
-        # validate value for forms
-        if not validate_user_auth(user_name, password, submit_button):
-            return
-
-
-        if paramfolder_name is not None:
-            pass
-
-
-
-
-        if input_radios[0].value == m.get('setup_package','true'):
-            is_test_folder = True
-        else:
-            is_test_folder = False
-
-        if input_radios[1].value == m.get('setup_package','true'):
-            is_test_folder = True
-        else:
-            is_test_folder = False
-
-
-
-
-
-
-
-        try:
-            setup_local(user_name, password)
-
-        except Unauthorized:
-            submit_button.button_type = 'warning'
-            submit_button.name = m.get('user_auth','unauthorized')
-            return
-        except requests.exceptions.RequestException as e:
-            submit_button.button_type = 'warning'
-            submit_button.name = m.get('user_auth','connection_error')
-            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
-            error_message.object = pn.pane.HTML(error_message.value)
-            return
-        except Exception as e:
-            submit_button.button_type = 'danger'
-            submit_button.name = m.get('user_auth','unexpected')
-            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
-            error_message.object = pn.pane.HTML(error_message.value)
-            return
-        else:
-            submit_button.button_type = 'success'
-            submit_button.name = m.get('user_auth','success')
-            return
-        
-
-    return callback
-
-
-def initial_experiment():
-    pn.extension()
-
-    # form of user name and password
-    input_forms = create_user_auth_forms()
-
-    # form of experiment
-    package_name_form = pn.widgets.TextInput(name=m.get('setup_package','package_name_title'), width=700)
-    input_forms.append(package_name_form)
-
-    assigned_values = sync.fetch_gin_monitoring_assigned_values()
-    if assigned_values['datasetStructure'] == 'for_parameters':
-        paramfolder_form = pn.widgets.TextInput(name=m.get('setup_package','paramfolder_name_title'), width=700)
-        input_forms.append(paramfolder_form)
-
-    options = [m.get('setup_package','true'), m.get('setup_package','false')]
-    init_value = m.get('setup_package','false')
-    test_folder_radio = pn.widgets.RadioBoxGroup(name=m.get('setup_package','test_folder_title'), options=options, inline=True, value=init_value)
-    ci_folder_radio = pn.widgets.RadioBoxGroup(name=m.get('setup_package','ci_folder_title'), options=options, inline=True, value=init_value)
-    input_radios = [test_folder_radio, ci_folder_radio]
-
-    # Instance for exception messages
-    error_message = layout_error_text()
-
-    button = pn.widgets.Button(name= m.get('DEFAULT','end_input'), button_type= "primary", width=700)
-
-    # Define processing after clicking the submit button
-    button.on_click(submit_user_auth_callback(input_forms, input_radios,error_message, button))
-
-    clear_output()
-    display(pn.Column(*input_forms ,*input_radios, button, error_message))

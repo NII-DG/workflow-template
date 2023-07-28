@@ -34,7 +34,7 @@ def input_url_path():
         input_url = str(text_url.value)
         input_path = str(text_path.value)
         err_msg = ""
-        
+
         # URLの検証
         if len(input_url)<=0:
             err_msg = message.get('from_repo_s3', 'empty_url')
@@ -54,7 +54,7 @@ def input_url_path():
             display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'unexpected'))
             raise
-        
+
         # 格納先パスの検証
         if len(err_msg) == 0:
             err_msg = validate.validate_input_path([(input_path, input_url)], experiment_title)
@@ -68,7 +68,7 @@ def input_url_path():
         data = dict()
         data[S3_OBJECT_URL] = parse.unquote(input_url)
         data[DEST_FILE_PATH] = path.create_experiments_with_subpath(experiment_title, input_path)
-        
+
         os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
         with open(path.UNIT_S3_JSON_PATH, mode='w') as f:
             json.dump(data, f, indent=4)
@@ -78,7 +78,7 @@ def input_url_path():
         button.button_style='success'
 
     common.delete_file(path.UNIT_S3_JSON_PATH)
-    
+
     style = {'description_width': 'initial'}
     text_path = Text(
         description = message.get('from_repo_s3', 'file_path'),
@@ -134,7 +134,7 @@ def add_url():
 
 def save_annex():
     """データ取得履歴を記録する
-    
+
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
 
@@ -174,7 +174,7 @@ def get_data():
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
         UnexpectedError: 想定外のエラーが発生した場合
-    
+
     """
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
@@ -208,7 +208,7 @@ def prepare_sync() -> dict:
 
     Returns:
         dict: syncs_with_repoの引数が入った辞書
-    
+
     Exception:
         DidNotFinishError: jsonファイルの形式が想定通りでない場合
 
@@ -245,8 +245,8 @@ def prepare_sync() -> dict:
     sync_repo_args['gitannex_files'] = annex_file_paths
     sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
     sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
-    
+
     common.delete_file(path.UNIT_S3_JSON_PATH)
     common.delete_file(path.ADDURLS_CSV_PATH)
-    
+
     return sync_repo_args

@@ -33,7 +33,7 @@ def get_experiment_title() -> str:
 
     Returns:
         str: 実験パッケージ名
-    
+
     Exception:
         DidNotFinishError: ファイルが存在しない場合
 
@@ -107,7 +107,7 @@ def input_aws_info():
         )
         bucket = s3.Bucket(bucket_name)
 
-    
+
         try:
             response = bucket.meta.client.get_bucket_location(Bucket=bucket_name)
         except ClientError as e:
@@ -184,7 +184,7 @@ def input_aws_info():
 def choose_get_data():
     '''取得データを選択するフォームを出力する
     '''
-    
+
     def generate_dest_list(event):
         try:
             done_button.button_type = "success"
@@ -196,7 +196,7 @@ def choose_get_data():
             multi_s3_dict[SELECTED_PATHS] = s3_key_list
             with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
                 json.dump(multi_s3_dict, f, indent=4)
-            
+
         except Exception as e:
             done_button.button_type = "danger"
             done_button.name = str(e)
@@ -238,7 +238,7 @@ def input_path():
             else:
                 done_button.button_type = "success"
                 done_button.name = message.get('from_repo_s3', 'done_input')
-        
+
             with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
                 multi_s3_dict:dict = json.load(f)
 
@@ -284,8 +284,8 @@ def input_path():
         column.append(gui)
     column.append(done_button)
     display(column)
-    
-    
+
+
 def prepare_addurls_data():
     """リポジトリへのリンク登録のためのcsvファイルを作成する
 
@@ -311,7 +311,7 @@ def add_url():
 
 def save_annex():
     """データ取得履歴を記録する
-    
+
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
 
@@ -342,7 +342,7 @@ def get_data():
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
         UnexpectedError: 想定外のエラーが発生した場合
-    
+
     """
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
@@ -365,7 +365,7 @@ def prepare_sync() -> dict:
 
     Returns:
         dict: syncs_with_repoの引数が入った辞書
-    
+
     Exception:
         DidNotFinishError: jsonファイルの形式が想定通りでない場合
 
@@ -373,7 +373,7 @@ def prepare_sync() -> dict:
     """
 
     display(Javascript('IPython.notebook.save_checkpoint();'))
-    
+
     experiment_title = get_experiment_title()
     path_to_url_dict = get_path_to_url_dict()
     annex_file_paths = list(path_to_url_dict.keys())
@@ -392,8 +392,8 @@ def prepare_sync() -> dict:
     sync_repo_args['gitannex_files'] = annex_file_paths
     sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
     sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
-    
+
     common.delete_file(path.MULTI_S3_JSON_PATH)
     common.delete_file(path.ADDURLS_CSV_PATH)
-    
+
     return sync_repo_args

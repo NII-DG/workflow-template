@@ -296,7 +296,6 @@ def input_path():
     selected_paths = multi_s3_dict[SELECTED_PATHS]
 
     # 入力フォーム表示
-    pn.extension()
     column = pn.Column()
     column.append(message.get('from_repo_s3', 'h3_s3_file'))
     for selected_path in selected_paths:

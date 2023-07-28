@@ -473,9 +473,6 @@ def copy_tmp_results_to_repository():
         shutil.copyfile(src_file_path, dst_file_path)
 
 
-
-
-
 def select_done_save():
     # Check if the verification result exists in the temporary folder
     has_ok = has_result_in_tmp()
@@ -506,16 +503,20 @@ def select_done_save():
             copy_tmp_results_to_repository()
             ## del tmp file
             del_result_in_tmp()
+            ## Record selection information.
+            record_selection_info(True)
             done_button.button_type = 'success'
             done_button.name = message.get('metadata', 'complete_prepare_sync')
-            pass
+            return
         elif selected_value == 1:
             # not record
             ## del tmp file
             del_result_in_tmp()
+            ## Record selection information.
+            record_selection_info(False)
             done_button.button_type = 'success'
             done_button.name = message.get('metadata', 'complete_del_verification_data')
-            pass
+            return
         else:
             # undefined
             done_button.button_type = 'danger'
@@ -523,8 +524,49 @@ def select_done_save():
             html_output.object = msg_display.creat_html_msg(msg=message.get('metadata', 'undefined_option'),fore='#ff0000',tag='p')
             html_output.height = 30
             html_output.width = 900
-            pass
+            return
 
     done_button.on_click(selected)
 
     display(pn.Column(menu_selector, done_button, html_output))
+
+RF_FORM_DATA_FILE = 'base_validate_metadata.json'
+
+def record_selection_info(need_sync:bool):
+
+    # generate path (.tmp/rf_form_data/base_validate_metadata.json)
+    form_data_dir = path.RF_FORM_DATA_DIR
+    if not os.path.exists(form_data_dir):
+            os.makedirs(form_data_dir)
+
+    form_data_path = os.path.join(form_data_dir, RF_FORM_DATA_FILE)
+
+    data = {'need_sync' : need_sync}
+    with open(form_data_path, 'w') as f:
+        json.dump(data, f, indent=4)
+
+def is_need_sync()->bool:
+
+    form_data_path = os.path.join(path.RF_FORM_DATA_DIR, RF_FORM_DATA_FILE)
+
+    if os.path.exists(form_data_path):
+        with open(form_data_path) as f:
+            data = json.load(f)
+        value = data['need_sync']
+
+        if value:
+            # Synchronization required
+            msg = message.get('metadata', 'sync_start')
+            msg_display.display_info(msg)
+        else:
+            # No synchronization required
+            msg = message.get('metadata', 'sync_start')
+            msg_display.display_info(msg)
+
+        return value
+    else:
+        # If the selection information file does not exist
+        # No previous cell has been executed.
+        msg = message.get('nb_exec', 'not_exec_pre_cell')
+        msg_display.display_warm(msg)
+        return False

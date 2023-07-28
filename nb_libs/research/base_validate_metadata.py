@@ -273,7 +273,7 @@ def show_verification_result():
                     save_verification_results(req_body)
                     msg = message.get('metadata', 'verification_ok')
                     msg_display.display_info(msg)
-                    break
+                    return True
 
                 elif status == 'FAILED':
                     # save result
@@ -281,7 +281,7 @@ def show_verification_result():
                     msg = message.get('metadata', 'verification_ng')
                     msg_display.display_info(msg)
                     output_result(request_id)
-                    break
+                    return True
 
                 elif status == 'EXECUTOR_ERROR':
                     err_format = message.get('DEFAULT', 'unexpected_errors_format')
@@ -442,18 +442,19 @@ def del_result_in_tmp():
     """
 
     # get request id from .tmp/validation/request_id.txt
-    request_id = get_request_id()
-
-    # delete .tmp/validation/:request_id
-    ## .tmp/validation/:request_id/
-    tmp_result_folder = os.path.join(path.TMP_VALIDATION_DIR, request_id)
-    if os.path.exists(tmp_result_folder):
-        shutil.rmtree(tmp_result_folder)
-
-    # delete .tmp/validation/request_id.txt
-    request_id_file_path = path.REQUEST_ID_FILE_PATH
-    if os.path.exists(request_id_file_path):
-        os.remove(request_id_file_path)
+    try :
+        request_id = get_request_id()
+        # delete .tmp/validation/:request_id
+        ## .tmp/validation/:request_id/
+        tmp_result_folder = os.path.join(path.TMP_VALIDATION_DIR, request_id)
+        if os.path.exists(tmp_result_folder):
+            shutil.rmtree(tmp_result_folder)
+        # delete .tmp/validation/request_id.txt
+        request_id_file_path = path.REQUEST_ID_FILE_PATH
+        if os.path.exists(request_id_file_path):
+            os.remove(request_id_file_path)
+    except FileNotFoundError:
+        pass
 
 def copy_tmp_results_to_repository():
     """Copy the set of validation result files in the temporary folder to the repository.

@@ -14,6 +14,7 @@ SNAKE_DOC_DIR = 'docs'
 
 # notebook
 RESEARCH_TOP = 'base_FLOW.ipynb'
+BASE_VALIDATE_METADATA = 'base_validate_metadata.ipynb'
 EXPERIMENT_TOP = 'experiment.ipynb'
 PREPARE_FROM_REPOSITORY = 'prepare_from_repository.ipynb'
 PREPARE_UNIT_FROM_S3 = 'prepare_unit_from_s3.ipynb'

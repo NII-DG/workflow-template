@@ -502,7 +502,7 @@ def select_done_save():
             ## copy tmp file to repository
             copy_tmp_results_to_repository()
             ## del tmp file
-            del_result_in_tmp()
+            # del_result_in_tmp()
             ## Record selection information.
             record_selection_info(True)
             done_button.button_type = 'success'
@@ -511,7 +511,7 @@ def select_done_save():
         elif selected_value == 1:
             # not record
             ## del tmp file
-            del_result_in_tmp()
+            # del_result_in_tmp()
             ## Record selection information.
             record_selection_info(False)
             done_button.button_type = 'success'
@@ -545,7 +545,12 @@ def record_selection_info(need_sync:bool):
     with open(form_data_path, 'w') as f:
         json.dump(data, f, indent=4)
 
-def is_need_sync()->bool:
+def del_selection_info_file():
+    form_data_path = os.path.join(path.RF_FORM_DATA_DIR, RF_FORM_DATA_FILE)
+    if os.path.exists(form_data_path):
+        os.remove(form_data_path)
+
+def sync()->(bool|None):
 
     form_data_path = os.path.join(path.RF_FORM_DATA_DIR, RF_FORM_DATA_FILE)
 
@@ -555,18 +560,46 @@ def is_need_sync()->bool:
         value = data['need_sync']
 
         if value:
-            # Synchronization required
-            msg = message.get('metadata', 'sync_start')
+            # Synchronization required verification results
+            msg = message.get('metadata', 'save_verification_and_execution_result')
             msg_display.display_info(msg)
         else:
             # No synchronization required
-            msg = message.get('metadata', 'sync_start')
+            msg = message.get('metadata', 'save_execution_result')
             msg_display.display_info(msg)
-
         return value
     else:
         # If the selection information file does not exist
         # No previous cell has been executed.
         msg = message.get('nb_exec', 'not_exec_pre_cell')
         msg_display.display_warm(msg)
-        return False
+        return None
+
+
+def prepare_sync_arg(mode : bool) -> tuple[list[str], str]:
+    """Create the necessary information for synchronization
+
+    Args:
+        mode (bool): [True : Synchronize verification results, Flase : No synchronization of verification results required]
+    """
+
+    # create git path
+    git_path = []
+    ## this task notebook
+    git_path.append(os.path.join(path.RES_DIR_PATH, path.BASE_VALIDATE_METADATA))
+    if mode:
+        ## add /home/jovyan/validation_results
+        git_path.append(path.VALIDATION_RESULTS_DIR_PATH)
+
+    commit_msg = 'メタデータ検証'
+
+    return git_path, commit_msg
+
+def clean_up(is_finish_sync:bool):
+    if is_finish_sync:
+        # delete .tmp/request_id.txt and .tmp/validation/{request_id}/*
+        del_result_in_tmp()
+        # delete .tmp/rf_form_data/base_validate_metadata.json
+        del_selection_info_file()
+    else :
+        pass

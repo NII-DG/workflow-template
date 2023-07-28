@@ -47,8 +47,8 @@ PKG_INFO_JSON_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
 
 ## File under /home/jovyan/.tmp/
 TMP_DIR = os.path.join(HOME_PATH, '.tmp')
-ADDURLS_CSV_PATH = os.path.join(HOME_PATH, '.tmp/datalad-addurls.csv')
-RF_FORM_DATA_DIR = os.path.join(HOME_PATH, '.tmp/rf_form_data')
+ADDURLS_CSV_PATH = os.path.join(TMP_DIR, 'datalad-addurls.csv')
+RF_FORM_DATA_DIR = os.path.join(TMP_DIR, 'rf_form_data')
 TMP_VALIDATION_DIR = os.path.join(TMP_DIR, 'validation')
 
 ## File under /home/jovyan/.tmp/rf_form_data/

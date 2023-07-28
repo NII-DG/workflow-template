@@ -118,7 +118,6 @@ def convert_url_remove_user_token(url):
 
 def delete_file(file_path:str):
     '''ファイルが存在するか確認してから削除する
-
     '''
     if os.path.isfile(file_path):
         os.remove(file_path)

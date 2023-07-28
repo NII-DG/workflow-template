@@ -1,5 +1,5 @@
 '''prepare_multi_from_s3.ipynbから呼び出されるモジュール'''
-import os, json, urllib, traceback, boto3
+import os, json, boto3
 from json.decoder import JSONDecodeError
 from ipywidgets import Text, Button, Layout, Password
 from IPython.display import display, clear_output, Javascript
@@ -17,14 +17,12 @@ from ..utils.except_class import DidNotFinishError, UnexpectedError
 # 辞書のキー
 PATH_TO_URL = 'path_to_url'
 EX_PKG_NAME = 'ex_pkg_name'
-
 AWS_S3_INFO = 'aws_s3_info'
 AWS_REGION_CODE = 'aws_region_code'
 BUCKET = 'bucket'
 PREFIX = 'prefix'
 PATHS = 'paths'
 SELECTED_PATHS = 'selected_paths'
-
 LOCATION_CONSTRAINT = 'LocationConstraint'
 CONTENTS = 'Contents'
 KEY = 'Key'
@@ -70,12 +68,31 @@ def get_path_to_url_dict() -> dict:
         raise
 
 
+def get_multi_s3_dict() -> dict:
+    '''prepare_multi_from_s3.jsonを開いてデータを取得する
+
+    Returns:
+        jsonファイル
+    Exception:
+        DidNotFinishError: ファイルが存在しない場合
+        JSONDecodeError: jsonファイルの形式が想定通りでない場合
+    '''
+    try:
+        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
+            return json.load(f)
+    except FileNotFoundError as e:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        raise DidNotFinishError() from e
+
+
 def input_aws_info():
     '''AWS接続情報を入力するフォームを出力する
     '''
 
 
     def on_click_callback(clicked_button: Button) -> None:
+        '''入力内容の検証を行う
+        '''
 
         common.delete_file(path.MULTI_S3_JSON_PATH)
 
@@ -84,20 +101,18 @@ def input_aws_info():
         bucket_name = input_bucket_name.value
         prefix = input_prefix.value
 
+        err_msg = ""
         if len(access_key_id) == 0:
-            button.layout=Layout(width='700px')
-            button.description=message.get('from_repo_s3','empty_access_key_id')
-            button.button_style='danger'
-            return
+            err_msg = message.get('from_repo_s3', 'empty_access_key_id')
         elif len(secret_access_key) == 0:
-            button.layout=Layout(width='700px')
-            button.description=message.get('from_repo_s3','empty_secret_access_key')
-            button.button_style='danger'
-            return
+            err_msg = message.get('from_repo_s3', 'empty_secret_access_key')
         elif len(bucket_name) == 0:
-            button.layout=Layout(width='700px')
-            button.description=message.get('from_repo_s3','empty_bucket_name')
-            button.button_style='danger'
+            err_msg = message.get('from_repo_s3', 'empty_bucket_name')
+
+        if len(err_msg) > 0:
+            button.layout = Layout(width='700px')
+            button.description= err_msg
+            button.button_style = 'danger'
             return
 
         s3 = boto3.resource(
@@ -113,9 +128,9 @@ def input_aws_info():
             button.layout=Layout(width='700px')
             button.button_style='danger'
             if e.response['Error']['Code'] == 'NoSuchBucket':
-                button.description = message.get('from_repo_s3','no_such_bucket')
+                button.description = message.get('from_repo_s3', 'no_such_bucket')
             else:
-                button.description = message.get('from_repo_s3','client_error')
+                button.description = message.get('from_repo_s3', 'client_error')
             return
 
         aws_region = response[LOCATION_CONSTRAINT]
@@ -125,13 +140,16 @@ def input_aws_info():
         else:
             response = bucket.meta.client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
 
-        s3_contens_key_list = []
         if not CONTENTS in response:
-            pass
-        else:
-            for content in response[CONTENTS]:
-                if not content[KEY].endswith('/'):
-                    s3_contens_key_list.append(content[KEY])
+            button.layout=Layout(width='700px')
+            button.button_style='danger'
+            button.description = message.get('from_repo_s3', 'no_contents')
+            return
+
+        s3_contens_key_list = []
+        for content in response[CONTENTS]:
+            if not content[KEY].endswith('/'):
+                s3_contens_key_list.append(content[KEY])
 
         aws_s3_info_dict = dict()
         aws_s3_info_dict[AWS_S3_INFO] = {
@@ -141,10 +159,11 @@ def input_aws_info():
             PATHS: s3_contens_key_list
         }
 
+        os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
         with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
             json.dump(aws_s3_info_dict, f, indent=4)
 
-        button.description=message.get('from_repo_s3','done_input')
+        button.description=message.get('from_repo_s3', 'done_input')
         button.button_style='success'
 
 
@@ -163,20 +182,20 @@ def input_aws_info():
         style=style
     )
     input_bucket_name = Text(
-        description=message.get('from_repo_s3','bucket_name'),
-        placeholder=message.get('from_repo_s3','enter_bucket_name'),
+        description=message.get('from_repo_s3', 'bucket_name'),
+        placeholder=message.get('from_repo_s3', 'enter_bucket_name'),
         layout=Layout(width='700px'),
         style=style,
     )
     input_prefix = Text(
-        description=message.get('from_repo_s3','folder_path'),
-        placeholder=message.get('from_repo_s3','enter_folder_path'),
+        description=message.get('from_repo_s3', 'folder_path'),
+        placeholder=message.get('from_repo_s3', 'enter_folder_path'),
         layout=Layout(width='700px'),
         style=style,
     )
 
     common.delete_file(path.MULTI_S3_JSON_PATH)
-    button = Button(description=message.get('from_repo_s3','end_input'), layout=Layout(width='200px'))
+    button = Button(description=message.get('from_repo_s3', 'end_input'), layout=Layout(width='200px'))
     button.on_click(on_click_callback)
     display(input_aws_access_key_id, input_aws_secret_access_key, input_bucket_name, input_prefix, button)
 
@@ -186,13 +205,12 @@ def choose_get_data():
     '''
 
     def generate_dest_list(event):
-        try:
-            done_button.button_type = "success"
-            done_button.name = message.get('from_repo_s3','done_choose')
-            s3_key_list = column[0].value
+        '''選択したデータをファイルに書き込む
+        '''
 
-            with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-                multi_s3_dict:dict = json.load(f)
+        try:
+            s3_key_list = column[0].value
+            multi_s3_dict = get_multi_s3_dict()
             multi_s3_dict[SELECTED_PATHS] = s3_key_list
             with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
                 json.dump(multi_s3_dict, f, indent=4)
@@ -200,22 +218,22 @@ def choose_get_data():
         except Exception as e:
             done_button.button_type = "danger"
             done_button.name = str(e)
+            return
 
-    try:
-        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-            multi_s3_dict:dict = json.load(f)
-    except:
-        pass
+        done_button.button_type = "success"
+        done_button.name = message.get('from_repo_s3', 'done_choose')
 
-    key_list = multi_s3_dict.keys()
-    if len(key_list) != 1 or set(key_list) != {AWS_S3_INFO}:
+    multi_s3_dict = get_multi_s3_dict()
+    keys = multi_s3_dict.keys()
+    if len(keys) != 1 or set(keys) != {AWS_S3_INFO}:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError()
-    s3_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
+    content_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
 
     pn.extension()
     column = pn.Column()
-    column.append(pn.widgets.MultiSelect(name = message.get('from_repo_s3','s3_file'), options=s3_key_list, size=len(s3_key_list), sizing_mode='stretch_width'))
-    done_button = pn.widgets.Button(name= message.get('from_repo_s3','end_choose'), button_type= "primary")
+    column.append(pn.widgets.MultiSelect(name = message.get('from_repo_s3', 's3_file'), options=content_key_list, size=len(content_key_list), sizing_mode='stretch_width'))
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "primary")
     column.append(done_button)
     done_button.on_click(generate_dest_list)
     display(column)
@@ -225,63 +243,54 @@ def input_path():
     '''データの格納先を入力するフォームを出力する
     '''
     def verify_input_text(event):
-        try:
-            experiment_title = get_experiment_title()
-            input_path_url_list = [(line.value_input, line.name) for line in column if 'TextInput' in str(type(line))]
+        '''入力完了ボタンクリック時に呼ばれる
+        '''
 
-            # 格納先パスの検証
-            err_msg = validate.validate_input_path(input_path_url_list, experiment_title)
-            if len(err_msg) > 0:
-                done_button.button_type = "danger"
-                done_button.name = err_msg
-                return
-            else:
-                done_button.button_type = "success"
-                done_button.name = message.get('from_repo_s3', 'done_input')
+        experiment_title = get_experiment_title()
+        input_path_url_list = [(line.value_input, line.name) for line in column if 'TextInput' in str(type(line))]
 
-            with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-                multi_s3_dict:dict = json.load(f)
-
-            bucket_name = multi_s3_dict[AWS_S3_INFO][BUCKET]
-            aws_region = multi_s3_dict[AWS_S3_INFO][AWS_REGION_CODE]            
-
-            path_to_url_dict = dict()
-            for input_path, input_url in input_path_url_list:
-                input_path = path.create_experiments_with_subpath(experiment_title, input_path)
-                input_url = input_url.replace(" ", "+")
-                input_url = 'https://{}.s3.{}.amazonaws.com/{}'.format(bucket_name, aws_region, input_url)
-                path_to_url_dict[input_path] = input_url
-
-            multi_s3_dict[PATH_TO_URL] = path_to_url_dict
-            with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
-                json.dump(multi_s3_dict, f, indent=4)
-
-        except Exception as e:
+        # 格納先パスの検証
+        err_msg = validate.validate_input_path(input_path_url_list, experiment_title)
+        if len(err_msg) > 0:
             done_button.button_type = "danger"
-            done_button.name = str(e)
+            done_button.name = err_msg
+            return
 
-    try:
-        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-            multi_s3_dict:dict = json.load(f)
-    except Exception as e:
-        pass
-    key_list = multi_s3_dict.keys()
-    if len(key_list) != 2 or set(key_list) != {AWS_S3_INFO, SELECTED_PATHS}:
-        raise
+        done_button.button_type = "success"
+        done_button.name = message.get('from_repo_s3', 'done_input')
+        multi_s3_dict = get_multi_s3_dict()
+
+        bucket_name = multi_s3_dict[AWS_S3_INFO][BUCKET]
+        aws_region = multi_s3_dict[AWS_S3_INFO][AWS_REGION_CODE]
+
+        path_to_url_dict = dict()
+        for input_path, input_url in input_path_url_list:
+            input_path = path.create_experiments_with_subpath(experiment_title, input_path)
+            input_url = input_url.replace(" ", "+")
+            input_url = 'https://{}.s3.{}.amazonaws.com/{}'.format(bucket_name, aws_region, input_url)
+            path_to_url_dict[input_path] = input_url
+
+        multi_s3_dict[PATH_TO_URL] = path_to_url_dict
+        with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
+            json.dump(multi_s3_dict, f, indent=4)
+
+
+    multi_s3_dict = get_multi_s3_dict()
+    keys = multi_s3_dict.keys()
+    if len(keys) != 2 or set(keys) != {AWS_S3_INFO, SELECTED_PATHS}:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        raise DidNotFinishError()
 
     selected_paths = multi_s3_dict[SELECTED_PATHS]
 
-    done_button = pn.widgets.Button(name= message.get('from_repo_s3','end_input'), button_type= "primary")
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary")
     done_button.on_click(verify_input_text)
 
     pn.extension()
     column = pn.Column()
-    dest_list = []
-    dest_list.append(message.get('from_repo_s3','h3_s3_file'))
+    column.append(message.get('from_repo_s3', 'h3_s3_file'))
     for selected_path in selected_paths:
-        dest_list.append(pn.widgets.TextInput(name=selected_path, placeholder=message.get('from_repo_s3','enter_a_file_path'), width=700))
-    for gui in dest_list:
-        column.append(gui)
+        column.append(pn.widgets.TextInput(name=selected_path, placeholder=message.get('from_repo_s3', 'enter_a_file_path'), width=700))
     column.append(done_button)
     display(column)
 
@@ -292,7 +301,6 @@ def prepare_addurls_data():
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
     """
     annex_util.create_csv(get_path_to_url_dict())
 
@@ -321,7 +329,6 @@ def save_annex():
     try:
         git_module.git_annex_lock(path.HOME_PATH)
         sync.save_annex_and_register_metadata(gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3'))
-
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         raise UnexpectedError() from e
@@ -337,15 +344,11 @@ def get_data():
         DidNotFinishError: .tmp内のファイルが存在しない場合
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
         UnexpectedError: 想定外のエラーが発生した場合
-
     """
+    experiment_title = get_experiment_title()
+    path_to_url_dict = get_path_to_url_dict()
+    annex_file_paths = list(path_to_url_dict.keys())
     try:
-        # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
-        # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
-        experiment_title = get_experiment_title()
-        path_to_url_dict = get_path_to_url_dict()
-        annex_file_paths = list(path_to_url_dict.keys())
-        # Obtain the actual data of the created link.
         api.get(path=annex_file_paths)
         annex_util.annex_to_git(annex_file_paths, experiment_title)
     except Exception as e:

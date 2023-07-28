@@ -25,11 +25,8 @@ def input_url_path():
 
     Exception:
         FileNotFoundError: 実験パッケージ名を記録したjsonファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
     """
-
 
     def on_click_callback(clicked_button: Button) -> None:
 
@@ -214,7 +211,7 @@ def prepare_sync() -> dict:
         DidNotFinishError: jsonファイルの形式が想定通りでない場合
         KeyError, JSONDecodeError: .tmp内のjsonファイルの形式が不正な場合
     """
-    
+
     display(Javascript('IPython.notebook.save_checkpoint();'))
 
     git_file_paths = []

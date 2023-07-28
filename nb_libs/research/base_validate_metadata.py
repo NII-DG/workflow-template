@@ -193,6 +193,7 @@ def verify_metadata(ro_crate)->Any:
             tmp_save_request_id(request_id)
             msg = message.get('metadata', 'complete_verification_req')
             msg_display.display_info(msg)
+            msg_display.display_msg(message.get('metadata', 'show_req_id').format(request_id))
             return True
         else:
             # 想定外のエラーの場合

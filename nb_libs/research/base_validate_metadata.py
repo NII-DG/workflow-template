@@ -1,4 +1,5 @@
 
+import shutil
 import requests
 from utils.params import repository_id, token, param_json
 from utils.git import git_module
@@ -370,9 +371,8 @@ def save_verification_results(result):
     -----------------
     """
     request_id = get_request_id()
-    vaid_dir = path.TMP_VALIDATION_DIR
 
-    tmp_result_folder = os.path.join(vaid_dir, request_id)
+    tmp_result_folder = os.path.join(path.TMP_VALIDATION_DIR, request_id)
 
     if not os.path.exists(tmp_result_folder):
         os.makedirs(tmp_result_folder)
@@ -394,7 +394,97 @@ def output_result(request_id):
     msg_display.display_msg(result)
 
 
+def has_result_in_tmp():
+    """Existence check of the validation result file set
+
+    Returns:
+        [bool]: [True : exist, False : not exist]
+    """
+
+    # get request id from .tmp/validation/request_id.txt
+    try :
+        request_id = get_request_id()
+    except FileNotFoundError as e:
+        warm_err = message.get('metadata', 'non_saving_data')
+        msg_display.display_err(warm_err)
+        return False
+
+    # check having 3 validated results
+    ## .tmp/validation/:request_id/
+    tmp_result_folder = os.path.join(path.TMP_VALIDATION_DIR, request_id)
+    ### ro_crate.json
+    if not os.path.isfile(os.path.join(tmp_result_folder, RO_CRATE_FILE_NAME)):
+        # ro_crate.json does not exist
+        warm_err = message.get('metadata', 'non_saving_data')
+        msg_display.display_err(warm_err)
+        return False
+    ### entity_ids.json
+    if not os.path.isfile(os.path.join(tmp_result_folder, ENTITY_IDS_FILE_NAME)):
+        # entity_ids.json does not exist
+        warm_err = message.get('metadata', 'non_saving_data')
+        msg_display.display_err(warm_err)
+        return False
+        pass
+    ### results.json
+    if not os.path.isfile(os.path.join(tmp_result_folder, RESULTS_FILE_NAME)):
+        # results.json does not exist
+        warm_err = message.get('metadata', 'non_saving_data')
+        msg_display.display_err(warm_err)
+        return False
+
+    return True
+
+def del_result_in_tmp():
+    """delete temporary validation-related files(.tmp/validation/{request_id}/*, .tmp/validation/request_id.txt)
+    """
+
+    # get request id from .tmp/validation/request_id.txt
+    request_id = get_request_id()
+
+    # delete .tmp/validation/:request_id
+    ## .tmp/validation/:request_id/
+    tmp_result_folder = os.path.join(path.TMP_VALIDATION_DIR, request_id)
+    if os.path.exists(tmp_result_folder):
+        shutil.rmtree(tmp_result_folder)
+
+    # delete .tmp/validation/request_id.txt
+    request_id_file_path = path.REQUEST_ID_FILE_PATH
+    if os.path.exists(request_id_file_path):
+        os.remove(request_id_file_path)
+
+def copy_tmp_results_to_repository():
+    """Copy the set of validation result files in the temporary folder to the repository.
+    """
+
+    # get request id from .tmp/validation/request_id.txt
+    request_id = get_request_id()
+
+
+    repo_result_dir = path.VALIDATION_RESULTS_DIR_PATH
+    # If the repository does not have a folder for storing verification results, create one.
+    if not os.path.exists(repo_result_dir):
+            os.makedirs(repo_result_dir)
+
+    tmp_result_dir = os.path.join(path.TMP_VALIDATION_DIR, request_id)
+
+    for file in os.listdir(tmp_result_dir):
+        src_file_path = os.path.join(tmp_result_dir, file)
+        dst_file_path = os.path.join(repo_result_dir, file)
+        shutil.copyfile(src_file_path, dst_file_path)
+
+
+
+
+
 def select_done_save():
+    # Check if the verification result exists in the temporary folder
+    has_ok = has_result_in_tmp()
+    if not has_ok :
+        # If there is no verification result, the previous cell may not have been executed
+        return
+
+    # The data to be saved exists.
+    # Generate and display selection forms
     pn.extension()
 
     option = {}
@@ -413,15 +503,16 @@ def select_done_save():
         if selected_value == 0:
             # record
             ## copy tmp file to repository
-
+            copy_tmp_results_to_repository()
             ## del tmp file
+            del_result_in_tmp()
             done_button.button_type = 'success'
             done_button.name = message.get('metadata', 'complete_prepare_sync')
             pass
         elif selected_value == 1:
             # not record
             ## del tmp file
-
+            del_result_in_tmp()
             done_button.button_type = 'success'
             done_button.name = message.get('metadata', 'complete_del_verification_data')
             pass
@@ -435,6 +526,5 @@ def select_done_save():
             pass
 
     done_button.on_click(selected)
-
 
     display(pn.Column(menu_selector, done_button, html_output))

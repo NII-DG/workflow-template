@@ -35,6 +35,7 @@ HOME_PATH = os.environ['HOME']
 SYS_PATH = os.path.join(HOME_PATH, '.dg-sys')
 FROW_PATH = os.path.join(HOME_PATH, FLOW_DIR)
 EXPERIMENTS_PATH = os.path.join(HOME_PATH, 'experiments')
+VALIDATION_RESULTS_DIR_PATH = os.path.join(HOME_PATH, 'validation_results')
 
 ## Directory under /home/jovyan/WORKFLOWS
 DATA_PATH = os.path.join(FROW_PATH, 'data')

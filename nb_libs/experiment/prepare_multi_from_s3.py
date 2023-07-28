@@ -13,6 +13,7 @@ from ..utils.gin import sync
 from ..utils.common import common
 from ..utils.except_class import DidNotFinishError, UnexpectedError
 
+
 # 辞書のキー
 PATH_TO_URL = 'path_to_url'
 EX_PKG_NAME = 'ex_pkg_name'
@@ -28,15 +29,14 @@ LOCATION_CONSTRAINT = 'LocationConstraint'
 CONTENTS = 'Contents'
 KEY = 'Key'
 
+
 def get_experiment_title() -> str:
     '''ex_pkg_info.jsonを開いて実験パッケージ名を取得する
 
     Returns:
         str: 実験パッケージ名
-
     Exception:
         DidNotFinishError: ファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
     '''
     try:
@@ -49,15 +49,14 @@ def get_experiment_title() -> str:
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))
         raise
 
+
 def get_path_to_url_dict() -> dict:
     '''prepare_multi_from_s3.jsonを開いてデータを取得する
 
     Returns:
         jsonファイルの'path_to_url'の項目
-
     Exception:
         DidNotFinishError: ファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
     '''
     try:
@@ -74,6 +73,7 @@ def get_path_to_url_dict() -> dict:
 def input_aws_info():
     '''AWS接続情報を入力するフォームを出力する
     '''
+
 
     def on_click_callback(clicked_button: Button) -> None:
 
@@ -106,7 +106,6 @@ def input_aws_info():
             aws_secret_access_key = secret_access_key
         )
         bucket = s3.Bucket(bucket_name)
-
 
         try:
             response = bucket.meta.client.get_bucket_location(Bucket=bucket_name)
@@ -147,6 +146,7 @@ def input_aws_info():
 
         button.description=message.get('from_repo_s3','done_input')
         button.button_style='success'
+
 
     # テキストボックス
     style = {'description_width': 'initial'}
@@ -291,18 +291,17 @@ def prepare_addurls_data():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
     """
     annex_util.create_csv(get_path_to_url_dict())
+
 
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         AddurlsError: addurlsに失敗した場合
     """
     annex_util.addurl()
@@ -314,12 +313,9 @@ def save_annex():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
         UnexpectedError: 想定外のエラーが発生した場合
     """
-
     path_to_url_dict = get_path_to_url_dict()
     annex_file_paths = list(path_to_url_dict.keys())
     try:
@@ -333,14 +329,13 @@ def save_annex():
         clear_output()
         display_util.display_info(message.get('from_repo_s3', 'process_success'))
 
+
 def get_data():
     """取得データの実データをダウンロードする
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
         UnexpectedError: 想定外のエラーが発生した場合
 
     """
@@ -360,15 +355,14 @@ def get_data():
         clear_output()
         display_util.display_info(message.get('from_repo_s3', 'download_success'))
 
+
 def prepare_sync() -> dict:
     """同期の準備を行う
 
     Returns:
         dict: syncs_with_repoの引数が入った辞書
-
     Exception:
         DidNotFinishError: jsonファイルの形式が想定通りでない場合
-
         KeyError, JSONDecodeError: .tmp内のjsonファイルの形式が不正な場合
     """
 

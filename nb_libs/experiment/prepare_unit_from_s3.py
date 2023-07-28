@@ -13,10 +13,12 @@ from ..utils.common import common
 from ..utils.aws import s3
 from ..utils.except_class import DidNotFinishError, UnexpectedError
 
+
 # 辞書のキー
 S3_OBJECT_URL = 's3_object_url'
 DEST_FILE_PATH = 'dest_file_path'
 EX_PKG_NAME = 'ex_pkg_name'
+
 
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
@@ -27,6 +29,8 @@ def input_url_path():
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
 
     """
+
+
     def on_click_callback(clicked_button: Button) -> None:
 
         common.delete_file(path.UNIT_S3_JSON_PATH)
@@ -77,6 +81,7 @@ def input_url_path():
         button.layout=Layout(width='250px')
         button.button_style='success'
 
+
     common.delete_file(path.UNIT_S3_JSON_PATH)
 
     style = {'description_width': 'initial'}
@@ -97,14 +102,13 @@ def input_url_path():
     button.on_click(on_click_callback)
     display(text_url, text_path, button)
 
+
 def prepare_addurls_data():
     """リポジトリへのリンク登録のためのcsvファイルを作成する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
     """
     try:
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
@@ -121,25 +125,24 @@ def prepare_addurls_data():
     else:
         annex_util.create_csv({dest_file_path: input_url})
 
+
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         AddurlsError: addurlsに失敗した場合
     """
     annex_util.addurl()
     display_util.display_info(message.get('from_repo_s3', 'create_link_success'))
+
 
 def save_annex():
     """データ取得履歴を記録する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
         UnexpectedError: 想定外のエラーが発生した場合
     """
     try:
@@ -165,16 +168,14 @@ def save_annex():
         clear_output()
         display_util.display_info(message.get('from_repo_s3', 'process_success'))
 
+
 def get_data():
     """取得データの実データをダウンロードする
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
         UnexpectedError: 想定外のエラーが発生した場合
-
     """
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
@@ -203,18 +204,17 @@ def get_data():
         clear_output()
         display_util.display_info(message.get('from_repo_s3', 'download_success'))
 
+
 def prepare_sync() -> dict:
     """同期の準備を行う
 
     Returns:
         dict: syncs_with_repoの引数が入った辞書
-
     Exception:
         DidNotFinishError: jsonファイルの形式が想定通りでない場合
-
         KeyError, JSONDecodeError: .tmp内のjsonファイルの形式が不正な場合
     """
-
+    
     display(Javascript('IPython.notebook.save_checkpoint();'))
 
     git_file_paths = []

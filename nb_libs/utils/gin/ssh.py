@@ -20,9 +20,9 @@ def create_key():
     """SSHキーを作成"""
     if not os.path.isfile(__SSH_KEY_PATH):
         common.exec_subprocess(f'ssh-keygen -t ed25519 -N "" -f {__SSH_KEY_PATH}')
-        msg_display.display_info(msg_mod.get('setup', 'ssh_create_success'))
+        msg_display.display_info(msg_mod.get('setup_sync', 'ssh_create_success'))
     else:
-        msg_display.display_warm(msg_mod.get('setup', 'ssh_already_create'))
+        msg_display.display_warm(msg_mod.get('setup_sync', 'ssh_already_create'))
 
 
 def upload_ssh_key():
@@ -38,17 +38,17 @@ def upload_ssh_key():
         msg = response.json()
 
         if response.status_code == HTTPStatus.CREATED:
-            msg_display.display_info(msg_mod.get('setup', 'ssh_upload_success'))
+            msg_display.display_info(msg_mod.get('setup_sync', 'ssh_upload_success'))
         elif msg['message'] == 'Key content has been used as non-deploy key':
-            msg_display.display_warm(msg_mod.get('setup', 'ssh_already_upload'))
+            msg_display.display_warm(msg_mod.get('setup_sync', 'ssh_already_upload'))
         else:
             response.raise_for_status()
 
     except requests.exceptions.RequestException:
-        msg_display.display_err(msg_mod.get('setup', 'connection_error'))
+        msg_display.display_err(msg_mod.get('setup_sync', 'connection_error'))
         raise
     except Exception:
-        msg_display.display_err(msg_mod.get('setup', 'unexpected'))
+        msg_display.display_err(msg_mod.get('setup_sync', 'unexpected'))
         raise
 
 

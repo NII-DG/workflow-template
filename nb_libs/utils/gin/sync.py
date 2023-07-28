@@ -54,7 +54,6 @@ def update_repo_url():
 
     Raises:
         requests.exceptions.RequestException: 接続の確立不良
-        FileNotFoundError: 処理に必要なファイルが存在しない
         RepositoryNotExist: リモートリポジトリの情報が取得できない
         UrlUpdateError: 想定外のエラーにより最新化に失敗した
     """
@@ -87,7 +86,9 @@ def update_repo_url():
             if 'No such remote' in result.stderr:
                 subprocess.run('git remote add ' + update_target[0] + ' ' + update_target[1], shell=True)
 
-    except (requests.exceptions.RequestException, RepositoryNotExist, FileNotFoundError):
+    except requests.exceptions.RequestException:
+        raise
+    except RepositoryNotExist:
         raise
     except Exception as e:
         raise UrlUpdateError from e
@@ -104,12 +105,12 @@ def datalad_create(dir_path:str):
     """
     if not os.path.isdir(os.path.join(dir_path, ".datalad")):
         common.exec_subprocess(cmd=f'datalad create --force {dir_path}')
-        msg_display.display_info(msg_mod.get('setup', 'datalad_create_success'))
+        msg_display.display_info(msg_mod.get('setup_sync', 'datalad_create_success'))
     else:
-        msg_display.display_warm(msg_mod.get('setup', 'datalad_create_already'))
+        msg_display.display_warm(msg_mod.get('setup_sync', 'datalad_create_already'))
 
 
-def setup_sync():
+def prepare_sync():
     """同期するコンテンツの調整"""
 
     # S3にあるデータをGIN-forkに同期しないための設定
@@ -153,12 +154,7 @@ def setup_sibling():
 
 
 def push_annex_branch():
-    """git-annexブランチをpushする
-
-    Note:
-        リポジトリ名の変更時に正常動作するために必要
-        リモートにgit-annexブランチが無い場合、リポジトリ名が変更されるとpushできない
-    """
+    """git-annexブランチをpushする"""
     common.exec_subprocess(cmd=f'git push {SIBLING} git-annex:git-annex')
 
 

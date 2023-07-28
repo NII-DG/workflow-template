@@ -82,7 +82,7 @@ def get_multi_s3_dict() -> dict:
             return json.load(f)
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
-        raise DidNotFinishError() from e
+        raise DidNotFinishError(message.get('from_repo_s3', 'did_not_finish')) from e
 
 
 def input_aws_info():
@@ -91,16 +91,16 @@ def input_aws_info():
 
 
     def on_click_callback(clicked_button: Button) -> None:
-        '''入力内容の検証を行う
+        '''入力されたAWS接続情報の検証を行いファイルに記録する
         '''
 
         common.delete_file(path.MULTI_S3_JSON_PATH)
-
         access_key_id = input_aws_access_key_id.value
         secret_access_key = input_aws_secret_access_key.value
         bucket_name = input_bucket_name.value
         prefix = input_prefix.value
 
+        # 入力値検証
         err_msg = ""
         if len(access_key_id) == 0:
             err_msg = message.get('from_repo_s3', 'empty_access_key_id')
@@ -115,6 +115,7 @@ def input_aws_info():
             button.button_style = 'danger'
             return
 
+        # s3接続確認
         s3 = boto3.resource(
             's3',
             aws_access_key_id = access_key_id,
@@ -194,6 +195,7 @@ def input_aws_info():
         style=style,
     )
 
+    # 入力フォーム表示
     common.delete_file(path.MULTI_S3_JSON_PATH)
     button = Button(description=message.get('from_repo_s3', 'end_input'), layout=Layout(width='200px'))
     button.on_click(on_click_callback)
@@ -202,10 +204,15 @@ def input_aws_info():
 
 def choose_get_data():
     '''取得データを選択するフォームを出力する
+
+    Exception:
+        DidNotFinishError: ファイルが存在しない場合
+        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
     '''
 
+
     def generate_dest_list(event):
-        '''選択したデータをファイルに書き込む
+        '''選択したデータをファイルに記録する
         '''
 
         try:
@@ -214,7 +221,6 @@ def choose_get_data():
             multi_s3_dict[SELECTED_PATHS] = s3_key_list
             with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
                 json.dump(multi_s3_dict, f, indent=4)
-
         except Exception as e:
             done_button.button_type = "danger"
             done_button.name = str(e)
@@ -223,6 +229,7 @@ def choose_get_data():
         done_button.button_type = "success"
         done_button.name = message.get('from_repo_s3', 'done_choose')
 
+
     multi_s3_dict = get_multi_s3_dict()
     keys = multi_s3_dict.keys()
     if len(keys) != 1 or set(keys) != {AWS_S3_INFO}:
@@ -230,6 +237,7 @@ def choose_get_data():
         raise DidNotFinishError()
     content_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
 
+    # 入力フォーム表示
     pn.extension()
     column = pn.Column()
     column.append(pn.widgets.MultiSelect(name = message.get('from_repo_s3', 's3_file'), options=content_key_list, size=len(content_key_list), sizing_mode='stretch_width'))
@@ -241,9 +249,13 @@ def choose_get_data():
 
 def input_path():
     '''データの格納先を入力するフォームを出力する
+
+    Exception:
+        DidNotFinishError: ファイルが存在しない場合
+        JSONDecodeError: jsonファイルの形式が想定通りでない場合
     '''
     def verify_input_text(event):
-        '''入力完了ボタンクリック時に呼ばれる
+        '''入力された格納先を検証しファイルに記録する
         '''
 
         experiment_title = get_experiment_title()
@@ -256,10 +268,7 @@ def input_path():
             done_button.name = err_msg
             return
 
-        done_button.button_type = "success"
-        done_button.name = message.get('from_repo_s3', 'done_input')
         multi_s3_dict = get_multi_s3_dict()
-
         bucket_name = multi_s3_dict[AWS_S3_INFO][BUCKET]
         aws_region = multi_s3_dict[AWS_S3_INFO][AWS_REGION_CODE]
 
@@ -274,6 +283,9 @@ def input_path():
         with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
             json.dump(multi_s3_dict, f, indent=4)
 
+        done_button.button_type = "success"
+        done_button.name = message.get('from_repo_s3', 'done_input')
+
 
     multi_s3_dict = get_multi_s3_dict()
     keys = multi_s3_dict.keys()
@@ -283,15 +295,15 @@ def input_path():
 
     selected_paths = multi_s3_dict[SELECTED_PATHS]
 
-    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary")
-    done_button.on_click(verify_input_text)
-
+    # 入力フォーム表示
     pn.extension()
     column = pn.Column()
     column.append(message.get('from_repo_s3', 'h3_s3_file'))
     for selected_path in selected_paths:
         column.append(pn.widgets.TextInput(name=selected_path, placeholder=message.get('from_repo_s3', 'enter_a_file_path'), width=700))
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary")
     column.append(done_button)
+    done_button.on_click(verify_input_text)
     display(column)
 
 

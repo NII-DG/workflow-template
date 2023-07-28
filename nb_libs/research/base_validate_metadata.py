@@ -121,10 +121,14 @@ def prepare_matadata()->Any:
         msg_display.display_err(msg)
         raise DGTaskError() from e
 
-def not_exec_pre_cell():
+def not_exec_pre_cell_raise():
     msg = message.get('nb_exec', 'not_exec_pre_cell')
     msg_display.display_err(msg)
     raise DGTaskError('The immediately preceding cell may not have been executed')
+
+def not_exec_pre_cell():
+    msg = message.get('nb_exec', 'not_exec_pre_cell')
+    msg_display.display_err(msg)
 
 
 def pkg_metadata(metadata)->Any:

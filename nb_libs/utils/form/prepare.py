@@ -144,11 +144,11 @@ def initial_gin_user_auth():
     button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
 
     clear_output()
-    display(pn.Column(*user_auth_forms, button, error_message))
-    # for form in user_auth_forms:
-    #    display(form)
-    #display(button)
-    #display(error_message)
+    #display(pn.Column(*user_auth_forms, button, error_message))
+    for form in user_auth_forms:
+        display(form)
+    display(button)
+    display(error_message)
 
 
 def create_user_auth_forms():

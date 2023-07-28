@@ -1,6 +1,7 @@
 import os
 import json
 from http import HTTPStatus
+from typing import Tuple
 from urllib import parse
 from ..gin import api
 from ..message import display, message
@@ -76,3 +77,8 @@ def update_param_url(remote_origin_url:str):
                 flg = False
                 display.display_err(message.get('param_json','not_found_error'))
                 raise Exception
+
+
+def get_core_scheme_netloc()->Tuple[str, str]:
+    params = get_params()
+    return params['dgCore']['Scheme'], params['dgCore']['Netloc']

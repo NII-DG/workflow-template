@@ -256,7 +256,6 @@ def show_verification_result():
             req_body = response.json()
             if response.status_code == HTTPStatus.OK:
                 status = req_body['status']
-
                 if status == 'UNKNOWN':
                     err_format = message.get('DEFAULT', 'unexpected_errors_format')
                     reason = message.get('metadata', 'no_exist_req')
@@ -301,13 +300,13 @@ def show_verification_result():
                     reason = message.get('metadata', 'cancel')
                     msg_display.display_err(err_format.format(reason.format(request_id)))
                     break
-
             else:
                 # Other than 200 OK
                 # Unexpected errors
                 msg = message.get('DEFAULT', 'unexpected')
                 msg_display.display_err(msg)
-                raise DGTaskError('The request to the metadata validation service failed. [ERROR] : {}'.format(req_body['message']))
+                msg_display.display_err('The request to the metadata validation service failed. [ERROR] : {}'.format(req_body['message']))
+                continue
         else:
             clear_output()
             # Re-execution is required

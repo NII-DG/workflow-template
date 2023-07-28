@@ -184,17 +184,7 @@ def input_aws_info():
 def choose_get_data():
     '''取得データを選択するフォームを出力する
     '''
-    try:
-        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
-            multi_s3_dict:dict = json.load(f)
-    except:
-        pass
-
-    key_list = multi_s3_dict.keys()
-    if len(key_list) != 1 or set(key_list) != {AWS_S3_INFO}:
-        raise    
-    s3_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
-
+    
     def generate_dest_list(event):
         try:
             done_button.button_type = "success"
@@ -210,7 +200,18 @@ def choose_get_data():
         except Exception as e:
             done_button.button_type = "danger"
             done_button.name = str(e)
-        
+
+    try:
+        with open(path.MULTI_S3_JSON_PATH, mode='r') as f:
+            multi_s3_dict:dict = json.load(f)
+    except:
+        pass
+
+    key_list = multi_s3_dict.keys()
+    if len(key_list) != 1 or set(key_list) != {AWS_S3_INFO}:
+        raise DidNotFinishError()
+    s3_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
+
     pn.extension()
     column = pn.Column()
     column.append(pn.widgets.MultiSelect(name = message.get('from_repo_s3','s3_file'), options=s3_key_list, size=len(s3_key_list), sizing_mode='stretch_width'))
@@ -265,8 +266,8 @@ def input_path():
     except Exception as e:
         pass
     key_list = multi_s3_dict.keys()
-#     if len(key_list) != 2 or set(key_list) != {AWS_S3_INFO, SELECTED_PATHS}:
-#         raise
+    if len(key_list) != 2 or set(key_list) != {AWS_S3_INFO, SELECTED_PATHS}:
+        raise
 
     selected_paths = multi_s3_dict[SELECTED_PATHS]
 

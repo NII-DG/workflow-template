@@ -5,6 +5,7 @@ from ipywidgets import Text, Button, Layout, Password
 from IPython.display import display, clear_output, Javascript
 import panel as pn
 from datalad import api
+from botocore.exceptions import ClientError
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
@@ -106,9 +107,20 @@ def input_aws_info():
         )
         bucket = s3.Bucket(bucket_name)
 
-        response = bucket.meta.client.get_bucket_location(Bucket=bucket_name)
+    
+        try:
+            response = bucket.meta.client.get_bucket_location(Bucket=bucket_name)
+        except ClientError as e:
+            button.layout=Layout(width='700px')
+            button.button_style='danger'
+            if e.response['Error']['Code'] == 'NoSuchBucket':
+                button.description = message.get('from_repo_s3','no_such_bucket')
+            else:
+                button.description = message.get('from_repo_s3','client_error')
+            return
+
         aws_region = response[LOCATION_CONSTRAINT]
-        
+
         if len(prefix)==0:
             response = bucket.meta.client.list_objects_v2(Bucket=bucket_name)
         else:

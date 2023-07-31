@@ -10,7 +10,7 @@ def get_current_experiment_title():
         現在実験中の実験パッケージ名 (初期設定が未完了の場合はNone)
     '''
     try:
-        with open(path.PKG_INFO_PATH, mode='r') as f:
+        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
             return json.load(f)['ex_pkg_name']
     except Exception:
         return None

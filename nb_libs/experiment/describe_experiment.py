@@ -5,7 +5,7 @@ from IPython.display import display, HTML
 import nb_libs.utils.message.display as display_util
 import nb_libs.utils.message.message as message
 import nb_libs.utils.path.path as path
-from nb_libs.utils.params.ex_pkg_name import get_current_experiment_title
+from nb_libs.utils.params.ex_pkg_info import get_current_experiment_title
 from nb_libs.utils.gin import sync
 from nb_libs.utils.path.display import button_html
 

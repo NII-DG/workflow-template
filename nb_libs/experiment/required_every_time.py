@@ -255,4 +255,7 @@ def initial_experiment():
     button.on_click(submit_init_experiment_callback(input_forms, input_radios, error_message, button))
 
     clear_output()
-    display(pn.Column(*input_forms, test_colum, ci_colum, button, error_message))
+    #display(pn.Column(*input_forms, test_colum, ci_colum, button, error_message))
+    for form in input_forms:
+        display(form)
+    display(pn.Column(test_colum, ci_colum, button, error_message))

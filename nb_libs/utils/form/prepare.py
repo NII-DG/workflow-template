@@ -6,11 +6,13 @@ import traceback
 import panel as pn
 import urllib
 import re
+import os
 from ..common import common
 from ..params import user_info, token, param_json
 from ..gin import api as gin_api
 from ..git import git_module as git
 from ..message import message as m
+from ..path import path as p
 from ..except_class import Unauthorized
 
 
@@ -60,6 +62,25 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
     return callback
 
 
+def validate_format_username(user_name):
+    """GIN-fork username format check
+
+    Args:
+        user_name ([str]): [GIN-fork username]
+
+    Returns:
+        [Match[str] | None]: [Returns None if format does not match]
+    """
+    validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
+    return validation.fullmatch(user_name)
+
+
+def validate_format_input(input_text):
+    """文字制限（50文字以内, 半角英数字, および"-", "_", "."のみ）"""
+    validation = re.compile(r'^[a-zA-Z0-9\-_.]{1,50}$')
+    return validation.fullmatch(input_text)
+
+
 def validate_user_auth(user_name, password, submit_button_user_auth):
     ## user name
     if len(user_name) <= 0:
@@ -81,17 +102,54 @@ def validate_user_auth(user_name, password, submit_button_user_auth):
     return True
 
 
-def validate_format_username(user_name):
-    """GIN-fork username format check
+def validate_experiment_folder_name(name:str, path:str, title:str, submit_button)->bool:
+    """format check for folder title
 
     Args:
-        user_name ([str]): [GIN-fork username]
+        name (str): Folder name entered
+        path (str): path of the folder
+        title (str): Name to be displayed in error statements
+        submit_button: pn.widgets.Button()
 
     Returns:
-        [Match[str] | None]: [Returns None if format does not match]
+        bool: Whether the format is correct
     """
-    validation = re.compile(r'^[a-zA-Z0-9\-_.]+$')
-    return validation.fullmatch(user_name)
+
+    if len(name)  <= 0:
+        submit_button.button_type = 'warning'
+        submit_button.name = m.get('setup_package','empty_error').format(title)
+        return False
+
+    if not validate_format_username(name):
+        submit_button.button_type = 'warning'
+        submit_button.name = m.get('setup_package','pattern_error').format(title)
+        return False
+
+    if os.path.exists(path):
+        submit_button.button_type = 'warning'
+        submit_button.name = m.get('setup_package','already_exist_error').format(title, name)
+        return False
+
+    return True
+
+
+def validate_parameter_folder_name(name, pkg_name, submit_button)->bool:
+
+    if not validate_experiment_folder_name(submit_button, name,
+                    p.create_experiments_with_subpath(pkg_name, name),
+                    m.get('setup_package','paramfolder_title')):
+        return False
+
+    if name == pkg_name:
+        submit_button.button_type = 'warning'
+        submit_button.name = m.get('setup_package','paramfolder_same_pkg_error')
+        return False
+    elif name == 'parameter':
+        submit_button.button_type = 'warning'
+        submit_button.name = m.get('setup_package','paramfolder_prohibited_error')
+        return False
+
+    return True
 
 
 def setup_local(user_name, password):
@@ -144,11 +202,7 @@ def initial_gin_user_auth():
     button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
 
     clear_output()
-    #display(pn.Column(*user_auth_forms, button, error_message))
-    for form in user_auth_forms:
-        display(form)
-    display(button)
-    display(error_message)
+    display(pn.Column(*user_auth_forms, button, error_message))
 
 
 def create_user_auth_forms():
@@ -157,6 +211,10 @@ def create_user_auth_forms():
     # password form
     password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=700)
     return [user_name_form, password_form]
+
+
+def create_param_forms():
+    return pn.widgets.TextInput(name= m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=700)
 
 
 def layout_error_text():
@@ -251,8 +309,5 @@ def initial_build_for_private():
     button.on_click(submit_build_for_private_callback(user_auth_forms, error_message, button, succecc_private_button))
 
     clear_output()
-    for form in user_auth_forms:
-        display(form)
-    display(button)
-    display(error_message)
-    display(succecc_private_button)
+
+    display(pn.Column(*user_auth_forms, button, error_message, succecc_private_button))

@@ -49,11 +49,13 @@ def upload_ssh_key():
 
 
 def ssh_trust_gin():
+    """SSHホスト（=GIN）を信頼する設定"""
     preparation_completed()
     ssh.trust_gin()
 
 
 def prepare_sync():
+    """同期するコンテンツの制限"""
     preparation_completed()
     sync.prepare_sync()
 
@@ -66,20 +68,24 @@ def setup_sibling():
         リモートにgit-annexブランチが無い場合、リポジトリ名が変更されるとpushできない
     """
     preparation_completed()
+    sync.setup_sibling()
     sync.push_annex_branch()
 
 
 def add_container():
+    """GIN-forkの実行環境一覧へ追加"""
     preparation_completed()
     container.add_container()
 
 
 def finished_setup():
+    """研究フローの『初期セットアップ』に済を付与する。"""
     preparation_completed()
     flow.put_mark('research', 'base_required_every_time', '済')
 
 
 def syncs_config() -> tuple[list[str], str]:
+    """同期のためにファイルとメッセージの設定"""
     preparation_completed()
     git_path = ['/home/jovyan/.gitignore', '/home/jovyan/WORKFLOWS', '/home/jovyan/maDMP.ipynb']
     commit_message = '[GIN] 研究リポジトリ初期セットアップを完了'

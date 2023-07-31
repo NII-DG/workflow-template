@@ -79,8 +79,7 @@ def patch_container():
     ---------------
     """
     try:
-        with open(sync.fetch_param_file_path(), mode='r') as f:
-            params = json.load(f)
+        params = param_json.get_params()
         pr = parse.urlparse(params['siblings']['ginHttp'])
         user_token = token.get_ginfork_token()
         server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
@@ -112,8 +111,7 @@ def delete_container():
     """
 
     try:
-        with open(sync.fetch_param_file_path(), mode='r') as f:
-                params = json.load(f)
+        params = param_json.get_params()
         pr = parse.urlparse(params['siblings']['ginHttp'])
         user_token = token.get_ginfork_token()
         server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]

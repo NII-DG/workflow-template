@@ -6,11 +6,11 @@ from ..utils.message import display as msg_display, message
 from ..utils.params import token, param_json
 from ..utils.gin import api as gin_api
 from ..utils.git import git_module
-from ..utils.path import display as path_display
+from ..utils.path import display as path_display, path
 from IPython.display import display, HTML
 from urllib import parse
 
-LAUNCH_EX_URL = 'https://binder.cs.rcos.nii.ac.jp/v2/git/{}/master?filepath=WORKFLOWS/experiment.ipynb'
+LAUNCH_EX_URL = 'https://binder.cs.rcos.nii.ac.jp/v2/git/{}/master?filepath={}'
 
 def launch_ex_env():
     # Up-to-date repository information in containers
@@ -40,6 +40,7 @@ def launch_ex_env():
         err_msg = message.get('DEFAULT', 'unexpected')
         msg_display.display_err(err_msg)
         raise e
+
 
     # Get the repository URL from git config(remote.origin.url).
     repo_url = git_module.get_remote_url()
@@ -77,13 +78,13 @@ def launch_ex_env():
         repo_url_with_auth = f"{repo_url[:pos+3]}{user_name}:{launch_token}@{repo_url[pos+3:]}"
         msg_display.display_info('repo_url_with_auth : {}'.format(repo_url_with_auth))
         launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url_with_auth, safe=''))
-        msg_display.display_info('private_URL : {}'.format(launch_url))
+        msg_display.display_info('private_URL : {}'.format(launch_url, path.URL_EXP_PATH))
     else:
         # It's public.
 
         ## Create launchURL for public repository.
         launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url,  safe=''))
-        msg_display.display_info('public_URL : {}'.format(launch_url))
+        msg_display.display_info('public_URL : {}'.format(launch_url, path.URL_EXP_PATH))
 
     # Display the Create Experiment Run Environment button.
     launch_button = get_launch_ex_botton_html(launch_url)

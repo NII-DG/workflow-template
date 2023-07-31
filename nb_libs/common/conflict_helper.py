@@ -2,7 +2,7 @@ import os
 from ..utils.params import ex_pkg_info as epi
 from ..utils.path import path, display as pd
 from ..utils.message import message
-from IPython.display import display, HTML
+from IPython.display import HTML, display
 
 def trans_top():
     """Display a link button to the Study or Execution Flow Top Page.

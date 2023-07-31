@@ -10,7 +10,7 @@ from ..utils.path import display as path_display
 from IPython.display import display, HTML
 from urllib import parse
 
-LAUNCH_EX_URL = 'https://binder.cs.rcos.nii.ac.jp/v2/git/{}/HEAD?filepath=WORKFLOWS/experiment.ipynb'
+LAUNCH_EX_URL = 'https://binder.cs.rcos.nii.ac.jp/v2/git/{}/master?filepath=WORKFLOWS/experiment.ipynb'
 
 def launch_ex_env():
     # Up-to-date repository information in containers

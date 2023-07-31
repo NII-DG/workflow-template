@@ -200,7 +200,10 @@ def initial_gin_user_auth():
     button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
 
     clear_output()
-    display(pn.Column(*user_auth_forms, button, error_message))
+    # Columnを利用すると値が取れない場合がある
+    for form in user_auth_forms:
+        display(form)
+    display(pn.Column(button, error_message))
 
 
 FORM_WIDTH = 600

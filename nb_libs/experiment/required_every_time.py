@@ -243,8 +243,8 @@ def initial_experiment():
     title_format = """<label>{}</label>"""
     test_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','test_folder_title')))
     ci_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','ci_folder_title')))
-    test_colum = pn.Column(test_title, test_folder_radio, margin=(0, 0, 0, 5))
-    ci_colum = pn.Column(ci_title, ci_folder_radio, margin=(0, 0, 0, 5))
+    test_column = pn.Column(test_title, test_folder_radio, margin=(0, 0, 0, 5))
+    ci_column = pn.Column(ci_title, ci_folder_radio, margin=(0, 0, 0, 5))
 
     # Instance for exception messages
     error_message = pre.layout_error_text()
@@ -255,7 +255,7 @@ def initial_experiment():
     button.on_click(submit_init_experiment_callback(input_forms, input_radios, error_message, button))
 
     clear_output()
-    #display(pn.Column(*input_forms, test_colum, ci_colum, button, error_message))
+    # Columnを利用すると値が取れない場合がある
     for form in input_forms:
         display(form)
-    display(pn.Column(test_colum, ci_colum, button, error_message))
+    display(pn.Column(test_column, ci_column, button, error_message))

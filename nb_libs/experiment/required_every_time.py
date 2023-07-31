@@ -3,7 +3,9 @@ import json
 import requests
 import traceback
 import panel as pn
+from pathlib import Path
 from IPython.display import clear_output, display
+from ..utils.ex_utils import dmp, package as ex_pkg
 from ..utils.common import common
 from ..utils.form import prepare as pre
 from ..utils.message import message as msg_mod, display as msg_display
@@ -54,8 +56,33 @@ def display_forms():
 
 
 def create_package():
-    preparation_completed()
+    try:
+        preparation_completed()
 
+        params = get_param()
+        experiment_path = p.create_experiments_with_subpath(params['ex_pkg_name'])
+        # create experimental package
+        ex_pkg.create_ex_package(dmp.get_datasetStructure(), experiment_path)
+        # create parameter folder
+        ex_pkg.rename_param_folder(experiment_path, params['parama_ex_name'])
+        # create ci folder
+        if params['create_ci']:
+            path = os.path.join(experiment_path, 'ci')
+            os.makedirs(path, exist_ok=True)
+            Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)
+        # create test folder
+        if params['create_test_folder']:
+            path = os.path.join(experiment_path, 'source', 'test')
+            os.makedirs(path, exist_ok=True)
+            Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)
+
+        ex_pkg_name.set_current_experiment_title(params['ex_pkg_name'])
+
+    except Exception:
+        msg_display.display_err(msg_mod.get('ex_setup', 'create_pkg_error'))
+        raise
+    else:
+        msg_display.display_info(msg_mod.get('ex_setup', 'create_pkg_success'))
 
 
 def del_build_token():
@@ -271,8 +298,7 @@ def initial_experiment():
     package_name_form = pn.widgets.TextInput(name= msg_mod.get('setup_package','package_name_title'), width=700)
     input_forms.append(package_name_form)
 
-    assigned_values = sync.fetch_gin_monitoring_assigned_values()
-    if assigned_values['datasetStructure'] == 'for_parameters':
+    if dmp.is_for_parameter(dmp.get_datasetStructure()):
         paramfolder_form = pre.create_param_forms()
         input_forms.append(paramfolder_form)
 

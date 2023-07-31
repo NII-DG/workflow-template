@@ -43,6 +43,7 @@ def launch_ex_env():
 
     # Get the repository URL from git config(remote.origin.url).
     repo_url = git_module.get_remote_url()
+    msg_display.display_info('repo_url : {}'.format(repo_url))
 
     # Check whether the repository is private or public.
     if is_praivate:
@@ -74,12 +75,15 @@ def launch_ex_env():
         ### Create launchURL for private repository.
         pos = repo_url.find("://")
         repo_url_with_auth = f"{repo_url[:pos+3]}{user_name}:{launch_token}@{repo_url[pos+3:]}"
+        msg_display.display_info('repo_url_with_auth : {}'.format(repo_url_with_auth))
         launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url_with_auth),  safe='')
+        msg_display.display_info('private_URL : {}'.format(launch_url))
     else:
         # It's public.
 
         ## Create launchURL for public repository.
         launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url),  safe='')
+        msg_display.display_info('public_URL : {}'.format(launch_url))
 
     # Display the Create Experiment Run Environment button.
     launch_button = get_launch_ex_botton_html(launch_url)

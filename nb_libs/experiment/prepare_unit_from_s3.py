@@ -13,20 +13,21 @@ from ..utils.common import common
 from ..utils.aws import s3
 from ..utils.except_class import DidNotFinishError, UnexpectedError
 
+
 # 辞書のキー
 S3_OBJECT_URL = 's3_object_url'
 DEST_FILE_PATH = 'dest_file_path'
 EX_PKG_NAME = 'ex_pkg_name'
+
 
 def input_url_path():
     """S3オブジェクトURLと格納先パスをユーザから取得し、検証を行う
 
     Exception:
         FileNotFoundError: 実験パッケージ名を記録したjsonファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
     """
+
     def on_click_callback(clicked_button: Button) -> None:
 
         common.delete_file(path.UNIT_S3_JSON_PATH)
@@ -34,7 +35,7 @@ def input_url_path():
         input_url = str(text_url.value)
         input_path = str(text_path.value)
         err_msg = ""
-        
+
         # URLの検証
         if len(input_url)<=0:
             err_msg = message.get('from_repo_s3', 'empty_url')
@@ -54,7 +55,7 @@ def input_url_path():
             display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'unexpected'))
             raise
-        
+
         # 格納先パスの検証
         if len(err_msg) == 0:
             err_msg = validate.validate_input_path([(input_path, input_url)], experiment_title)
@@ -68,7 +69,7 @@ def input_url_path():
         data = dict()
         data[S3_OBJECT_URL] = parse.unquote(input_url)
         data[DEST_FILE_PATH] = path.create_experiments_with_subpath(experiment_title, input_path)
-        
+
         os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
         with open(path.UNIT_S3_JSON_PATH, mode='w') as f:
             json.dump(data, f, indent=4)
@@ -77,8 +78,9 @@ def input_url_path():
         button.layout=Layout(width='250px')
         button.button_style='success'
 
+
     common.delete_file(path.UNIT_S3_JSON_PATH)
-    
+
     style = {'description_width': 'initial'}
     text_path = Text(
         description = message.get('from_repo_s3', 'file_path'),
@@ -97,14 +99,13 @@ def input_url_path():
     button.on_click(on_click_callback)
     display(text_url, text_path, button)
 
+
 def prepare_addurls_data():
     """リポジトリへのリンク登録のためのcsvファイルを作成する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
     """
     try:
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
@@ -121,25 +122,24 @@ def prepare_addurls_data():
     else:
         annex_util.create_csv({dest_file_path: input_url})
 
+
 def add_url():
     """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         AddurlsError: addurlsに失敗した場合
     """
     annex_util.addurl()
     display_util.display_info(message.get('from_repo_s3', 'create_link_success'))
 
+
 def save_annex():
     """データ取得履歴を記録する
-    
+
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
         UnexpectedError: 想定外のエラーが発生した場合
     """
     try:
@@ -165,16 +165,14 @@ def save_annex():
         clear_output()
         display_util.display_info(message.get('from_repo_s3', 'process_success'))
 
+
 def get_data():
     """取得データの実データをダウンロードする
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-
         UnexpectedError: 想定外のエラーが発生した場合
-    
     """
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
@@ -203,15 +201,14 @@ def get_data():
         clear_output()
         display_util.display_info(message.get('from_repo_s3', 'download_success'))
 
+
 def prepare_sync() -> dict:
     """同期の準備を行う
 
     Returns:
         dict: syncs_with_repoの引数が入った辞書
-    
     Exception:
         DidNotFinishError: jsonファイルの形式が想定通りでない場合
-
         KeyError, JSONDecodeError: .tmp内のjsonファイルの形式が不正な場合
     """
 
@@ -245,8 +242,8 @@ def prepare_sync() -> dict:
     sync_repo_args['gitannex_files'] = annex_file_paths
     sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
     sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
-    
+
     common.delete_file(path.UNIT_S3_JSON_PATH)
     common.delete_file(path.ADDURLS_CSV_PATH)
-    
+
     return sync_repo_args

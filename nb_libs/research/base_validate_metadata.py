@@ -1,25 +1,22 @@
-
 import shutil
 import requests
-from utils.params import repository_id, token, param_json
-from utils.git import git_module
-from utils.message import display as msg_display, message
-from utils.except_class import DidNotFinishError, UnexpectedError, DGTaskError, ExecCmdError
-from utils.dg_core import api as core_api
-from utils.path import path
+import os
+import time
+import json
+import panel as pn
+from ..utils.params import repository_id, token, param_json
+from ..utils.git import git_module
+from ..utils.message import display as msg_display, message
+from ..utils.except_class import DGTaskError, ExecCmdError
+from ..utils.dg_core import api as core_api
+from ..utils.path import path
 import requests
-from utils.repo_metadata import metadata
-from utils.gin import api as gin_api
-from utils.common import raise_error
+from ..utils.gin import api as gin_api
 from urllib import parse
 from typing import Any
 from http import HTTPStatus
 from dg_packager.ro_generator.gin_ro_generator import GinRoGenerator
 from dg_packager.error.error import JsonValidationError, RoPkgError
-import os
-import time
-import json
-import panel as pn
 from IPython.display import clear_output, display
 
 
@@ -124,17 +121,21 @@ def prepare_matadata()->Any:
         msg_display.display_err(msg)
         raise DGTaskError() from e
 
-def not_exec_pre_cell():
+def not_exec_pre_cell_raise():
     msg = message.get('nb_exec', 'not_exec_pre_cell')
     msg_display.display_err(msg)
     raise DGTaskError('The immediately preceding cell may not have been executed')
+
+def not_exec_pre_cell():
+    msg = message.get('nb_exec', 'not_exec_pre_cell')
+    msg_display.display_err(msg)
 
 
 def pkg_metadata(metadata)->Any:
 
     # convert GIN-fork metadata to ro-crate
     try:
-        ro_crate =GinRoGenerator.Generate(raw_metadata=metadata)
+        ro_crate = GinRoGenerator.Generate(raw_metadata=metadata)
         msg = message.get('metadata', 'complete_pkg')
         msg_display.display_info(msg)
         return ro_crate
@@ -194,6 +195,9 @@ def verify_metadata(ro_crate)->Any:
             ## record request_id
             request_id = req_body['request_id']
             tmp_save_request_id(request_id)
+            msg = message.get('metadata', 'complete_verification_req')
+            msg_display.display_info(msg)
+            msg_display.display_msg(message.get('metadata', 'show_req_id').format(request_id))
             return True
         else:
             # 想定外のエラーの場合
@@ -256,7 +260,6 @@ def show_verification_result():
             req_body = response.json()
             if response.status_code == HTTPStatus.OK:
                 status = req_body['status']
-
                 if status == 'UNKNOWN':
                     err_format = message.get('DEFAULT', 'unexpected_errors_format')
                     reason = message.get('metadata', 'no_exist_req')
@@ -274,7 +277,7 @@ def show_verification_result():
                     save_verification_results(req_body)
                     msg = message.get('metadata', 'verification_ok')
                     msg_display.display_info(msg)
-                    break
+                    return True
 
                 elif status == 'FAILED':
                     # save result
@@ -282,7 +285,7 @@ def show_verification_result():
                     msg = message.get('metadata', 'verification_ng')
                     msg_display.display_info(msg)
                     output_result(request_id)
-                    break
+                    return True
 
                 elif status == 'EXECUTOR_ERROR':
                     err_format = message.get('DEFAULT', 'unexpected_errors_format')
@@ -301,13 +304,13 @@ def show_verification_result():
                     reason = message.get('metadata', 'cancel')
                     msg_display.display_err(err_format.format(reason.format(request_id)))
                     break
-
             else:
                 # Other than 200 OK
                 # Unexpected errors
                 msg = message.get('DEFAULT', 'unexpected')
                 msg_display.display_err(msg)
-                raise DGTaskError('The request to the metadata validation service failed. [ERROR] : {}'.format(req_body['message']))
+                msg_display.display_err('The request to the metadata validation service failed. [ERROR] : {}'.format(req_body['message']))
+                continue
         else:
             clear_output()
             # Re-execution is required
@@ -394,6 +397,10 @@ def output_result(request_id):
     msg_display.display_msg(result)
 
 
+def get_non_saving_data():
+    return message.get('metadata', 'non_saving_data')
+
+
 def has_result_in_tmp():
     """Existence check of the validation result file set
 
@@ -405,7 +412,7 @@ def has_result_in_tmp():
     try :
         request_id = get_request_id()
     except FileNotFoundError as e:
-        warm_err = message.get('metadata', 'non_saving_data')
+        warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
 
@@ -415,20 +422,20 @@ def has_result_in_tmp():
     ### ro_crate.json
     if not os.path.isfile(os.path.join(tmp_result_folder, RO_CRATE_FILE_NAME)):
         # ro_crate.json does not exist
-        warm_err = message.get('metadata', 'non_saving_data')
+        warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
     ### entity_ids.json
     if not os.path.isfile(os.path.join(tmp_result_folder, ENTITY_IDS_FILE_NAME)):
         # entity_ids.json does not exist
-        warm_err = message.get('metadata', 'non_saving_data')
+        warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
         pass
     ### results.json
     if not os.path.isfile(os.path.join(tmp_result_folder, RESULTS_FILE_NAME)):
         # results.json does not exist
-        warm_err = message.get('metadata', 'non_saving_data')
+        warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
 
@@ -439,18 +446,19 @@ def del_result_in_tmp():
     """
 
     # get request id from .tmp/validation/request_id.txt
-    request_id = get_request_id()
-
-    # delete .tmp/validation/:request_id
-    ## .tmp/validation/:request_id/
-    tmp_result_folder = os.path.join(path.TMP_VALIDATION_DIR, request_id)
-    if os.path.exists(tmp_result_folder):
-        shutil.rmtree(tmp_result_folder)
-
-    # delete .tmp/validation/request_id.txt
-    request_id_file_path = path.REQUEST_ID_FILE_PATH
-    if os.path.exists(request_id_file_path):
-        os.remove(request_id_file_path)
+    try :
+        request_id = get_request_id()
+        # delete .tmp/validation/:request_id
+        ## .tmp/validation/:request_id/
+        tmp_result_folder = os.path.join(path.TMP_VALIDATION_DIR, request_id)
+        if os.path.exists(tmp_result_folder):
+            shutil.rmtree(tmp_result_folder)
+        # delete .tmp/validation/request_id.txt
+        request_id_file_path = path.REQUEST_ID_FILE_PATH
+        if os.path.exists(request_id_file_path):
+            os.remove(request_id_file_path)
+    except FileNotFoundError:
+        pass
 
 def copy_tmp_results_to_repository():
     """Copy the set of validation result files in the temporary folder to the repository.
@@ -484,38 +492,36 @@ def select_done_save():
     # Generate and display selection forms
     pn.extension()
 
-    option = {}
+    record = message.get('metadata', 'record')
+    non_record = message.get('metadata', 'non_record')
+    option = [record, non_record]
     # generate options
-    option[message.get('metadata', 'record')] = 0
-    option[message.get('metadata', 'non_record')] = 1
+    # option[message.get('metadata', 'record')] = 0
+    # option[message.get('metadata', 'non_record')] = 1
 
     # プルダウン形式のセレクターを生成
-    menu_selector = pn.widgets.Select(name=message.get('metadata', 'record_form'), options=option, value=0, width=350)
-    done_button = pn.widgets.Button(name= "選択を完了する", button_type= "primary")
+    menu_selector = pn.widgets.Select(name=message.get('metadata', 'record_form'), options=option, width=350)
+    done_button = pn.widgets.Button(name=message.get('metadata', 'end_choose'), button_type= "primary")
     html_output = pn.pane.HTML()
 
     def selected(event):
-        selected_value = event.new
+        selected_value = menu_selector.value
 
-        if selected_value == 0:
+        if selected_value == record:
             # record
-            ## copy tmp file to repository
-            copy_tmp_results_to_repository()
-            ## del tmp file
-            del_result_in_tmp()
             ## Record selection information.
             record_selection_info(True)
             done_button.button_type = 'success'
-            done_button.name = message.get('metadata', 'complete_prepare_sync')
+            selected_name = message.get('metadata', 'record')
+            done_button.name = message.get('metadata', 'reception_completed').format(selected_name)
             return
-        elif selected_value == 1:
+        elif selected_value == non_record:
             # not record
-            ## del tmp file
-            del_result_in_tmp()
             ## Record selection information.
             record_selection_info(False)
             done_button.button_type = 'success'
-            done_button.name = message.get('metadata', 'complete_del_verification_data')
+            selected_name = message.get('metadata', 'non_record')
+            done_button.name = message.get('metadata', 'reception_completed').format(selected_name)
             return
         else:
             # undefined
@@ -545,7 +551,12 @@ def record_selection_info(need_sync:bool):
     with open(form_data_path, 'w') as f:
         json.dump(data, f, indent=4)
 
-def is_need_sync()->bool:
+def del_selection_info_file():
+    form_data_path = os.path.join(path.RF_FORM_DATA_DIR, RF_FORM_DATA_FILE)
+    if os.path.exists(form_data_path):
+        os.remove(form_data_path)
+
+def sync():
 
     form_data_path = os.path.join(path.RF_FORM_DATA_DIR, RF_FORM_DATA_FILE)
 
@@ -555,18 +566,50 @@ def is_need_sync()->bool:
         value = data['need_sync']
 
         if value:
-            # Synchronization required
-            msg = message.get('metadata', 'sync_start')
+            # Synchronization required verification results
+            msg = message.get('metadata', 'save_verification_and_execution_result')
             msg_display.display_info(msg)
         else:
             # No synchronization required
-            msg = message.get('metadata', 'sync_start')
+            msg = message.get('metadata', 'save_execution_result')
             msg_display.display_info(msg)
-
         return value
     else:
         # If the selection information file does not exist
         # No previous cell has been executed.
         msg = message.get('nb_exec', 'not_exec_pre_cell')
-        msg_display.display_warm(msg)
-        return False
+        msg_display.display_err(msg)
+        return None
+
+
+def prepare_sync_arg(mode : bool) -> tuple[list[str], str]:
+    """Create the necessary information for synchronization
+
+    Args:
+        mode (bool): [True : Synchronize verification results, Flase : No synchronization of verification results required]
+    """
+
+    # create git path
+    git_path = []
+
+    if mode:
+        ## copy tmp file to repository
+        copy_tmp_results_to_repository()
+        ## add /home/jovyan/validation_results
+        git_path.append(path.VALIDATION_RESULTS_DIR_PATH)
+
+    ## this task notebook
+    git_path.append(os.path.join(path.RES_DIR_PATH, path.BASE_VALIDATE_METADATA))
+
+    commit_msg = 'メタデータ検証'
+
+    return git_path, commit_msg
+
+def clean_up(is_finish_sync:bool):
+    if is_finish_sync:
+        # delete .tmp/request_id.txt and .tmp/validation/{request_id}/*
+        del_result_in_tmp()
+        # delete .tmp/rf_form_data/base_validate_metadata.json
+        del_selection_info_file()
+    else :
+        pass

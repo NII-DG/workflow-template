@@ -7,6 +7,7 @@ from ..git import git_module
 from ..message import message, display
 from ..except_class import DidNotFinishError, AddurlsError
 
+
 def create_csv(who_link_dict: dict):
     '''datalad addurlで用いるcsvファイルを作成する
 
@@ -20,12 +21,12 @@ def create_csv(who_link_dict: dict):
         for who, link in who_link_dict.items():
             writer.writerow({'who': who, 'link':link})
 
+
 def annex_to_git(annex_file_paths:list, experiment_title:str):
-    ''' sourceフォルダ配下のファイルをannex管理からgit管理に変更する
+    '''sourceフォルダ配下のファイルをannex管理からgit管理に変更する
 
         Args:
             annex_file_paths(list): パスのリスト
-
             experiment_title(str): 実験パッケージ名
     '''
     source_file_paths = []
@@ -56,14 +57,13 @@ def annex_to_git(annex_file_paths:list, experiment_title:str):
     for annex_file_path in annex_file_paths:
         sync.register_metadata_for_downloaded_annexdata(file_path=annex_file_path)
 
+
 def addurl():
     """datalad addurlsを実行する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-
         AddurlsError: addurlsに失敗した場合
-
     """
     try:
         api.addurls(save=False, fast=True, urlfile= path.ADDURLS_CSV_PATH, urlformat='{link}', filenameformat='{who}')

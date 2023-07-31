@@ -16,6 +16,17 @@ clear_output()
 LAUNCH_EX_URL = 'https://binder.cs.rcos.nii.ac.jp/v2/git/{}/master?filepath={}'
 
 def launch_ex_env():
+    """Generation and display of buttons for creating the experiment execution environment
+
+    When creating an experimental execution environment for a private repository, obtain a token for building the environment and generate a URL for creating the environment.
+
+    Raises:
+        e: [description]
+        e: [description]
+        e: [description]
+        e: [description]
+        e: [description]
+    """
     is_finished = check_finished_setup_research()
     if not is_finished:
         err_msg = message.get('DEFAULT', 'not_finish_setup')
@@ -27,8 +38,9 @@ def launch_ex_env():
         is_praivate = sync.update_repo_url()
     except NoValueInDgFileError as e:
         # Processing setup not complete
-        err_msg = message.get('DEFAULT', 'not_finish_setup')
-        msg_display.display_warm(err_msg)
+        err_msg_with_reason = message.get('launch', 'fail_update_repo_info')
+        reason = message.get('ma_dmp', 'non_exec_ma_dmp')
+        msg_display.display_warm(err_msg_with_reason.format(reason))
         return
     except requests.exceptions.RequestException as e:
         # Poor connection to GIN-fork

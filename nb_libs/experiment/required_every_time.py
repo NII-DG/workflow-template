@@ -117,7 +117,7 @@ def add_container():
 def finished_setup():
     """実験フローの『初期セットアップ』に済を付与する。"""
     preparation_completed()
-    flow.put_mark('experiment', 'required_every_time', '済')
+    flow.put_mark_experiment()
 
 
 def syncs_config() -> tuple[list[str], list[str], list[str], str]:

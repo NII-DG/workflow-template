@@ -9,10 +9,17 @@ from ..utils.git import git_module
 from ..utils.path import display as path_display, path
 from IPython.display import display, HTML
 from urllib import parse
+from ..utils.flow.module import check_finished_setup_research
 
 LAUNCH_EX_URL = 'https://binder.cs.rcos.nii.ac.jp/v2/git/{}/master?filepath={}'
 
 def launch_ex_env():
+    is_finished = check_finished_setup_research()
+    if not is_finished:
+        err_msg = message.get('DEFAULT', 'not_finish_setup')
+        msg_display.display_warm(err_msg)
+        return
+
     # Up-to-date repository information in containers
     try:
         is_praivate = sync.update_repo_url()

@@ -69,3 +69,27 @@ def put_mark(flow_type, name, mark):
     with open(diag_path, 'w') as f:
         s = s.replace(find, replace)
         f.write(s)
+
+def put_mark_research():
+    put_mark('research', 'base_required_every_time', '済')
+
+def put_mark_experiment():
+    put_mark('experiment', 'required_every_time', '済')
+
+
+def check_finished_setup(flow_type, name, mark):
+    try:
+        # Check the flow diagram for the "done" mark.
+        diag_path = diag_file_path(flow_type)
+        target_string = f'"{name}"[numbered = {mark}, fontsize = 10];'
+
+        with open(diag_path, 'r') as f:
+            file_contents = f.read()
+            if target_string in file_contents:
+                    return True
+        return False
+    except FileNotFoundError:
+        return False
+
+def check_finished_setup_research():
+    return check_finished_setup('research', 'base_required_every_time', '済')

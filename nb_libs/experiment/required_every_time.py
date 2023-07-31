@@ -155,13 +155,13 @@ def syncs_config() -> tuple[list[str], list[str], list[str], str]:
     if experiment_title is None:
         msg_display.display_err(msg_mod.get('experiment_error', 'experiment_setup_unfinished'))
         raise DGTaskError
-    git_path, gitannex_path, gitannex_files = create_syncs_path()
-    commit_message = f'{experiment_title}_リサーチフロー実行準備'
+    git_path, gitannex_path, gitannex_files = create_syncs_path(p.create_experiments_with_subpath(experiment_title))
+    commit_message = msg_mod.get('commit_message', 'required_every_time').format(experiment_title)
     return git_path, gitannex_path, gitannex_files, commit_message
 
 
 # ----- utils -----
-def create_syncs_path()-> tuple[list[str], list[str], list[str]]:
+def create_syncs_path(experiment_path:str)-> tuple[list[str], list[str], list[str]]:
     os.chdir(experiment_path)
 
     #**************************************************#

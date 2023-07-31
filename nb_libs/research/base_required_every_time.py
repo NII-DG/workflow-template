@@ -88,5 +88,5 @@ def syncs_config() -> tuple[list[str], str]:
     """同期のためにファイルとメッセージの設定"""
     preparation_completed()
     git_path = ['/home/jovyan/.gitignore', '/home/jovyan/WORKFLOWS', '/home/jovyan/maDMP.ipynb']
-    commit_message = '[GIN] 研究リポジトリ初期セットアップを完了'
+    commit_message = message.get('commit_message', 'base_required_every_time')
     return git_path, commit_message

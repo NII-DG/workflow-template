@@ -20,12 +20,6 @@ def launch_ex_env():
 
     When creating an experimental execution environment for a private repository, obtain a token for building the environment and generate a URL for creating the environment.
 
-    Raises:
-        e: [description]
-        e: [description]
-        e: [description]
-        e: [description]
-        e: [description]
     """
     is_finished = check_finished_setup_research()
     if not is_finished:
@@ -40,8 +34,8 @@ def launch_ex_env():
         # Processing setup not complete
         err_msg_with_reason = message.get('launch', 'fail_update_repo_info')
         reason = message.get('ma_dmp', 'non_exec_ma_dmp')
-        msg_display.display_warm(err_msg_with_reason.format(reason))
-        return
+        msg_display.display_err(err_msg_with_reason.format(reason))
+        raise e
     except requests.exceptions.RequestException as e:
         # Poor connection to GIN-fork
         err_msg_with_reason = message.get('launch', 'fail_update_repo_info')
@@ -65,7 +59,6 @@ def launch_ex_env():
 
     # Get the repository URL from git config(remote.origin.url).
     repo_url = git_module.get_remote_url()
-    msg_display.display_info('repo_url : {}'.format(repo_url))
 
     # Check whether the repository is private or public.
     if is_praivate:
@@ -97,15 +90,11 @@ def launch_ex_env():
         ### Create launchURL for private repository.
         pos = repo_url.find("://")
         repo_url_with_auth = f"{repo_url[:pos+3]}{user_name}:{launch_token}@{repo_url[pos+3:]}"
-        msg_display.display_info('repo_url_with_auth : {}'.format(repo_url_with_auth))
         launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url_with_auth, safe=''), path.URL_EXP_PATH)
-        msg_display.display_info('private_URL : {}'.format(launch_url))
     else:
         # It's public.
-
         ## Create launchURL for public repository.
         launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url,  safe=''), path.URL_EXP_PATH)
-        msg_display.display_info('public_URL : {}'.format(launch_url))
 
     # Display the Create Experiment Run Environment button.
     launch_button = get_launch_ex_botton_html(launch_url)

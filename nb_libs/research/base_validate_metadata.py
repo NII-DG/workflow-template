@@ -411,7 +411,7 @@ def has_result_in_tmp():
     # get request id from .tmp/validation/request_id.txt
     try :
         request_id = get_request_id()
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
@@ -431,7 +431,6 @@ def has_result_in_tmp():
         warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
-        pass
     ### results.json
     if not os.path.isfile(os.path.join(tmp_result_folder, RESULTS_FILE_NAME)):
         # results.json does not exist

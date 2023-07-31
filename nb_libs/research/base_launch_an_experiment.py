@@ -77,14 +77,14 @@ def launch_ex_env():
         pos = repo_url.find("://")
         repo_url_with_auth = f"{repo_url[:pos+3]}{user_name}:{launch_token}@{repo_url[pos+3:]}"
         msg_display.display_info('repo_url_with_auth : {}'.format(repo_url_with_auth))
-        launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url_with_auth, safe=''))
-        msg_display.display_info('private_URL : {}'.format(launch_url, path.URL_EXP_PATH))
+        launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url_with_auth, safe=''), path.URL_EXP_PATH)
+        msg_display.display_info('private_URL : {}'.format(launch_url))
     else:
         # It's public.
 
         ## Create launchURL for public repository.
-        launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url,  safe=''))
-        msg_display.display_info('public_URL : {}'.format(launch_url, path.URL_EXP_PATH))
+        launch_url = LAUNCH_EX_URL.format(parse.quote(repo_url,  safe=''), path.URL_EXP_PATH)
+        msg_display.display_info('public_URL : {}'.format(launch_url))
 
     # Display the Create Experiment Run Environment button.
     launch_button = get_launch_ex_botton_html(launch_url)

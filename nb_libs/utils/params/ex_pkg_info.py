@@ -33,3 +33,6 @@ def set_current_experiment_title(title):
     title_dict = {"ex_pkg_name":title}
     with open(FILE_PATH, 'w') as f:
         json.dump(title_dict, f, indent=4)
+
+def exist_file():
+    return os.path.exists(FILE_PATH)

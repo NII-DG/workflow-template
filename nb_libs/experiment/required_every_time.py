@@ -226,7 +226,7 @@ def initial_experiment():
     input_forms = pre.create_user_auth_forms()
 
     # form of experiment
-    package_name_form = pn.widgets.TextInput(name= msg_mod.get('setup_package','package_name_title'), width=pre.FORM_WIDTH)
+    package_name_form = pn.widgets.TextInput(name=msg_mod.get('setup_package','package_name_title'), placeholder=msg_mod.get('user_auth','package_name_help'), width=pre.FORM_WIDTH)
     input_forms.append(package_name_form)
 
     if dmp.is_for_parameter(dmp.get_datasetStructure()):

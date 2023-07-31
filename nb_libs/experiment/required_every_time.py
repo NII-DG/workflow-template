@@ -28,6 +28,7 @@ def set_params(ex_pkg_name:str, parama_ex_name:str, create_test_folder:bool, cre
     "create_test_folder" : create_test_folder,
     "create_ci" : create_ci
     }
+    os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
     with open(FILE_PATH, 'w') as f:
         json.dump(params_dict, f, indent=4)
 

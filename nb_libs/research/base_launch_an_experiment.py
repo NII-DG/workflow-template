@@ -7,9 +7,11 @@ from ..utils.params import token, param_json
 from ..utils.gin import api as gin_api
 from ..utils.git import git_module
 from ..utils.path import display as path_display, path
-from IPython.display import display, HTML
+from IPython.display import display, HTML, clear_output
 from urllib import parse
 from ..utils.flow.module import check_finished_setup_research
+# To remove the git config warning message on module import with execution result
+clear_output()
 
 LAUNCH_EX_URL = 'https://binder.cs.rcos.nii.ac.jp/v2/git/{}/master?filepath={}'
 

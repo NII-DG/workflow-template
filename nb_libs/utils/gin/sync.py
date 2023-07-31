@@ -24,28 +24,6 @@ from ..except_class import RepositoryNotExist, UrlUpdateError, NoValueInDgFileEr
 SIBLING = 'gin'
 
 
-def fetch_param_file_path() -> str:
-    return param_json.PARAM_FILE_PATH
-
-
-def fetch_gin_monitoring_assigned_values():
-    """dmp.jsonからcontentSize, workflowIdentifier, datasetStructureの値を取得する"""
-
-    dmp_file_path = os.path.join(p.HOME_PATH, 'dmp.json')
-    with open(dmp_file_path, mode='r') as f:
-        dmp_json = json.load(f)
-    assigned_values = {
-        'workflowIdentifier': dmp_json['workflowIdentifier'],
-        'contentSize': dmp_json['contentSize'],
-        'datasetStructure': dmp_json['datasetStructure']
-    }
-    return assigned_values
-
-def get_datasetStructure():
-    assigned_values = fetch_gin_monitoring_assigned_values()
-    return assigned_values['datasetStructure']
-
-
 def update_repo_url():
     """HTTPとSSHのリモートURLを最新化する
 

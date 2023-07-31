@@ -3,7 +3,9 @@ import json
 import requests
 import traceback
 import panel as pn
+from pathlib import Path
 from IPython.display import clear_output, display
+from ..utils.ex_utils import dmp, package as ex_pkg
 from ..utils.common import common
 from ..utils.form import prepare as pre
 from ..utils.message import message as msg_mod, display as msg_display
@@ -18,7 +20,7 @@ from ..utils.except_class import DidNotFinishError, Unauthorized, DGTaskError
 FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'required_every_time.json')
 
 
-# tmp_file handling
+# ----- tmp_file handling -----
 def set_params(ex_pkg_name:str, parama_ex_name:str, create_test_folder:bool, create_ci:bool):
     params_dict = {
     "ex_pkg_name" : ex_pkg_name,
@@ -47,14 +49,40 @@ def preparation_completed():
         raise DidNotFinishError
 
 
-# for cell
+# ----- for cell -----
 def display_forms():
     delete_tmp_file()
     initial_experiment()
 
 
 def create_package():
-    preparation_completed()
+    try:
+        preparation_completed()
+
+        params = get_param()
+        experiment_path = p.create_experiments_with_subpath(params['ex_pkg_name'])
+        # create experimental package
+        ex_pkg.create_ex_package(dmp.get_datasetStructure(), experiment_path)
+        # create parameter folder
+        ex_pkg.rename_param_folder(experiment_path, params['parama_ex_name'])
+        # create ci folder
+        if params['create_ci']:
+            path = os.path.join(experiment_path, 'ci')
+            os.makedirs(path, exist_ok=True)
+            Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)
+        # create test folder
+        if params['create_test_folder']:
+            path = os.path.join(experiment_path, 'source', 'test')
+            os.makedirs(path, exist_ok=True)
+            Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)
+
+        ex_pkg_name.set_current_experiment_title(params['ex_pkg_name'])
+
+    except Exception:
+        msg_display.display_err(msg_mod.get('ex_setup', 'create_pkg_error'))
+        raise
+    else:
+        msg_display.display_info(msg_mod.get('ex_setup', 'create_pkg_success'))
 
 
 def del_build_token():
@@ -127,82 +155,13 @@ def syncs_config() -> tuple[list[str], list[str], list[str], str]:
     if experiment_title is None:
         msg_display.display_err(msg_mod.get('experiment_error', 'experiment_setup_unfinished'))
         raise DGTaskError
-    git_path, gitannex_path, gitannex_files = create_syncs_path()
-    commit_message = f'{experiment_title}_リサーチフロー実行準備'
+    git_path, gitannex_path, gitannex_files = ex_pkg.create_syncs_path(p.create_experiments_with_subpath(experiment_title))
+    commit_message = msg_mod.get('commit_message', 'required_every_time').format(experiment_title)
+    delete_tmp_file()
     return git_path, gitannex_path, gitannex_files, commit_message
 
 
-# utils
-def create_syncs_path()-> tuple[list[str], list[str], list[str]]:
-    os.chdir(experiment_path)
-
-    #**************************************************#
-    #* Generate a list of folder paths to be managed by Git-annex. #
-    #**************************************************#
-    dirlist=[]
-    filelist=[]
-    annexed_save_path=[]
-
-    # Recursively search under the experimental package to obtain a list of absolute directory paths.
-    for root, dirs, files in os.walk(top=experiment_path):
-        for dir in dirs:
-            dirPath = os.path.join(root, dir)
-            dirlist.append( dirPath )
-
-    # Add directory paths containing the string "output_data" that are not included under input_data to annexed_save_path.
-    output_data_path = [ s for s in dirlist if 'output_data' in s ]
-    for output_data in output_data_path:
-        if  "input_data" not in output_data:
-            annexed_save_path.append( output_data )
-
-    # Add the input_data directory to annexed_save_path.
-    annexed_save_path.append( experiment_path + '/input_data'  )
-
-    # Generate a list of file paths to which metadata is to be assigned.
-    gitannex_files = []
-    for path in annexed_save_path:
-        gitannex_files += [p for p in glob.glob(path+'/**', recursive=True)
-                if os.path.isfile(p)]
-
-    #********************************************************#
-    #* Generate a list of directory paths and file paths to be managed by Git. #
-    #********************************************************#
-    # Obtain a list of directories and files directly under the experimental package.
-    files = os.listdir()
-
-    # Delete Git-annex managed directories (input_data and output_data) from the retrieved list.
-    dirs = [f for f in files if os.path.isdir(f)]
-
-    for dirname in dirs:
-        if dirname == 'input_data' :
-            dirs.remove('input_data')
-
-        if dirname == 'output_data' :
-            dirs.remove('output_data')
-
-    for dirname in dirs:
-        if dirname != 'ci' and dirname != 'source':
-            full_param_dir = '{}/{}/params'.format(experiment_path,dirname)
-            if os.path.isdir(full_param_dir):
-                dirs.remove(dirname)
-                ex_param_path = '{}/{}'.format(experiment_path, dirname)
-                ex_param_path_childs = os.listdir(ex_param_path)
-                for ex_param_path_child in ex_param_path_childs:
-                    if ex_param_path_child != 'output_data':
-                        dirs.append('{}/{}'.format(dirname,ex_param_path_child))
-
-    # Obtain files directly under the experimental package.
-    files = [f for f in files if os.path.isfile(f)]
-
-    # Generate a list of folder paths and file paths to be managed by Git.
-    files.extend(dirs)
-    save_path = []
-    for file in files:
-        save_path.append(experiment_path + '/' + file)
-
-    return save_path, annexed_save_path, gitannex_files
-
-
+# ----- utils -----
 def submit_init_experiment_callback(input_forms, input_radios, error_message, submit_button):
 
     def callback(event):
@@ -212,7 +171,7 @@ def submit_init_experiment_callback(input_forms, input_radios, error_message, su
         package_name = input_forms[2].value
         paramfolder_name = None
         if len(input_forms) > 3:
-            paramfolder_name = input_forms[4].value
+            paramfolder_name = input_forms[3].value
         is_test_folder = False
         is_ci_folder = False
         if input_radios[0].value ==  msg_mod.get('setup_package','true'):
@@ -270,16 +229,21 @@ def initial_experiment():
     package_name_form = pn.widgets.TextInput(name= msg_mod.get('setup_package','package_name_title'), width=700)
     input_forms.append(package_name_form)
 
-    assigned_values = sync.fetch_gin_monitoring_assigned_values()
-    if assigned_values['datasetStructure'] == 'for_parameters':
+    if dmp.is_for_parameter(dmp.get_datasetStructure()):
         paramfolder_form = pre.create_param_forms()
         input_forms.append(paramfolder_form)
 
-    options = [ msg_mod.get('setup_package','true'),  msg_mod.get('setup_package','false')]
+    options = [msg_mod.get('setup_package','true'),  msg_mod.get('setup_package','false')]
     init_value =  msg_mod.get('setup_package','false')
-    test_folder_radio = pn.widgets.RadioBoxGroup(name=msg_mod.get('setup_package','test_folder_title'), options=options, inline=True, value=init_value)
-    ci_folder_radio = pn.widgets.RadioBoxGroup(name=msg_mod.get('setup_package','ci_folder_title'), options=options, inline=True, value=init_value)
+    test_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=init_value)
+    ci_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=init_value)
     input_radios = [test_folder_radio, ci_folder_radio]
+
+    title_format = """<h3>{}</3>"""
+    test_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','test_folder_title')))
+    ci_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','ci_folder_title')))
+    test_row = pn.Row(test_title, test_folder_radio)
+    ci_row = pn.Row(ci_title, ci_folder_radio)
 
     # Instance for exception messages
     error_message = pre.layout_error_text()
@@ -290,4 +254,4 @@ def initial_experiment():
     button.on_click(submit_init_experiment_callback(input_forms, input_radios, error_message, button))
 
     clear_output()
-    display(pn.Column(*input_forms, *input_radios, button, error_message))
+    display(pn.Column(*input_forms, test_row, ci_row, button, error_message))

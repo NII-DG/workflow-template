@@ -214,7 +214,7 @@ def create_user_auth_forms():
 
 
 def create_param_forms():
-    return pn.widgets.TextInput(name= m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=700)
+    return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=700)
 
 
 def layout_error_text():

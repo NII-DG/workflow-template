@@ -66,6 +66,7 @@ def setup_sibling():
         リモートにgit-annexブランチが無い場合、リポジトリ名が変更されるとpushできない
     """
     preparation_completed()
+    sync.setup_sibling()
     sync.push_annex_branch()
 
 

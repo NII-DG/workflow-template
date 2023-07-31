@@ -1,7 +1,6 @@
 """
 リサーチフローで利用するパスを一括管理する
 """
-import json
 import os
 
 
@@ -29,7 +28,7 @@ HOW_TO_SNAKE_MAKE = 'HowToSnakemake.ipynb'
 README_FILE = 'README.md'
 SNAKE_FILE = 'Snakefile'
 
-# path from inside
+# path from inside container
 ## /home/jovyan
 HOME_PATH = os.environ['HOME']
 ## Directory directly under /home/jovyan
@@ -46,7 +45,7 @@ EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)
 ## File under /home/jovyan/.dg-sys/
 PKG_INFO_JSON_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
 
-## File under /home/jovyan/.tmp/
+## File and Directory under /home/jovyan/.tmp/
 TMP_DIR = os.path.join(HOME_PATH, '.tmp')
 ADDURLS_CSV_PATH = os.path.join(TMP_DIR, 'datalad-addurls.csv')
 RF_FORM_DATA_DIR = os.path.join(TMP_DIR, 'rf_form_data')
@@ -61,7 +60,7 @@ REQUEST_ID_FILE_PATH = os.path.join(TMP_VALIDATION_DIR, 'request_id.txt')
 
 
 
-# path from outside
+# path from outside container
 URL_RES_PATH = os.path.join(FLOW_DIR, NOTEBOOK_DIR, RESEARCH_DIR, RESEARCH_TOP)
 URL_EXP_PATH = os.path.join(FLOW_DIR, NOTEBOOK_DIR, EXPERIMENT_DIR, EXPERIMENT_TOP)
 

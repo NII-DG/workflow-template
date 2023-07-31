@@ -23,6 +23,4 @@ def trans_top():
         # For research execution environment
         top_path = os.path.join('./../', path.RESEARCH_DIR ,path.RESEARCH_TOP)
         html_text = pd.button_html(top_path, message.get("menu", "trans_reserch_top"))
-
-
     display(HTML(html_text))

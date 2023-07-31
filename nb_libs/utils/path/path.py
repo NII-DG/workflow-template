@@ -44,12 +44,14 @@ EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)
 
 ## File under /home/jovyan/.dg-sys/
 PKG_INFO_JSON_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
+TOKEN_JSON_PATH = os.path.join(SYS_PATH, '.token.json')
 
 ## File and Directory under /home/jovyan/.tmp/
 TMP_DIR = os.path.join(HOME_PATH, '.tmp')
 ADDURLS_CSV_PATH = os.path.join(TMP_DIR, 'datalad-addurls.csv')
 RF_FORM_DATA_DIR = os.path.join(TMP_DIR, 'rf_form_data')
 TMP_VALIDATION_DIR = os.path.join(TMP_DIR, 'validation')
+GET_REPO_PATH = os.path.join(TMP_DIR, 'get_repo')
 
 ## File under /home/jovyan/.tmp/rf_form_data/
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')

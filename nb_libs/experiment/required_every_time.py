@@ -233,11 +233,17 @@ def initial_experiment():
         paramfolder_form = pre.create_param_forms()
         input_forms.append(paramfolder_form)
 
-    options = [ msg_mod.get('setup_package','true'),  msg_mod.get('setup_package','false')]
+    options = [msg_mod.get('setup_package','true'),  msg_mod.get('setup_package','false')]
     init_value =  msg_mod.get('setup_package','false')
-    test_folder_radio = pn.widgets.RadioBoxGroup(name=msg_mod.get('setup_package','test_folder_title'), options=options, inline=True, value=init_value)
-    ci_folder_radio = pn.widgets.RadioBoxGroup(name=msg_mod.get('setup_package','ci_folder_title'), options=options, inline=True, value=init_value)
+    test_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=init_value)
+    ci_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=init_value)
     input_radios = [test_folder_radio, ci_folder_radio]
+
+    title_format = """<h3>{}</3>"""
+    test_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','test_folder_title')))
+    ci_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','ci_folder_title')))
+    test_row = pn.Row(test_title, test_folder_radio)
+    ci_row = pn.Row(ci_title, ci_folder_radio)
 
     # Instance for exception messages
     error_message = pre.layout_error_text()
@@ -248,4 +254,4 @@ def initial_experiment():
     button.on_click(submit_init_experiment_callback(input_forms, input_radios, error_message, button))
 
     clear_output()
-    display(pn.Column(*input_forms, *input_radios, button, error_message))
+    display(pn.Column(*input_forms, test_row, ci_row, button, error_message))

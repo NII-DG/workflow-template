@@ -18,7 +18,7 @@ from ..utils.except_class import DidNotFinishError, Unauthorized, DGTaskError
 FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'required_every_time.json')
 
 
-# tmp_file handling
+# ----- tmp_file handling -----
 def set_params(ex_pkg_name:str, parama_ex_name:str, create_test_folder:bool, create_ci:bool):
     params_dict = {
     "ex_pkg_name" : ex_pkg_name,
@@ -47,7 +47,7 @@ def preparation_completed():
         raise DidNotFinishError
 
 
-# for cell
+# ----- for cell -----
 def display_forms():
     delete_tmp_file()
     initial_experiment()
@@ -55,6 +55,7 @@ def display_forms():
 
 def create_package():
     preparation_completed()
+
 
 
 def del_build_token():
@@ -132,7 +133,7 @@ def syncs_config() -> tuple[list[str], list[str], list[str], str]:
     return git_path, gitannex_path, gitannex_files, commit_message
 
 
-# utils
+# ----- utils -----
 def create_syncs_path()-> tuple[list[str], list[str], list[str]]:
     os.chdir(experiment_path)
 
@@ -212,7 +213,7 @@ def submit_init_experiment_callback(input_forms, input_radios, error_message, su
         package_name = input_forms[2].value
         paramfolder_name = None
         if len(input_forms) > 3:
-            paramfolder_name = input_forms[4].value
+            paramfolder_name = input_forms[3].value
         is_test_folder = False
         is_ci_folder = False
         if input_radios[0].value ==  msg_mod.get('setup_package','true'):

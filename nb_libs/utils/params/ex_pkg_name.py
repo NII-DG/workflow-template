@@ -1,5 +1,10 @@
+import os
 import json
 from ..path import path
+
+
+FILE_PATH = os.path.join(path.SYS_PATH, 'ex_pkg_info.json')
+
 
 def get_current_experiment_title():
     '''現在実験中の実験パッケージ名を取得する
@@ -10,7 +15,21 @@ def get_current_experiment_title():
         現在実験中の実験パッケージ名 (初期設定が未完了の場合はNone)
     '''
     try:
-        with open(path.PKG_INFO_PATH, mode='r') as f:
+        with open(FILE_PATH, mode='r') as f:
             return json.load(f)['ex_pkg_name']
     except Exception:
         return None
+
+
+def set_current_experiment_title(title):
+    """現在実験中の実験パッケージ名を設定する
+
+    Args:
+        title: 実験中の実験パッケージ名
+
+    Raises:
+        FileNotFoundError: ファイルが存在しない場合
+    """
+    title_dict = {"ex_pkg_name":title}
+    with open(FILE_PATH, 'w') as f:
+        json.dump(title_dict, f, indent=4)

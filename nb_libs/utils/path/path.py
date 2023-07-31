@@ -42,9 +42,6 @@ DATA_PATH = os.path.join(FROW_PATH, 'data')
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RESEARCH_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)
 
-## File under /home/jovyan/.dg-sys/
-PKG_INFO_JSON_PATH = os.path.join(SYS_PATH, 'ex_pkg_info.json')
-
 ## File and Directory under /home/jovyan/.tmp/
 TMP_DIR = os.path.join(HOME_PATH, '.tmp')
 ADDURLS_CSV_PATH = os.path.join(TMP_DIR, 'datalad-addurls.csv')

@@ -15,3 +15,7 @@ class DGTaskError(Exception):
 class ExecCmdError(Exception):
     '''コマンド実行エラー'''
     pass
+
+class NoValueInDgFileError(Exception):
+    '''タスクNotebookのコードセルで例外で処理停止しなければならないエラーが発生した場合'''
+    pass

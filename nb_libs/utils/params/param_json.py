@@ -7,6 +7,7 @@ from ..gin import api
 from ..message import display, message
 from ..common import common
 from ..path import path
+from ..except_class.common_err import NoValueInDgFileError
 
 
 PARAM_FILE_PATH = os.path.join(path.DATA_PATH, 'params.json')
@@ -26,7 +27,12 @@ def get_params()->dict:
 
 def get_gin_http()->str:
     params = get_params()
-    return params["siblings"]["ginHttp"]
+    gin_http = params["siblings"]["ginHttp"]
+
+    if len(gin_http) < 1:
+        raise NoValueInDgFileError('No value set.')
+    return gin_http
+
 
 
 def update_param_url(remote_origin_url:str):

@@ -18,7 +18,7 @@ from ..path import path as p
 from ..params import token, user_info, param_json, repository_id
 from . import api as gin_api
 from . import container
-from ..except_class import RepositoryNotExist, UrlUpdateError
+from ..except_class import RepositoryNotExist, UrlUpdateError, NoValueInDgFileError
 
 
 SIBLING = 'gin'
@@ -60,8 +60,8 @@ def update_repo_url():
 
     try:
         # APIリクエストに必要な情報を取得する
-        params = param_json.get_params()
-        pr = parse.urlparse(params['siblings']['ginHttp'])
+        gin_http_url = param_json.get_gin_http()
+        pr = parse.urlparse(gin_http_url)
         repo_id = repository_id.get_repo_id()
 
         # APIからリポジトリの最新のSSHのリモートURLを取得し、リモート設定を更新する
@@ -89,6 +89,8 @@ def update_repo_url():
     except requests.exceptions.RequestException:
         raise
     except RepositoryNotExist:
+        raise
+    except NoValueInDgFileError:
         raise
     except Exception as e:
         raise UrlUpdateError from e

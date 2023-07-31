@@ -7,7 +7,7 @@ from IPython.display import clear_output, display
 from ..utils.common import common
 from ..utils.form import prepare as pre
 from ..utils.message import message as msg_mod, display as msg_display
-from ..utils.params import token, ex_pkg_name
+from ..utils.params import ex_pkg_info, token
 from ..utils.git import git_module
 from ..utils.gin import sync, ssh, container
 from ..utils.path import path as p
@@ -123,7 +123,7 @@ def finished_setup():
 def syncs_config() -> tuple[list[str], list[str], list[str], str]:
     """同期のためにファイルとメッセージの設定"""
     preparation_completed()
-    experiment_title = ex_pkg_name.get_current_experiment_title()
+    experiment_title = ex_pkg_info.get_current_experiment_title()
     if experiment_title is None:
         msg_display.display_err(msg_mod.get('experiment_error', 'experiment_setup_unfinished'))
         raise DGTaskError

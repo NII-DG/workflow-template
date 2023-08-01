@@ -168,7 +168,7 @@ def syncs_config() -> tuple[list[str], list[str], list[str], str]:
 
 # ----- utils -----
 def submit_init_experiment_callback(input_forms, input_radios, error_message, submit_button):
-
+    """Processing method after click on submit button"""
     def callback(event):
         delete_tmp_file()
         user_name = input_forms[0].value

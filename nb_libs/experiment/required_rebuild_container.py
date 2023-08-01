@@ -137,7 +137,7 @@ def syncs_config() -> tuple[list[str], str]:
 
 # ----- utils -----
 def submit_init_callback(input_forms, error_message, submit_button):
-
+    """Processing method after click on submit button"""
     def callback(event):
         delete_tmp_file()
         user_name = input_forms[0].value

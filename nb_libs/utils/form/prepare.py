@@ -152,6 +152,16 @@ def validate_parameter_folder_name(name, pkg_name, submit_button)->bool:
     return True
 
 
+def validate_select_default(select_value, error_message, submit_button)->bool:
+    """デフォルトの値は選択できない"""
+    if select_value == SELECT_DEFAULT_VALUE:
+        submit_button.button_type = 'warning'
+        submit_button.name = error_message
+        return False
+    else:
+        return True
+
+
 def setup_local(user_name, password):
     params = param_json.get_params()
     pr = parse.urlparse(params['siblings']['ginHttp'])
@@ -196,7 +206,7 @@ def initial_gin_user_auth():
     # Instance for exception messages
     error_message = layout_error_text()
 
-    button = pn.widgets.Button(name= m.get('user_auth','end_input'), button_type= "primary", width=700)
+    button = create_button(name= m.get('user_auth','end_input'))
 
     # Define processing after clicking the submit button
     button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
@@ -209,25 +219,30 @@ def initial_gin_user_auth():
     display(error_message)
 
 
-FORM_WIDTH = 500
+DEFAULT_WIDTH = 500
+SELECT_DEFAULT_VALUE = '--'
 
 
 def create_user_auth_forms():
     # user name form
-    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder=m.get('user_auth','username_help'), width=FORM_WIDTH)
+    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder=m.get('user_auth','username_help'), width=DEFAULT_WIDTH)
     # password form
-    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=FORM_WIDTH)
+    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=DEFAULT_WIDTH)
     return [user_name_form, password_form]
 
 
-def create_param_forms():
-    return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=FORM_WIDTH)
+def create_param_form():
+    return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=DEFAULT_WIDTH)
 
 
 def create_select(name:str, option:list[str]):
-    init_value = '--'
-    option.append(init_value)
-    return pn.widgets.Select(name=name, option=option, width=FORM_WIDTH, value=init_value)
+    default_value = SELECT_DEFAULT_VALUE
+    option.append(default_value)
+    return pn.widgets.Select(name=name, option=option, width=DEFAULT_WIDTH, value=default_value)
+
+
+def create_button(name):
+    return pn.widgets.Button(name=name, button_type= "primary", width=DEFAULT_WIDTH)
 
 
 def layout_error_text():

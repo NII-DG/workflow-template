@@ -147,6 +147,8 @@ def submit_init_callback(input_forms, error_message, submit_button):
         # validate value for forms
         if not pre.validate_user_auth(user_name, password, submit_button):
             return
+        if not pre.validate_select_default(experiment_title, msg_mod.get('setup_package','select_default_error'), submit_button):
+            return
 
         try:
             pre.setup_local(user_name, password)
@@ -187,7 +189,7 @@ def initial_forms():
     # Instance for exception messages
     error_message = pre.layout_error_text()
 
-    button = pn.widgets.Button(name=msg_mod.get('DEFAULT','end_input'), button_type= "primary", width=700)
+    button = pre.create_button(name=msg_mod.get('DEFAULT','end_input'))
 
     # Define processing after clicking the submit button
     button.on_click(submit_init_callback(input_forms, error_message, button))
@@ -209,7 +211,7 @@ def get_experiment_titles()->list[str]:
     Returns:
         list[str]: 実験パッケージ名
     """
-    experiments_path = p.EXP_DIR_PATH
+    experiments_path = p.EXPERIMENTS_PATH
     ex_pkg_list = list[str]()
     if os.path.isdir(experiments_path):
         for data_name in os.listdir(experiments_path):

@@ -7,6 +7,7 @@ from ..path import path, display as path_display
 from ..common import common
 from ..gin import sync
 from ..git import git_module as git
+from . import prepare as pre
 # To remove the git config warning message on module import with execution result
 clear_output()
 
@@ -17,7 +18,7 @@ def dg_menu(type='research'):
 
     menu_option = {}
 
-    menu_option['--'] = 1
+    menu_option[pre.SELECT_DEFAULT_VALUE] = 1
 
     if type == 'research':
         menu_option[msg_mod.get('menu', 'show_name_only_res')] = 2

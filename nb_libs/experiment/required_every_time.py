@@ -231,11 +231,11 @@ def initial_experiment():
     input_forms = pre.create_user_auth_forms()
 
     # form of experiment
-    package_name_form = pn.widgets.TextInput(name=msg_mod.get('setup_package','package_name_title'), placeholder=msg_mod.get('setup_package','package_name_help'), width=pre.FORM_WIDTH)
+    package_name_form = pn.widgets.TextInput(name=msg_mod.get('setup_package','package_name_title'), placeholder=msg_mod.get('setup_package','package_name_help'), width=pre.DEFAULT_WIDTH)
     input_forms.append(package_name_form)
 
     if dmp.is_for_parameter(dmp.get_datasetStructure()):
-        paramfolder_form = pre.create_param_forms()
+        paramfolder_form = pre.create_param_form()
         input_forms.append(paramfolder_form)
 
     options = [msg_mod.get('setup_package','true'),  msg_mod.get('setup_package','false')]
@@ -252,7 +252,7 @@ def initial_experiment():
     # Instance for exception messages
     error_message = pre.layout_error_text()
 
-    button = pn.widgets.Button(name=msg_mod.get('DEFAULT','end_input'), button_type= "primary", width=700)
+    button = pre.create_button(name=msg_mod.get('DEFAULT','end_input'))
 
     # Define processing after clicking the submit button
     button.on_click(submit_init_experiment_callback(input_forms, input_radios, error_message, button))

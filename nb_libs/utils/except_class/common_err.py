@@ -19,3 +19,11 @@ class ExecCmdError(Exception):
 class NoValueInDgFileError(Exception):
     '''タスクNotebookのコードセルで例外で処理停止しなければならないエラーが発生した場合'''
     pass
+
+class NotFoundKey(Exception):
+    '''指定のキーが見つからない場合'''
+    pass
+
+class FoundUnnecessarykey(Exception):
+    '''不要なキーがある場合'''
+    pass

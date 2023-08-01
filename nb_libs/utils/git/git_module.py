@@ -112,6 +112,11 @@ def git_annex_unannex(path:str):
     result = stdout.decode('utf-8')
     return result
 
+def git_annex_resolvemerge(exec_path=p.HOME_PATH):
+    os.chdir(exec_path)
+    common.exec_subprocess('git annex resolvemerge')
+
+
 def get_conflict_filepaths() -> list[str]:
     """Get conflict paths in Unmerged paths for commit from git status
 

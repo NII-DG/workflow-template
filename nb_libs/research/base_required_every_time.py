@@ -11,6 +11,7 @@ from ..utils.except_class import DidNotFinishError
 
 
 def preparation_completed():
+    """事前準備が完了しているかどうかを確認"""
     if not (os.path.isfile(user_info.FILE_PATH) and os.path.isfile(token.FILE_PATH)):
         display.display_err(message.get('setup_sync', 'not_entered'))
         raise DidNotFinishError

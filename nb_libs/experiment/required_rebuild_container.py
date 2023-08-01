@@ -40,6 +40,7 @@ def delete_tmp_file():
 
 
 def preparation_completed():
+    """事前準備が完了しているかどうかを確認"""
     if not (os.path.isfile(FILE_PATH)):
         msg_display.display_err(msg_mod.get('setup_sync', 'not_entered'))
         raise DidNotFinishError
@@ -179,7 +180,7 @@ def initial_forms():
 
     # form of user name and password
     input_forms = pre.create_user_auth_forms()
-
+    # selectbox of experimental packages
     ex_pkg_select = pn.widgets.Select(name=msg_mod.get('setup_package', 'package_name_title'), option=get_experiment_titles())
     input_forms.append(ex_pkg_select)
 

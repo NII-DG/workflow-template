@@ -45,6 +45,7 @@ def delete_tmp_file():
 
 
 def preparation_completed():
+    """事前準備が完了しているかどうかを確認"""
     if not (os.path.isfile(FILE_PATH)):
         msg_display.display_err(msg_mod.get('setup_sync', 'not_entered'))
         raise DidNotFinishError

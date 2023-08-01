@@ -77,7 +77,7 @@ def create_package():
             os.makedirs(path, exist_ok=True)
             Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)
 
-        ex_pkg_name.set_current_experiment_title(params['ex_pkg_name'])
+        ex_pkg_info.set_current_experiment_title(params['ex_pkg_name'])
 
     except Exception:
         msg_display.display_err(msg_mod.get('ex_setup', 'create_pkg_error'))

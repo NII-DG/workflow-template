@@ -18,9 +18,17 @@ from http import HTTPStatus
 from dg_packager.ro_generator.gin_ro_generator import GinRoGenerator
 from dg_packager.error.error import JsonValidationError, RoPkgError
 from IPython.display import clear_output, display
-
+from ..utils.flow.module import check_finished_setup_research
+# To remove the git config warning message on module import with execution result
+clear_output()
 
 def prepare_matadata()->Any:
+    is_finished = check_finished_setup_research()
+    if not is_finished:
+        err_msg = message.get('DEFAULT', 'not_finish_setup')
+        msg_display.display_warm(err_msg)
+        raise DGTaskError('Initial setup has not been completed.')
+
     # リポジトリIDの用意
     try:
         repo_id = repository_id.get_repo_id()
@@ -411,7 +419,7 @@ def has_result_in_tmp():
     # get request id from .tmp/validation/request_id.txt
     try :
         request_id = get_request_id()
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
@@ -431,7 +439,6 @@ def has_result_in_tmp():
         warm_err = get_non_saving_data()
         msg_display.display_err(warm_err)
         return False
-        pass
     ### results.json
     if not os.path.isfile(os.path.join(tmp_result_folder, RESULTS_FILE_NAME)):
         # results.json does not exist

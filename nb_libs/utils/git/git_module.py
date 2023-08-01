@@ -246,7 +246,8 @@ def is_conflict() -> bool:
 
 def get_remote_url():
     stdout, stderr, rt = common.exec_subprocess('git config --get remote.origin.url')
-    return stdout.decode('utf-8')
+    raw_data = stdout.decode('utf-8')
+    return raw_data.replace('\n', '')
 
 
 def get_current_branch()->str:

@@ -33,3 +33,11 @@ def set_current_experiment_title(title):
     title_dict = {"ex_pkg_name":title}
     with open(FILE_PATH, 'w') as f:
         json.dump(title_dict, f, indent=4)
+
+def exist_file()->bool:
+    """ex_pkg_info.jsonファイルの存在確認
+
+    Returns:
+        bool: [True : 存在する, False : 存在しない]
+    """
+    return os.path.exists(FILE_PATH)

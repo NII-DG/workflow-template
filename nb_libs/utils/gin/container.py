@@ -27,7 +27,7 @@ def add_container(experiment_title=""):
     """
     try:
         params = param_json.get_params()
-        pr = parse.urlparse(params['siblings']['ginHttp'])
+        pr = parse.urlparse(params["siblings"]["ginHttp"])
 
         repo_id = repository_id.get_repo_id()
         uid = str(user_info.get_user_id())
@@ -79,8 +79,7 @@ def patch_container():
     ---------------
     """
     try:
-        params = param_json.get_params()
-        pr = parse.urlparse(params['siblings']['ginHttp'])
+        pr = parse.urlparse(param_json.get_gin_http())
         user_token = token.get_ginfork_token()
         server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
         uid = str(user_info.get_user_id())
@@ -111,8 +110,7 @@ def delete_container():
     """
 
     try:
-        params = param_json.get_params()
-        pr = parse.urlparse(params['siblings']['ginHttp'])
+        pr = parse.urlparse(param_json.get_gin_http())
         user_token = token.get_ginfork_token()
         server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
         uid = str(user_info.get_user_id())

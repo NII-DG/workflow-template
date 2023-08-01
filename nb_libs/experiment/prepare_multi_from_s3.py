@@ -86,7 +86,7 @@ def get_multi_s3_dict() -> dict:
 
 
 def input_aws_info():
-    '''AWS接続情報を入力するフォームを出力する
+    '''AWS接続情報を入力するフォームを表示する
     '''
 
 
@@ -203,11 +203,10 @@ def input_aws_info():
 
 
 def choose_get_data():
-    '''取得データを選択するフォームを出力する
+    '''取得データを選択するフォームを表示する
 
     Exception:
-        DidNotFinishError: ファイルが存在しない場合
-        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
+        JSONDecodeError: jsonファイルの形式が想定通りでない場合
     '''
 
 
@@ -229,12 +228,15 @@ def choose_get_data():
         done_button.button_type = "success"
         done_button.name = message.get('from_repo_s3', 'done_choose')
 
+    try:
+        multi_s3_dict = get_multi_s3_dict()
+    except DidNotFinishError:
+        return
 
-    multi_s3_dict = get_multi_s3_dict()
     keys = multi_s3_dict.keys()
     if len(keys) != 1 or set(keys) != {AWS_S3_INFO}:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
-        raise DidNotFinishError()
+        return
     content_key_list = multi_s3_dict[AWS_S3_INFO][PATHS]
 
     # 入力フォーム表示
@@ -251,7 +253,6 @@ def input_path():
     '''データの格納先を入力するフォームを出力する
 
     Exception:
-        DidNotFinishError: ファイルが存在しない場合
         JSONDecodeError: jsonファイルの形式が想定通りでない場合
     '''
     def verify_input_text(event):
@@ -287,11 +288,14 @@ def input_path():
         done_button.name = message.get('from_repo_s3', 'done_input')
 
 
-    multi_s3_dict = get_multi_s3_dict()
+    try:
+        multi_s3_dict = get_multi_s3_dict()
+    except DidNotFinishError:
+        return
     keys = multi_s3_dict.keys()
     if len(keys) != 2 or set(keys) != {AWS_S3_INFO, SELECTED_PATHS}:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
-        raise DidNotFinishError()
+        return
 
     selected_paths = multi_s3_dict[SELECTED_PATHS]
 

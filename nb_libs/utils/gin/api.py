@@ -111,6 +111,13 @@ def get_user_info(scheme, domain, token):
     return requests.get(url=api_url, params=params)
 
 
+def get_repo_info(scheme, domain, user_name, repo_name, token):
+    sub_url = os.path.join('api/v1/repos', user_name, repo_name)
+    api_url = parse.urlunparse((scheme, domain, sub_url, "", "", ""))
+    params = {'token' : token}
+    return requests.get(url=api_url, params=params)
+
+
 def upload_key(scheme:str, domain:str, token:str, pubkey:str):
     """GIN_API : api/v1/user/keys リクエストメソッド
 

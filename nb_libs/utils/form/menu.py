@@ -26,6 +26,8 @@ def dg_menu(type='research'):
     elif type == 'experiment':
         menu_option[msg_mod.get('menu', 'show_name')] = 4
         menu_option[msg_mod.get('menu', 'trans_experiment_top')] = 5
+    elif type == 'conflict':
+        menu_option[msg_mod.get('menu', 'show_name')] = 4
 
     menu_option[msg_mod.get('menu', 'trans_gin')] = 6
 

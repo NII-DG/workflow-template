@@ -9,7 +9,7 @@ from ..utils.ex_utils import dmp, package as ex_pkg
 from ..utils.common import common
 from ..utils.form import prepare as pre
 from ..utils.message import message as msg_mod, display as msg_display
-from ..utils.params import token, ex_pkg_name
+from ..utils.params import ex_pkg_info, token
 from ..utils.git import git_module
 from ..utils.gin import sync, ssh, container
 from ..utils.path import path as p
@@ -146,13 +146,13 @@ def add_container():
 def finished_setup():
     """実験フローの『初期セットアップ』に済を付与する。"""
     preparation_completed()
-    flow.put_mark('experiment', 'required_every_time', '済')
+    flow.put_mark_experiment()
 
 
 def syncs_config() -> tuple[list[str], list[str], list[str], str]:
     """同期のためにファイルとメッセージの設定"""
     preparation_completed()
-    experiment_title = ex_pkg_name.get_current_experiment_title()
+    experiment_title = ex_pkg_info.get_current_experiment_title()
     if experiment_title is None:
         msg_display.display_err(msg_mod.get('experiment_error', 'experiment_setup_unfinished'))
         raise DGTaskError

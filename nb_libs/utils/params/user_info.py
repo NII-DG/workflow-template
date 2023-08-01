@@ -36,5 +36,6 @@ def set_user_info(user_id):
     """
 
     user_info = {"user_id":user_id}
+    os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
     with open(FILE_PATH, 'w') as f:
         json.dump(user_info, f, indent=4)

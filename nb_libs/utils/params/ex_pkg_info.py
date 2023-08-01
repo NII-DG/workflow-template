@@ -31,6 +31,7 @@ def set_current_experiment_title(title):
         FileNotFoundError: ファイルが存在しない場合
     """
     title_dict = {"ex_pkg_name":title}
+    os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
     with open(FILE_PATH, 'w') as f:
         json.dump(title_dict, f, indent=4)
 

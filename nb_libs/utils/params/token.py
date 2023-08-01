@@ -22,6 +22,7 @@ def set_ginfork_token(token):
         Description : token for gin-fork
     """
     token_dict = {"ginfork_token": token}
+    os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
     with open(FILE_PATH, 'w') as f:
         json.dump(token_dict, f, indent=4)
 

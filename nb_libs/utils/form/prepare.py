@@ -113,7 +113,7 @@ def validate_experiment_folder_name(name:str, path:str, title:str, submit_button
         bool: Whether the format is correct
     """
 
-    if len(name)  <= 0:
+    if len(name) <= 0:
         submit_button.button_type = 'warning'
         submit_button.name = m.get('setup_package','empty_error').format(title)
         return False
@@ -133,9 +133,9 @@ def validate_experiment_folder_name(name:str, path:str, title:str, submit_button
 
 def validate_parameter_folder_name(name, pkg_name, submit_button)->bool:
 
-    if not validate_experiment_folder_name(submit_button, name,
+    if not validate_experiment_folder_name(name,
                     p.create_experiments_with_subpath(pkg_name, name),
-                    m.get('setup_package','paramfolder_title')):
+                    m.get('setup_package','paramfolder_title'), submit_button):
         return False
 
     if name == pkg_name:

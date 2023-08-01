@@ -203,7 +203,8 @@ def initial_gin_user_auth():
     # Columnを利用すると値が取れない場合がある
     for form in user_auth_forms:
         display(form)
-    display(pn.Column(button, error_message))
+    display(button)
+    display(error_message)
 
 
 FORM_WIDTH = 600

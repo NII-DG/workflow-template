@@ -258,4 +258,6 @@ def initial_experiment():
     # Columnを利用すると値が取れない場合がある
     for form in input_forms:
         display(form)
-    display(pn.Column(test_column, ci_column, button, error_message))
+    display(pn.Column(test_column, ci_column))
+    display(button)
+    display(error_message)

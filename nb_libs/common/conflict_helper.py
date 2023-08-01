@@ -1,7 +1,9 @@
 import os
 from ..utils.params import ex_pkg_info as epi
 from ..utils.path import path, display as pd
-from ..utils.message import message
+from ..utils.message import message, display as md
+from ..utils.git import git_module as git
+from ..utils.except_class import DGTaskError
 from IPython.display import HTML, display
 
 
@@ -9,6 +11,20 @@ from IPython.display import HTML, display
 def analyze_conflict_status():
     """1. 競合状態の解析
     """
+    # check exist conflict_helper.json
+    if exist_rf_form_file():
+        ## No processing is performed because this task is running
+        err_msg = message.get('task', 'in_progress')
+        md.display_warm(err_msg)
+        return
+    else:
+        # Start analyzing the state of contention
+        ## Disable git output encoding
+        git.disable_encoding_git()
+
+
+
+
     pass
 
 def get_annex_variatns():

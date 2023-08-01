@@ -93,6 +93,16 @@ def git_annex_unannex(path:str):
     result = stdout.decode('utf-8')
     return result
 
+def git_annex_untrust():
+    stdout, stderr, rt = common.exec_subprocess(cmd='git annex untrust here')
+    result = stdout.decode('utf-8')
+    return result
+
+def git_annex_trust():
+    stdout, stderr, rt = common.exec_subprocess(cmd='git annex --force trust web')
+    result = stdout.decode('utf-8')
+    return result
+
 def get_conflict_filepaths() -> list[str]:
     """Get conflict paths in Unmerged paths for commit from git status
 

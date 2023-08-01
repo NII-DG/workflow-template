@@ -1,16 +1,16 @@
-import json
 import os
-from IPython.display import clear_output
 import requests
-from datalad import api
 import traceback
 import subprocess
 from subprocess import PIPE
-import magic
 import hashlib
 import datetime
-import shutil
 from urllib import parse
+
+import magic
+from datalad import api
+from IPython.display import clear_output
+
 from ..git import git_module
 from ..common import common
 from ..message import message as msg_mod, display as msg_display

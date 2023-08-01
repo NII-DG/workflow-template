@@ -153,10 +153,7 @@ def syncs_config() -> tuple[list[str], list[str], list[str], str]:
     """同期のためにファイルとメッセージの設定"""
     preparation_completed()
     # get experiment title
-    experiment_title = ex_pkg_info.get_current_experiment_title()
-    if experiment_title is None:
-        msg_display.display_err(msg_mod.get('experiment_error', 'experiment_setup_unfinished'))
-        raise DGTaskError
+    experiment_title = ex_pkg_info.exec_get_ex_title()
     # set sync path
     git_path, gitannex_path, gitannex_files = ex_pkg.create_syncs_path(p.create_experiments_with_subpath(experiment_title))
     nb_path = os.path.join(p.EXP_DIR_PATH, 'required_every_time.ipynb')

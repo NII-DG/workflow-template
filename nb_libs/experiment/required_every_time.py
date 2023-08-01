@@ -235,9 +235,8 @@ def initial_experiment():
         input_forms.append(paramfolder_form)
 
     options = [msg_mod.get('setup_package','true'),  msg_mod.get('setup_package','false')]
-    init_value =  msg_mod.get('setup_package','false')
-    test_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=init_value)
-    ci_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=init_value)
+    test_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=msg_mod.get('setup_package','true'))
+    ci_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=msg_mod.get('setup_package','false'))
     input_radios = [test_folder_radio, ci_folder_radio]
 
     title_format = """<label>{}</label>"""

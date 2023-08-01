@@ -14,13 +14,29 @@ def analyze_conflict_status():
     # check exist conflict_helper.json
     if exist_rf_form_file():
         ## No processing is performed because this task is running
+        ## Display error message to user and terminate the process
         err_msg = message.get('task', 'in_progress')
+        md.display_err(err_msg)
+        return
+
+    # Start analyzing the state of contention
+    ## Disable git output encoding
+    git.disable_encoding_git()
+    ## Obtain a list of file paths that have conflicts (conflict file path list).
+    conflict_filepaths = git.get_conflict_filepaths()
+    ## If the length of the conflict file path list is 0, no conflict has occurred.
+    if len(conflict_filepaths) < 1:
+        # Display to the user that the task does not need to be executed, and terminate the process.
+        err_msg = message.get('conflict_helper', 'no_need_exec_task')
         md.display_warm(err_msg)
         return
-    else:
-        # Start analyzing the state of contention
-        ## Disable git output encoding
-        git.disable_encoding_git()
+
+    ## Obtain a list of Annex content paths in the repository (Annex file path list)
+
+
+
+
+
 
 
 

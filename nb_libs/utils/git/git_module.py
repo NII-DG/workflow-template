@@ -73,25 +73,23 @@ def git_ls_files(path:str):
     result = stdout.decode('utf-8')
     return result
 
-def disable_encoding_git(exec_path = p.HOME_PATH):
-    """AI is creating summary for disable_encoding_git
+def disable_encoding_git(exec_path=p.HOME_PATH):
+    """Disable encoding of git output results
 
     Args:
-        exec_path ([type], optional): [description]. Defaults to p.HOME_PATH.
-
-    Returns:
-        [type]: [description]
+        exec_path ([str], optional): [command execution path]. Defaults to p.HOME_PATH.
     """
     os.chdir(exec_path)
-    stdout, stderr, rt = common.exec_subprocess('git config --global core.quotepath false')
-    result = stdout.decode('utf-8')
-    return result
+    common.exec_subprocess('git config --global core.quotepath false')
 
-def enable_encoding_git():
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git config --global core.quotepath true')
-    result = stdout.decode('utf-8')
-    return result
+def enable_encoding_git(exec_path=p.HOME_PATH):
+    """Enable encoding of git output results
+
+    Args:
+        exec_path ([str], optional): [command execution path]. Defaults to p.HOME_PATH.
+    """
+    os.chdir(exec_path)
+    common.exec_subprocess('git config --global core.quotepath true')
 
 
 def git_annex_lock(path:str):

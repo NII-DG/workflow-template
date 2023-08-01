@@ -255,9 +255,12 @@ def initial_experiment():
     button.on_click(submit_init_experiment_callback(input_forms, input_radios, error_message, button))
 
     clear_output()
-    # Columnを利用すると値が取れない場合がある
+    # Columnを利用すると値を取れない場合がある
     for form in input_forms:
         display(form)
-    display(pn.Column(test_column, ci_column))
+    display(test_title)
+    display(test_folder_radio)
+    display(ci_title)
+    display(ci_folder_radio)
     display(button)
     display(error_message)

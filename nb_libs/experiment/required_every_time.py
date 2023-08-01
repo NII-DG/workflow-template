@@ -16,7 +16,7 @@ from ..utils.git import git_module
 from ..utils.gin import sync, ssh, container
 from ..utils.path import path as p
 from ..utils.flow import module as flow
-from ..utils.except_class import DidNotFinishError, Unauthorized, DGTaskError
+from ..utils.except_class import DidNotFinishError, Unauthorized
 
 
 FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'required_every_time.json')

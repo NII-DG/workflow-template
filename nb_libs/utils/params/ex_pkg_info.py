@@ -1,6 +1,7 @@
 import os
 import json
 from ..path import path
+from ..common import common
 
 
 FILE_PATH = os.path.join(path.SYS_PATH, 'ex_pkg_info.json')
@@ -31,9 +32,7 @@ def set_current_experiment_title(title):
         FileNotFoundError: ファイルが存在しない場合
     """
     title_dict = {"ex_pkg_name":title}
-    os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
-    with open(FILE_PATH, 'w') as f:
-        json.dump(title_dict, f, indent=4)
+    common.create_json_file(FILE_PATH, title_dict)
 
 
 def exist_file()->bool:

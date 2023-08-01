@@ -3,9 +3,8 @@
 
 import os
 import json
-import requests
 from ..path import path as p
-from . import param_json
+from ..common import common
 
 
 FILE_PATH = os.path.join(p.SYS_PATH, '.user_info.json')
@@ -36,6 +35,4 @@ def set_user_info(user_id):
     """
 
     user_info = {"user_id":user_id}
-    os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
-    with open(FILE_PATH, 'w') as f:
-        json.dump(user_info, f, indent=4)
+    common.create_json_file(FILE_PATH, user_info)

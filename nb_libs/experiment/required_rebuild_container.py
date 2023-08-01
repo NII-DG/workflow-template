@@ -14,7 +14,7 @@ from ..utils.git import git_module
 from ..utils.gin import sync, ssh, container
 from ..utils.path import path as p
 from ..utils.flow import module as flow
-from ..utils.except_class import DidNotFinishError, Unauthorized
+from ..utils.except_class import DidNotFinishError, Unauthorized, DGTaskError
 
 
 FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'required_rebuild_container.json')
@@ -135,12 +135,13 @@ def syncs_config() -> tuple[list[str], str]:
 
 
 # ----- utils -----
-def submit_init_experiment_callback(input_forms, error_message, submit_button):
+def submit_init_callback(input_forms, error_message, submit_button):
 
     def callback(event):
         delete_tmp_file()
         user_name = input_forms[0].value
         password = input_forms[1].value
+        experiment_title = input_forms[2].value
 
         # validate value for forms
         if not pre.validate_user_auth(user_name, password, submit_button):
@@ -148,6 +149,7 @@ def submit_init_experiment_callback(input_forms, error_message, submit_button):
 
         try:
             pre.setup_local(user_name, password)
+            set_params(experiment_title)
 
         except Unauthorized:
             submit_button.button_type = 'warning'
@@ -155,19 +157,19 @@ def submit_init_experiment_callback(input_forms, error_message, submit_button):
             return
         except requests.exceptions.RequestException as e:
             submit_button.button_type = 'warning'
-            submit_button.name =  msg_mod.get('user_auth','connection_error')
+            submit_button.name =  msg_mod.get('DEFAULT','connection_error')
             error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         except Exception as e:
             submit_button.button_type = 'danger'
-            submit_button.name =  msg_mod.get('user_auth','unexpected')
+            submit_button.name =  msg_mod.get('DEFAULT','unexpected')
             error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:
             submit_button.button_type = 'success'
-            submit_button.name =  msg_mod.get('user_auth','success')
+            submit_button.name =  msg_mod.get('setup_package','success')
             return
     return callback
 
@@ -178,7 +180,8 @@ def initial_forms():
     # form of user name and password
     input_forms = pre.create_user_auth_forms()
 
-
+    ex_pkg_select = pn.widgets.Select(name=msg_mod.get('setup_package', 'package_name_title'), option=get_experiment_titles())
+    input_forms.append(ex_pkg_select)
 
     # Instance for exception messages
     error_message = pre.layout_error_text()
@@ -186,7 +189,7 @@ def initial_forms():
     button = pn.widgets.Button(name=msg_mod.get('DEFAULT','end_input'), button_type= "primary", width=700)
 
     # Define processing after clicking the submit button
-    button.on_click(submit_init_experiment_callback(input_forms, error_message, button))
+    button.on_click(submit_init_callback(input_forms, error_message, button))
 
     clear_output()
     # Columnを利用すると値を取れない場合がある
@@ -194,3 +197,25 @@ def initial_forms():
         display(form)
     display(button)
     display(error_message)
+
+
+def get_experiment_titles()->list[str]:
+    """リポジトリに存在する全ての実験パッケージ名を取得する
+
+    Raises:
+        DGTaskError: リポジトリに実験パッケージが存在しない
+
+    Returns:
+        list[str]: 実験パッケージ名
+    """
+    experiments_path = p.EXP_DIR_PATH
+    ex_pkg_list = list[str]()
+    if os.path.isdir(experiments_path):
+        for data_name in os.listdir(experiments_path):
+            data_path = os.path.join(experiments_path, data_name)
+            if os.path.isdir(data_path):
+                ex_pkg_list.append(data_name)
+    if len(ex_pkg_list) <= 0:
+        msg_display.display_err(msg_mod.get('setup_package', 'not_exist_pkg_error'))
+        raise DGTaskError
+    return ex_pkg_list

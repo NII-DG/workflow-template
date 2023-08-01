@@ -206,19 +206,19 @@ def submit_init_experiment_callback(input_forms, input_radios, error_message, su
             return
         except requests.exceptions.RequestException as e:
             submit_button.button_type = 'warning'
-            submit_button.name =  msg_mod.get('user_auth','connection_error')
+            submit_button.name =  msg_mod.get('DEFAULT','connection_error')
             error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         except Exception as e:
             submit_button.button_type = 'danger'
-            submit_button.name =  msg_mod.get('user_auth','unexpected')
+            submit_button.name =  msg_mod.get('DEFAULT','unexpected')
             error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:
             submit_button.button_type = 'success'
-            submit_button.name =  msg_mod.get('user_auth','success')
+            submit_button.name =  msg_mod.get('setup_package','success')
             return
     return callback
 

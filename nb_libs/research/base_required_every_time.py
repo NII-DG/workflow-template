@@ -1,15 +1,17 @@
 import os
 import requests
+
 from ..utils.message import message, display
 from ..utils.params import token, user_info
 from ..utils.git import git_module
 from ..utils.gin import sync, ssh, container
-from ..utils.path import path
+from ..utils.path import path as p
 from ..utils.flow import module as flow
 from ..utils.except_class import DidNotFinishError
 
 
 def preparation_completed():
+    """事前準備が完了しているかどうかを確認"""
     if not (os.path.isfile(user_info.FILE_PATH) and os.path.isfile(token.FILE_PATH)):
         display.display_err(message.get('setup_sync', 'not_entered'))
         raise DidNotFinishError
@@ -33,7 +35,7 @@ def del_build_token():
 def datalad_create():
     """ローカルをdataladデータセット化する"""
     preparation_completed()
-    sync.datalad_create(path.HOME_PATH)
+    sync.datalad_create(p.HOME_PATH)
 
 
 def ssh_create_key():
@@ -87,6 +89,9 @@ def finished_setup():
 def syncs_config() -> tuple[list[str], str]:
     """同期のためにファイルとメッセージの設定"""
     preparation_completed()
-    git_path = ['/home/jovyan/.gitignore', '/home/jovyan/WORKFLOWS', '/home/jovyan/maDMP.ipynb']
+    paths = ['.gitignore', 'WORKFLOWS', 'maDMP.ipynb']
+    git_path = []
+    for path in paths:
+        git_path.append(os.path.join(p.HOME_PATH, path))
     commit_message = message.get('commit_message', 'base_required_every_time')
     return git_path, commit_message

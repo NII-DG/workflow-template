@@ -1,16 +1,16 @@
-import json
 import os
-from IPython.display import clear_output
 import requests
-from datalad import api
 import traceback
 import subprocess
 from subprocess import PIPE
-import magic
 import hashlib
 import datetime
-import shutil
 from urllib import parse
+
+import magic
+from datalad import api
+from IPython.display import clear_output
+
 from ..git import git_module
 from ..common import common
 from ..message import message as msg_mod, display as msg_display
@@ -84,24 +84,34 @@ def datalad_create(dir_path:str):
         path (str): データセット化するディレクトリのパス
     """
     if not os.path.isdir(os.path.join(dir_path, ".datalad")):
-        common.exec_subprocess(cmd=f'datalad create --force {dir_path}')
+        api.create(path=dir_path, force=True)
         msg_display.display_info(msg_mod.get('setup_sync', 'datalad_create_success'))
     else:
         msg_display.display_warm(msg_mod.get('setup_sync', 'datalad_create_already'))
+
+
+def datalad_get(dir_path:str):
+    """datalad getをする
+
+    Args:
+        path (str): datalad getするパス
+    """
+    api.get(path=dir_path)
+    api.unlock(path=dir_path)
 
 
 def prepare_sync():
     """同期するコンテンツの調整"""
 
     # S3にあるデータをGIN-forkに同期しないための設定
-    common.exec_subprocess(cmd='git annex untrust here')
-    common.exec_subprocess(cmd='git annex --force trust web')
+    git_module.git_annex_untrust()
+    git_module.git_annex_trust()
 
     # 元ファイルからコピーして.gitignoreを作成
     file_path = os.path.join(p.HOME_PATH, '.gitignore')
     orig_file_path = os.path.join(p.DATA_PATH, 'orig_gitignore')
-    if os.path.isfile(file_path):
-        shutil.copy(orig_file_path, file_path)
+    if not os.path.isfile(file_path):
+        common.cp_file(orig_file_path, file_path)
 
 
 def setup_sibling():
@@ -130,7 +140,6 @@ def setup_sibling():
         raise
     else:
         clear_output()
-
 
 
 def push_annex_branch():

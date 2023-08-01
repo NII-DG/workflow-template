@@ -1,6 +1,8 @@
 import subprocess
 import re
 import os
+import json
+import shutil
 from ..except_class import ExecCmdError
 from natsort import natsorted
 
@@ -121,3 +123,16 @@ def delete_file(file_path:str):
     '''
     if os.path.isfile(file_path):
         os.remove(file_path)
+
+
+def cp_file(old_file_path, new_file_path):
+    """新しいファイルの親ディレクトリが存在していない場合は作成してからコピーする"""
+    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
+    shutil.copyfile(old_file_path, new_file_path)
+
+
+def create_json_file(file_path:str, params_dict:dict):
+    """親ディレクトリが無い場合は作成してからjsonファイルを作成"""
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, 'w') as f:
+        json.dump(params_dict, f, indent=4)

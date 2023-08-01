@@ -1,6 +1,10 @@
 import os
 import json
+
 from ..path import path
+from ..common import common
+from ..message import message as msg_mod, display as msg_display
+from ..except_class import DGTaskError
 
 
 FILE_PATH = os.path.join(path.SYS_PATH, 'ex_pkg_info.json')
@@ -21,6 +25,25 @@ def get_current_experiment_title():
         return None
 
 
+def exec_get_ex_title():
+    '''現在実験中の実験パッケージ名を取得する
+
+    Arg:
+        なし
+
+    Return:
+        現在実験中の実験パッケージ名
+
+    Raise:
+        DGTaskError: 実験フローのセットアップが完了していない場合
+    '''
+    experiment_title = get_current_experiment_title()
+    if experiment_title is None:
+        msg_display.display_err(msg_mod.get('experiment_error', 'experiment_setup_unfinished'))
+        raise DGTaskError
+    return experiment_title
+
+
 def set_current_experiment_title(title):
     """現在実験中の実験パッケージ名を設定する
 
@@ -31,8 +54,8 @@ def set_current_experiment_title(title):
         FileNotFoundError: ファイルが存在しない場合
     """
     title_dict = {"ex_pkg_name":title}
-    with open(FILE_PATH, 'w') as f:
-        json.dump(title_dict, f, indent=4)
+    common.create_json_file(FILE_PATH, title_dict)
+
 
 def exist_file()->bool:
     """ex_pkg_info.jsonファイルの存在確認

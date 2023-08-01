@@ -1,11 +1,13 @@
-from IPython.display import clear_output, display
 from urllib import parse
 import requests
 from http import HTTPStatus
 import traceback
-import panel as pn
 import re
 import os
+
+import panel as pn
+from IPython.display import clear_output, display
+
 from ..common import common
 from ..params import user_info, token, param_json
 from ..gin import api as gin_api
@@ -113,12 +115,12 @@ def validate_experiment_folder_name(name:str, path:str, title:str, submit_button
         bool: Whether the format is correct
     """
 
-    if len(name)  <= 0:
+    if len(name) <= 0:
         submit_button.button_type = 'warning'
         submit_button.name = m.get('setup_package','empty_error').format(title)
         return False
 
-    if not validate_format_username(name):
+    if not validate_format_input(name):
         submit_button.button_type = 'warning'
         submit_button.name = m.get('setup_package','pattern_error').format(title)
         return False
@@ -133,9 +135,9 @@ def validate_experiment_folder_name(name:str, path:str, title:str, submit_button
 
 def validate_parameter_folder_name(name, pkg_name, submit_button)->bool:
 
-    if not validate_experiment_folder_name(submit_button, name,
+    if not validate_experiment_folder_name(name,
                     p.create_experiments_with_subpath(pkg_name, name),
-                    m.get('setup_package','paramfolder_title')):
+                    m.get('setup_package','paramfolder_title'), submit_button):
         return False
 
     if name == pkg_name:
@@ -148,6 +150,16 @@ def validate_parameter_folder_name(name, pkg_name, submit_button)->bool:
         return False
 
     return True
+
+
+def validate_select_default(select_value, error_message, submit_button)->bool:
+    """デフォルトの値は選択できない"""
+    if select_value == SELECT_DEFAULT_VALUE:
+        submit_button.button_type = 'warning'
+        submit_button.name = error_message
+        return False
+    else:
+        return True
 
 
 def setup_local(user_name, password):
@@ -194,31 +206,43 @@ def initial_gin_user_auth():
     # Instance for exception messages
     error_message = layout_error_text()
 
-    button = pn.widgets.Button(name= m.get('user_auth','end_input'), button_type= "primary", width=700)
+    button = create_button(name= m.get('user_auth','end_input'))
 
     # Define processing after clicking the submit button
     button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
 
     clear_output()
-    # Columnを利用すると値が取れない場合がある
+    # Columnを利用すると値を取れない場合がある
     for form in user_auth_forms:
         display(form)
-    display(pn.Column(button, error_message))
+    display(button)
+    display(error_message)
 
 
-FORM_WIDTH = 600
+DEFAULT_WIDTH = 500
+SELECT_DEFAULT_VALUE = '--'
 
 
 def create_user_auth_forms():
     # user name form
-    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder=m.get('user_auth','username_help'), width=FORM_WIDTH)
+    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder=m.get('user_auth','username_help'), width=DEFAULT_WIDTH)
     # password form
-    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=FORM_WIDTH)
+    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=DEFAULT_WIDTH)
     return [user_name_form, password_form]
 
 
-def create_param_forms():
-    return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=FORM_WIDTH)
+def create_param_form():
+    return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=DEFAULT_WIDTH)
+
+
+def create_select(name:str, option:list[str]):
+    default_value = SELECT_DEFAULT_VALUE
+    option.append(default_value)
+    return pn.widgets.Select(name=name, option=option, width=DEFAULT_WIDTH, value=default_value)
+
+
+def create_button(name):
+    return pn.widgets.Button(name=name, button_type= "primary", width=DEFAULT_WIDTH)
 
 
 def layout_error_text():

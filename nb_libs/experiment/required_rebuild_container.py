@@ -2,12 +2,10 @@ import os
 import json
 import requests
 import traceback
-from pathlib import Path
 
 import panel as pn
 from IPython.display import clear_output, display
 
-from ..utils.ex_utils import dmp, package as ex_pkg
 from ..utils.common import common
 from ..utils.form import prepare as pre
 from ..utils.message import message as msg_mod, display as msg_display
@@ -16,19 +14,16 @@ from ..utils.git import git_module
 from ..utils.gin import sync, ssh, container
 from ..utils.path import path as p
 from ..utils.flow import module as flow
-from ..utils.except_class import DidNotFinishError, Unauthorized
+from ..utils.except_class import DidNotFinishError, Unauthorized, DGTaskError
 
 
-FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'required_every_time.json')
+FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'required_rebuild_container.json')
 
 
 # ----- tmp_file handling -----
-def set_params(ex_pkg_name:str, parama_ex_name:str, create_test_folder:bool, create_ci:bool):
+def set_params(ex_pkg_name:str):
     params_dict = {
     "ex_pkg_name" : ex_pkg_name,
-    "parama_ex_name" : parama_ex_name,
-    "create_test_folder" : create_test_folder,
-    "create_ci" : create_ci
     }
     common.create_json_file(FILE_PATH, params_dict)
 
@@ -54,37 +49,7 @@ def preparation_completed():
 # ----- for cell -----
 def display_forms():
     delete_tmp_file()
-    initial_experiment()
-
-
-def create_package():
-    try:
-        preparation_completed()
-
-        params = get_param()
-        experiment_path = p.create_experiments_with_subpath(params['ex_pkg_name'])
-        # create experimental package
-        ex_pkg.create_ex_package(dmp.get_datasetStructure(), experiment_path)
-        # create parameter folder
-        ex_pkg.rename_param_folder(experiment_path, params['parama_ex_name'])
-        # create ci folder
-        if params['create_ci']:
-            path = os.path.join(experiment_path, 'ci')
-            os.makedirs(path, exist_ok=True)
-            Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)
-        # create test folder
-        if params['create_test_folder']:
-            path = os.path.join(experiment_path, 'source', 'test')
-            os.makedirs(path, exist_ok=True)
-            Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)
-
-        ex_pkg_info.set_current_experiment_title(params['ex_pkg_name'])
-
-    except Exception:
-        msg_display.display_err(msg_mod.get('ex_setup', 'create_pkg_error'))
-        raise
-    else:
-        msg_display.display_info(msg_mod.get('ex_setup', 'create_pkg_success'))
+    initial_forms()
 
 
 def del_build_token():
@@ -150,56 +115,44 @@ def finished_setup():
     flow.put_mark_experiment()
 
 
-def syncs_config() -> tuple[list[str], list[str], list[str], str]:
+def get_pkg_data():
+    preparation_completed()
+    experiment_title = ex_pkg_info.exec_get_ex_title()
+    sync.datalad_get(p.create_experiments_with_subpath(experiment_title))
+
+
+def syncs_config() -> tuple[list[str], str]:
     """同期のためにファイルとメッセージの設定"""
     preparation_completed()
     # get experiment title
     experiment_title = ex_pkg_info.exec_get_ex_title()
-    # set sync path
-    git_path, gitannex_path, gitannex_files = ex_pkg.create_syncs_path(p.create_experiments_with_subpath(experiment_title))
-    nb_path = os.path.join(p.EXP_DIR_PATH, 'required_every_time.ipynb')
-    git_path.append(nb_path)
-    # set commit message
+    # set parameter
+    nb_path = os.path.join(p.EXP_DIR_PATH, 'required_rebuild_container.ipynb')
+    git_path = [nb_path]
     commit_message = msg_mod.get('commit_message', 'required_every_time').format(experiment_title)
     # delete temporarily file
     delete_tmp_file()
-    return git_path, gitannex_path, gitannex_files, commit_message
+    return git_path, commit_message
 
 
 # ----- utils -----
-def submit_init_experiment_callback(input_forms, input_radios, error_message, submit_button):
+def submit_init_callback(input_forms, error_message, submit_button):
     """Processing method after click on submit button"""
     def callback(event):
         delete_tmp_file()
         user_name = input_forms[0].value
         password = input_forms[1].value
-        package_name = input_forms[2].value
-        paramfolder_name = None
-        if len(input_forms) > 3:
-            paramfolder_name = input_forms[3].value
-        is_test_folder = False
-        is_ci_folder = False
-        if input_radios[0].value ==  msg_mod.get('setup_package','true'):
-            is_test_folder = True
-        if input_radios[1].value ==  msg_mod.get('setup_package','true'):
-            is_ci_folder = True
+        experiment_title = input_forms[2].value
 
         # validate value for forms
         if not pre.validate_user_auth(user_name, password, submit_button):
             return
-
-        if not pre.validate_experiment_folder_name(package_name, p.create_experiments_with_subpath(package_name), msg_mod.get('setup_package','package_name_title'), submit_button):
+        if not pre.validate_select_default(experiment_title, msg_mod.get('setup_package','select_default_error'), submit_button):
             return
-
-        if paramfolder_name is not None:
-            if not pre.validate_parameter_folder_name(paramfolder_name, package_name, submit_button):
-                return
 
         try:
             pre.setup_local(user_name, password)
-            if paramfolder_name is None:
-                paramfolder_name = ""
-            set_params(package_name, paramfolder_name, is_test_folder, is_ci_folder)
+            set_params(experiment_title)
 
         except Unauthorized:
             submit_button.button_type = 'warning'
@@ -224,30 +177,14 @@ def submit_init_experiment_callback(input_forms, input_radios, error_message, su
     return callback
 
 
-def initial_experiment():
+def initial_forms():
     pn.extension()
 
     # form of user name and password
     input_forms = pre.create_user_auth_forms()
-
-    # form of experiment
-    package_name_form = pn.widgets.TextInput(name=msg_mod.get('setup_package','package_name_title'), placeholder=msg_mod.get('setup_package','package_name_help'), width=pre.DEFAULT_WIDTH)
-    input_forms.append(package_name_form)
-
-    if dmp.is_for_parameter(dmp.get_datasetStructure()):
-        paramfolder_form = pre.create_param_form()
-        input_forms.append(paramfolder_form)
-
-    options = [msg_mod.get('setup_package','true'),  msg_mod.get('setup_package','false')]
-    test_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=msg_mod.get('setup_package','true'))
-    ci_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=msg_mod.get('setup_package','false'))
-    input_radios = [test_folder_radio, ci_folder_radio]
-
-    title_format = """<label>{}</label>"""
-    test_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','test_folder_title')))
-    ci_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','ci_folder_title')))
-    test_column = pn.Column(test_title, test_folder_radio, margin=(0, 0, 0, 5))
-    ci_column = pn.Column(ci_title, ci_folder_radio, margin=(0, 0, 0, 5))
+    # selectbox of experimental packages
+    ex_pkg_select = pre.create_select(name=msg_mod.get('setup_package', 'package_name_title'), option=get_experiment_titles())
+    input_forms.append(ex_pkg_select)
 
     # Instance for exception messages
     error_message = pre.layout_error_text()
@@ -255,12 +192,33 @@ def initial_experiment():
     button = pre.create_button(name=msg_mod.get('DEFAULT','end_input'))
 
     # Define processing after clicking the submit button
-    button.on_click(submit_init_experiment_callback(input_forms, input_radios, error_message, button))
+    button.on_click(submit_init_callback(input_forms, error_message, button))
 
     clear_output()
     # Columnを利用すると値を取れない場合がある
     for form in input_forms:
         display(form)
-    display(pn.Column(test_column, ci_column))
     display(button)
     display(error_message)
+
+
+def get_experiment_titles()->list[str]:
+    """リポジトリに存在する全ての実験パッケージ名を取得する
+
+    Raises:
+        DGTaskError: リポジトリに実験パッケージが存在しない
+
+    Returns:
+        list[str]: 実験パッケージ名
+    """
+    experiments_path = p.EXPERIMENTS_PATH
+    ex_pkg_list = list[str]()
+    if os.path.isdir(experiments_path):
+        for data_name in os.listdir(experiments_path):
+            data_path = os.path.join(experiments_path, data_name)
+            if os.path.isdir(data_path):
+                ex_pkg_list.append(data_name)
+    if len(ex_pkg_list) <= 0:
+        msg_display.display_err(msg_mod.get('setup_package', 'not_exist_pkg_error'))
+        raise DGTaskError
+    return ex_pkg_list

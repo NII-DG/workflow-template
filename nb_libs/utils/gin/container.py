@@ -1,13 +1,12 @@
 """GIN-frokの実行環境一覧への操作"""
 import requests
 import os
-import json
 from urllib import parse
 from urllib.parse import urljoin
 from ..message import message, display
 from ..params import user_info, token, repository_id, param_json
 from ..path import path
-from . import sync, api
+from . import api
 
 
 def add_container(experiment_title=""):
@@ -53,7 +52,7 @@ def add_container(experiment_title=""):
         elif response.json()["error"].startswith("Error 1062"):
             display.display_warm(message.get('container_api', 'add_already_exist'))
         else:
-            raise response.raise_for_status()
+            response.raise_for_status()
 
     except requests.exceptions.RequestException:
         display.display_err(message.get('container_api', 'connection_error'))

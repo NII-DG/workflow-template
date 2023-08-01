@@ -1,11 +1,13 @@
-from IPython.display import clear_output, display
 from urllib import parse
 import requests
 from http import HTTPStatus
 import traceback
-import panel as pn
 import re
 import os
+
+import panel as pn
+from IPython.display import clear_output, display
+
 from ..common import common
 from ..params import user_info, token, param_json
 from ..gin import api as gin_api
@@ -207,7 +209,7 @@ def initial_gin_user_auth():
     display(error_message)
 
 
-FORM_WIDTH = 600
+FORM_WIDTH = 500
 
 
 def create_user_auth_forms():
@@ -220,6 +222,12 @@ def create_user_auth_forms():
 
 def create_param_forms():
     return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=FORM_WIDTH)
+
+
+def create_select(name:str, option:list[str]):
+    init_value = '--'
+    option.append(init_value)
+    return pn.widgets.Select(name=name, option=option, width=FORM_WIDTH, value=init_value)
 
 
 def layout_error_text():

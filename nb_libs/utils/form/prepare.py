@@ -4,13 +4,11 @@ import requests
 from http import HTTPStatus
 import traceback
 import panel as pn
-import urllib
 import re
 import os
 from ..common import common
 from ..params import user_info, token, param_json
 from ..gin import api as gin_api
-from ..git import git_module as git
 from ..message import message as m
 from ..path import path as p
 from ..except_class import Unauthorized
@@ -202,112 +200,26 @@ def initial_gin_user_auth():
     button.on_click(submit_user_auth_callback(user_auth_forms, error_message, button))
 
     clear_output()
-    display(pn.Column(*user_auth_forms, button, error_message))
+    # Columnを利用すると値が取れない場合がある
+    for form in user_auth_forms:
+        display(form)
+    display(pn.Column(button, error_message))
+
+
+FORM_WIDTH = 600
 
 
 def create_user_auth_forms():
     # user name form
-    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder=m.get('user_auth','username_help'), width=700)
+    user_name_form = pn.widgets.TextInput(name=m.get('user_auth','username_title'), placeholder=m.get('user_auth','username_help'), width=FORM_WIDTH)
     # password form
-    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=700)
+    password_form = pn.widgets.PasswordInput(name=m.get('user_auth','password_title'), placeholder=m.get('user_auth','password_help'), width=FORM_WIDTH)
     return [user_name_form, password_form]
 
 
 def create_param_forms():
-    return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=700)
+    return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=FORM_WIDTH)
 
 
 def layout_error_text():
     return pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
-
-
-def submit_build_for_private_callback(user_auth_forms, error_message, submit_button_user_auth, success_private_button):
-    """Processing method after click on submit button
-
-    Check form values, authenticate users, and update RF configuration files.
-
-    Args:
-        user_auth_forms ([list(TextInput or PasswordInput)]) : [form instance]
-        error_message ([StaticText]) : [exception messages instance]
-        submit_button_user_auth ([Button]): [Submit button instance]
-        success_private_button ([StaticText]) : [launch binder button]
-    """
-    def callback(event):
-        user_name = user_auth_forms[0].value
-        password = user_auth_forms[1].value
-        # validate value
-        if not validate_user_auth(user_name, password, submit_button_user_auth):
-            return
-
-        # If the entered value passes validation, a request for user authentication to GIN-fork is sent.
-        # GIN API Basic Authentication
-        # refs: https://docs.python-requests.org/en/master/user/authentication/
-        try:
-            params = param_json.get_params()
-            pr = parse.urlparse(params['siblings']['ginHttp'])
-            response = gin_api.get_token_for_auth(pr.scheme, pr.netloc, user_name, password)
-
-            ## Unauthorized
-            if response.status_code == HTTPStatus.UNAUTHORIZED:
-                raise Unauthorized
-            response.raise_for_status()
-
-            # get building token
-            launch_token_res = gin_api.create_token_for_launch(scheme=pr.scheme, domain=pr.netloc, token=token.get_ginfork_token())
-            launch_token = ''
-            if launch_token_res.status_code == HTTPStatus.CREATED:
-                launch_token_response_data = launch_token_res.json()
-                launch_token = launch_token_response_data['sha1']
-            else:
-                err_msg = 'Fail to create buildling token from GIN-fork API. status_code : {}'.format(launch_token_res.status_code)
-                raise Exception(err_msg)
-
-        except Unauthorized:
-            submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = m.get('user_auth','unauthorized')
-            return
-        except requests.exceptions.RequestException as e:
-            submit_button_user_auth.button_type = 'warning'
-            submit_button_user_auth.name = m.get('user_auth','connection_error')
-            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
-            error_message.object = pn.pane.HTML(error_message.value)
-            return
-        except Exception as e:
-            submit_button_user_auth.button_type = 'danger'
-            submit_button_user_auth.name = m.get('user_auth','unexpected')
-            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
-            error_message.object = pn.pane.HTML(error_message.value)
-            return
-        else:
-            submit_button_user_auth.button_type = 'success'
-            submit_button_user_auth.name = m.get('build_container', 'new_experimnet')
-            error_message.object = pn.pane.HTML(error_message.value)
-
-            remote_http_url = git.get_remote_url()
-            pos = remote_http_url.find("://")
-            remote_http_url = f"{remote_http_url[:pos+3]}{user_name}:{launch_token}@{remote_http_url[pos+3:]}"
-            url = "https://binder.cs.rcos.nii.ac.jp/v2/git/" + urllib.parse.quote(remote_http_url, safe='') + "/HEAD?filepath=WORKFLOWS/experiment.ipynb"
-            success_private_button.value = f'<button onclick="window.open(\'{url}\')">'+ m.get('build_container', 'build_button') +'</button>'
-            success_private_button.object = pn.pane.HTML(success_private_button.value)
-            return
-    return callback
-
-
-def initial_build_for_private():
-    pn.extension()
-
-    # form of user name and password
-    user_auth_forms = create_user_auth_forms()
-
-    # Instance for exception messages
-    error_message = layout_error_text()
-
-    button = pn.widgets.Button(name= m.get('user_auth','end_input'), button_type= "primary", width=700)
-    succecc_private_button = pn.widgets.StaticText(value='', sizing_mode='stretch_width')
-
-    # Define processing after clicking the submit button
-    button.on_click(submit_build_for_private_callback(user_auth_forms, error_message, button, succecc_private_button))
-
-    clear_output()
-
-    display(pn.Column(*user_auth_forms, button, error_message, succecc_private_button))

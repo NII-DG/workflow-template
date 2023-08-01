@@ -28,6 +28,7 @@ def set_params(ex_pkg_name:str, parama_ex_name:str, create_test_folder:bool, cre
     "create_test_folder" : create_test_folder,
     "create_ci" : create_ci
     }
+    os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
     with open(FILE_PATH, 'w') as f:
         json.dump(params_dict, f, indent=4)
 
@@ -226,7 +227,7 @@ def initial_experiment():
     input_forms = pre.create_user_auth_forms()
 
     # form of experiment
-    package_name_form = pn.widgets.TextInput(name= msg_mod.get('setup_package','package_name_title'), width=700)
+    package_name_form = pn.widgets.TextInput(name=msg_mod.get('setup_package','package_name_title'), placeholder=msg_mod.get('setup_package','package_name_help'), width=pre.FORM_WIDTH)
     input_forms.append(package_name_form)
 
     if dmp.is_for_parameter(dmp.get_datasetStructure()):
@@ -239,11 +240,11 @@ def initial_experiment():
     ci_folder_radio = pn.widgets.RadioBoxGroup(options=options, inline=True, value=init_value)
     input_radios = [test_folder_radio, ci_folder_radio]
 
-    title_format = """<h3>{}</3>"""
+    title_format = """<label>{}</label>"""
     test_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','test_folder_title')))
     ci_title = pn.pane.HTML(title_format.format(msg_mod.get('setup_package','ci_folder_title')))
-    test_row = pn.Row(test_title, test_folder_radio)
-    ci_row = pn.Row(ci_title, ci_folder_radio)
+    test_column = pn.Column(test_title, test_folder_radio, margin=(0, 0, 0, 5))
+    ci_column = pn.Column(ci_title, ci_folder_radio, margin=(0, 0, 0, 5))
 
     # Instance for exception messages
     error_message = pre.layout_error_text()
@@ -254,4 +255,7 @@ def initial_experiment():
     button.on_click(submit_init_experiment_callback(input_forms, input_radios, error_message, button))
 
     clear_output()
-    display(pn.Column(*input_forms, test_row, ci_row, button, error_message))
+    # Columnを利用すると値が取れない場合がある
+    for form in input_forms:
+        display(form)
+    display(pn.Column(test_column, ci_column, button, error_message))

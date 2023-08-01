@@ -48,6 +48,7 @@ ADDURLS_CSV_PATH = os.path.join(TMP_DIR, 'datalad-addurls.csv')
 RF_FORM_DATA_DIR = os.path.join(TMP_DIR, 'rf_form_data')
 TMP_VALIDATION_DIR = os.path.join(TMP_DIR, 'validation')
 GET_REPO_PATH = os.path.join(TMP_DIR, 'get_repo')
+TMP_CONFLICT_DIR = os.path.join(TMP_DIR, 'conflict')
 
 ## File under /home/jovyan/.tmp/rf_form_data/
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')

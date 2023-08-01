@@ -39,37 +39,37 @@ def exec_git_branch():
 
 def exec_git_annex_whereis():
     os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git annex whereis --json', False)
+    stdout, stderr, rt = common.exec_subprocess('git annex whereis --json')
     result = stdout.decode('utf-8')
     return result
 
 def git_annex_add(path:str):
     os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git annex add "{}"'.format(path), False)
+    stdout, stderr, rt = common.exec_subprocess('git annex add "{}"'.format(path))
     result = stdout.decode('utf-8')
     return result
 
 def git_add(path:str):
     os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git add "{}"'.format(path), False)
+    stdout, stderr, rt = common.exec_subprocess('git add "{}"'.format(path))
     result = stdout.decode('utf-8')
     return result
 
 def git_commmit(msg:str):
     os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git commit -m "{}"'.format(msg), False)
+    stdout, stderr, rt = common.exec_subprocess('git commit -m "{}"'.format(msg))
     result = stdout.decode('utf-8')
     return result
 
 def git_mv(src :str, dest : str):
     os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git mv "{}" "{}"'.format(src, dest), False)
+    stdout, stderr, rt = common.exec_subprocess('git mv "{}" "{}"'.format(src, dest))
     result = stdout.decode('utf-8')
     return result
 
 def git_ls_files(path:str):
     os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git ls-files -s "{}"'.format(path), False)
+    stdout, stderr, rt = common.exec_subprocess('git ls-files -s "{}"'.format(path))
     result = stdout.decode('utf-8')
     return result
 

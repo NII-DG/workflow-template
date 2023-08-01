@@ -35,6 +35,7 @@ def set_current_experiment_title(title):
     with open(FILE_PATH, 'w') as f:
         json.dump(title_dict, f, indent=4)
 
+
 def exist_file()->bool:
     """ex_pkg_info.jsonファイルの存在確認
 

@@ -1,7 +1,7 @@
 import os
-import shutil
 from IPython.display import display, SVG
 from ..path import path
+from ..common import common
 
 
 diag_file_name = '{}_notebooks.diag'
@@ -35,15 +35,12 @@ def display_flow(flow_type='research'):
     else:
         raise ValueError
 
-    orig_diag_path = orig_diag_file_path(flow_type)
     diag_path = diag_file_path(flow_type)
     svg_path = svg_file_path(flow_type)
 
-    if not os.path.isdir(path.SYS_PATH):
-        os.mkdir(path.SYS_PATH)
-
     if not os.path.isfile(diag_path):
-        shutil.copy(orig_diag_path, diag_path)
+        orig_diag_path = orig_diag_file_path(flow_type)
+        common.cp_file(orig_diag_path, diag_path)
 
     font_path = os.path.join(path.HOME_PATH, '.fonts/ipag.ttf')
     util.generate_svg_diag(output=svg_path, diag=diag_path, dir_util=notebook_dir, font=font_path,)
@@ -60,6 +57,10 @@ def put_mark(flow_type, name, mark):
     """
 
     diag_path = diag_file_path(flow_type)
+    if not os.path.isfile(diag_path):
+        orig_diag_path = orig_diag_file_path(flow_type)
+        common.cp_file(orig_diag_path, diag_path)
+
     find = f'"{name}"[fontsize = 10];'
     replace = f'"{name}"[numbered = {mark}, fontsize = 10];'
 

@@ -1,6 +1,7 @@
 import subprocess
 import re
 import os
+import shutil
 from ..except_class import ExecCmdError
 from natsort import natsorted
 
@@ -121,3 +122,9 @@ def delete_file(file_path:str):
     '''
     if os.path.isfile(file_path):
         os.remove(file_path)
+
+
+def cp_file(old_file_path, new_file_path):
+    """新しいファイルの親フォルダが存在していない場合は作成してからコピーする"""
+    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
+    shutil.copy(old_file_path, new_file_path)

@@ -5,10 +5,10 @@ from ..path import path
 
 def validate_input_path(input_paths:list, experiment_title:str) -> str:
     '''格納先パスの検証を行う
-        
+
         Args:
-            input_paths(list): (input_path, input_url)のリスト
-            
+            input_paths(list): (ファイル格納先, ファイル取得元)のリスト
+
             experiment_title(str): 実験パッケージ名
 
         Returns:
@@ -47,5 +47,5 @@ def validate_input_path(input_paths:list, experiment_title:str) -> str:
             return message.get('validate', 'duplicate_path').format(input_path)
 
         path_set.add(input_path)
-        
+
     return ""

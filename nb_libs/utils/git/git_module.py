@@ -93,6 +93,13 @@ def git_annex_unannex(path:str):
     result = stdout.decode('utf-8')
     return result
 
+def git_annex_whereis(path:str, repo_path:str):
+    os.chdir(repo_path)
+    stdout, stderr, rt = common.exec_subprocess(f'git annex whereis {path} --json')
+    result = stdout.decode('utf-8')
+    os.chdir(p.HOME_PATH)
+    return result
+
 def get_conflict_filepaths() -> list[str]:
     """Get conflict paths in Unmerged paths for commit from git status
 

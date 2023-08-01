@@ -110,8 +110,8 @@ def prepare_sync():
     # 元ファイルからコピーして.gitignoreを作成
     file_path = os.path.join(p.HOME_PATH, '.gitignore')
     orig_file_path = os.path.join(p.DATA_PATH, 'orig_gitignore')
-    if os.path.isfile(file_path):
-        shutil.copy(orig_file_path, file_path)
+    if not os.path.isfile(file_path):
+        common.cp_file(orig_file_path, file_path)
 
 
 def setup_sibling():

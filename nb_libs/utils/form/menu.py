@@ -1,7 +1,7 @@
 import os
 import json
 import panel as pn
-from IPython.display import display, clear_output
+from IPython.display import display, clear_output, Javascript
 from ..message import message as msg_mod, display as msg_display
 from ..path import path, display as path_display
 from ..common import common
@@ -68,6 +68,8 @@ def dg_menu(type='research'):
     menu_selector.param.watch(update_selected_value,'value')
 
     display(pn.Column(menu_selector, html_output))
+    display(Javascript('IPython.notebook.save_checkpoint();'))
+
 
 def html_res_name(color='black'):
     """研究名を表示する"""

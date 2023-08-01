@@ -14,15 +14,12 @@ from ..utils.gin import sync
 from ..utils.gin import api as gin_api
 from ..utils.common import common
 from ..utils.except_class import DidNotFinishError, UnexpectedError
-from ..utils.params import param_json
+from ..utils.params import token, param_json, ex_pkg_info
 
 
 # 辞書のキー
-# PATH_TO_URL = 'path_to_url'
-
 # PREFIX = 'prefix'
 # PATHS = 'paths'
-# SELECTED_PATHS = 'selected_paths'
 # LOCATION_CONSTRAINT = 'LocationConstraint'
 # CONTENTS = 'Contents'
 # KEY = 'Key'
@@ -36,26 +33,45 @@ DATASET_STRUCTURE_TYPE = "dataset_structure"
 EX_PKG_INFO = 'ex_pkg_info'
 EX_PKG_NAME = 'ex_pkg_name'
 PARAM_EX_NAME = 'param_ex_name'
+SELECTED_DATA = 'selected_data'
+INPUT_DATA = 'input_data'
+SOURCE = 'source'
+OUTPUT_DATA = 'output_data'
+PATH_TO_URL = 'path_to_url'
 
 
-# リポジトリのURLを入力するフォームを表示する
 def input_repository():
+    '''リポジトリのURLを入力するフォームを表示する
+    '''
 
 
     def on_click_callback(clicked_button: Button) -> None:
         common.delete_file(path.FROM_REPO_JSON_PATH)
 
         clone_url = text.value
-        repo_name = clone_url.split('/')[-1].replace('.git', '')
-        repo_owner = clone_url.split('/')[-2]
-        with open (path.TOKEN_JSON_PATH, 'r') as f:
-            token = json.load(f)[GINFORK_TOKEN]
 
-#         pr = parse.urlparse(param_json.get_gin_http())
-        pr = parse.urlparse("https://it1.dg.nii.ac.jp")
+        # 空文字でないこと
+        if clone_url == '':
+            button.name = message.get('from_repo_s3', 'empty_url')
+            button.button_type = 'danger'
+            return
 
-        response = gin_api.get_repo_info(pr.scheme, pr.netloc, repo_owner, repo_name, token)
+        pr = parse.urlparse(clone_url)
 
+        # 先頭の'/'と'.git'を削除してから'/'で分割
+        repo_owner_and_name = pr.path[1:].replace('.git', '').split('/')
+
+        # 要素が2つであること
+        if len(repo_owner_and_name) != 2:
+            button.name = str()
+            return
+
+        repo_owner, repo_name = repo_owner_and_name
+        ginfork_token = token.get_ginfork_token()
+        gin_pr = parse.urlparse(param_json.get_gin_http())
+        response = gin_api.get_repo_info(gin_pr.scheme, gin_pr.netloc, repo_owner, repo_name, ginfork_token)
+
+        # GIN-forkに存在するリポジトリであること
         if response.status_code == HTTPStatus.OK:
             pass
 
@@ -67,6 +83,8 @@ def input_repository():
 
         repo_info = response.json()
 
+
+        # 公開リポジトリであること
         if repo_info[PRIVATE] == True:
             return
 
@@ -84,10 +102,13 @@ def input_repository():
             multi_options=['-b master', '--depth 1', '--filter=blob:none']
         )
 
-        # ここでannexブランチをフェッチ
-        # git fetch origin git-annex:remotes/origin/git-annex
+        # annexブランチをフェッチ
+        os.chdir(get_repo_name_path)
+        repo = git.Repo(get_repo_name_path)
+        repo.git.fetch('origin', 'git-annex:remotes/origin/git-annex')
+        os.chdir(os.environ['HOME'])
 
-
+        # dmp.jsonが存在すること
         try:
             with open(os.path.join(get_repo_name_path, 'dmp.json'), 'r') as f:
                 dataset_structure = json.load(f)[DATASET_STRUCTURE]
@@ -99,9 +120,10 @@ def input_repository():
 
         ex_pkg_list = list()
         for data_name in os.listdir(get_repo_experiments_path):
-            data_path = os.path.join(get_repo_experiments_path, data_name)
-            if os.path.isdir(data_path):
+            if os.path.isdir(os.path.join(get_repo_experiments_path, data_name)):
                 ex_pkg_list.append(data_name)
+
+        # 実験パッケージが存在すること
         if len(ex_pkg_list) == 0:
             shutil.rmtree(path.GET_REPO_PATH)
             return
@@ -123,33 +145,40 @@ def input_repository():
             EX_PKG_INFO: ex_pkg_info_dict
         }
 
+        os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
         with open(path.FROM_REPO_JSON_PATH, 'w') as f:
             json.dump(from_repo_dict, f, indent=4)
 
 
-        clear_output()
-        display_util.display_info("入力完了しました")
-        display_util.display_msg('URL: '+ clone_url)
+        button.name = "入力完了しました"
+        button.button_type = 'success'
 
-
+    pn.extension()
     common.delete_file(path.FROM_REPO_JSON_PATH)
 
     # リポジトリ名入力フォーム
     text = Text(
         description='URL：',
-        placeholder='https://dg.nii.ac.jp/user/repository_title.git',
-        layout=Layout(width='500px')
+        placeholder='Enter name of repository URL here…',
+        layout=Layout(width='500px'),
+        style = {'description_width': 'initial'}
     )
-    button = Button(description='入力完了')
+    button = pn.widgets.Button(name= '入力完了', button_type= "primary", width=300)
     button.on_click(on_click_callback)
     display_util.display_info("URLを入力してください。<br>入力完了後、「入力完了」ボタンを押下してください。")
     display(text, button)
 
 
 
-def choose_get_data():
+def choose_get_pkg():
     '''取得するデータを選択する
     '''
+
+    def update_second_choices(event):
+        selected_value = event.new
+        second_choice.options = second_choices_dict[selected_value]
+        second_choice.value = second_choices_dict[selected_value][0]
+
 
     with open(path.FROM_REPO_JSON_PATH, 'r') as f:
         from_repo_dict = json.load(f)
@@ -161,39 +190,32 @@ def choose_get_data():
     first_choices = ['--']
     second_choices_dict = {'--' : ['--']}
 
-    for k, v in from_repo_dict[EX_PKG_INFO].items():
-        first_choices.append(k)
-        second_choices_dict[k] = v
-
-
-    def update_second_choices(event):
-        selected_value = event.new
-        second_choice.options = second_choices_dict[selected_value]
-        second_choice.value = second_choices_dict[selected_value][0]
+    for ex_pkg, ex_param in from_repo_dict[EX_PKG_INFO].items():
+        first_choices.append(ex_pkg)
+        second_choices_dict[ex_pkg] = ex_param
 
     if from_repo_dict[DATASET_STRUCTURE_TYPE] == 'with_code':
-        first_choice = pn.widgets.Select(name='最初の選択', options=first_choices)
+        first_choice = pn.widgets.Select(name='実験パッケージ名：', options=first_choices)
+        button = pn.widgets.Button(name= '選択確定', button_type= "primary", width=300)
+        button.on_click(choose_get_pkg_callback(first_choice, None, button))
         display(first_choice)
-        button = pn.widgets.Button(name= '選択確定', button_type= "primary", width=700)
-        # button.on_click(submit_user_auth_callback(first_choice, button))
+        display(button)
 
-    elif from_repo_dict[DATASET_STRUCTURE_TYPE] == 'for_parameter':
-
-        first_choice = pn.widgets.Select(name='最初の選択', options=first_choices)
-        second_choice = pn.widgets.Select(name='次の選択', options=second_choices_dict[first_choices[0]])
+    elif from_repo_dict[DATASET_STRUCTURE_TYPE] == 'for_parameters':
+        first_choice = pn.widgets.Select(name='実験パッケージ名：', options=first_choices)
+        second_choice = pn.widgets.Select(name='パラメータ実験名：', options=second_choices_dict[first_choices[0]])
+        button = pn.widgets.Button(name= '選択確定', button_type= "primary", width=300)
+        button.on_click(choose_get_pkg_callback(first_choice, second_choice, button))
+        first_choice.param.watch(update_second_choices, 'value')
         display(first_choice)
         display(second_choice)
-        button = pn.widgets.Button(name= '選択確定', button_type= "primary", width=700)
-        button.on_click(submit_user_auth_callback(first_choice, second_choice, button))
+        display(button)
+
+    else:
+        raise Exception('---------------------------------------------------------')
 
 
-    first_choice.param.watch(update_second_choices, 'value')
-
-
-    display(button)
-
-
-def submit_user_auth_callback(first_choice, second_choice, button):
+def choose_get_pkg_callback(first_choice, second_choice, button):
     """Processing method after click on submit button
 
     Check form values, authenticate users, and update RF configuration files.
@@ -205,24 +227,202 @@ def submit_user_auth_callback(first_choice, second_choice, button):
     """
     def callback(event):
 
-        button.button_type = 'success'
-        # button.name = '1st : {}, 2nd : {}'.format(first_choice.value, second_choice.value)
 
         with open(path.FROM_REPO_JSON_PATH, 'r') as f:
             from_repo_dict = json.load(f)
 
         from_repo_dict[EX_PKG_NAME] = first_choice.value
-        from_repo_dict[PARAM_EX_NAME] = second_choice.value
+        repo_name = from_repo_dict[REPO_NAME]
+
+        if second_choice is None:
+            from_repo_dict[PARAM_EX_NAME] = ''
+            pkg_path = os.path.join(path.GET_REPO_PATH, repo_name, 'experiments', first_choice.value)
+        else:
+            from_repo_dict[PARAM_EX_NAME] = second_choice.value
+            pkg_path = os.path.join(path.GET_REPO_PATH, repo_name, 'experiments', first_choice.value, second_choice.value)
+
+        if not os.path.isdir(pkg_path):
+            button.button_type = 'danger'
+            button.name = pkg_path
+            return
 
         with open(path.FROM_REPO_JSON_PATH, 'w') as f:
             json.dump(from_repo_dict, f, indent=4)
+
+        button.button_type = 'success'
+        button.name = '選択完了'
         return
+
+
     return callback
 
 
 
 
+def choose_get_data():
 
+    with open(path.FROM_REPO_JSON_PATH, 'r') as f:
+        from_repo_dict = json.load(f)
+    if not {EX_PKG_NAME, PARAM_EX_NAME}.issubset(set(from_repo_dict.keys())):
+        return
+
+    repo_name = from_repo_dict[REPO_NAME]
+    package = from_repo_dict[EX_PKG_NAME]
+    parameter = from_repo_dict[PARAM_EX_NAME]
+
+    package_path = os.path.join(path.GET_REPO_PATH, repo_name, 'experiments', package)
+
+    def gen_gui_list(event):
+
+
+
+
+        # for i in range(len(column)):
+        #     if len(column[i].value) > 0:
+        #         gui_list.append('### ' + column[i].name)
+
+        #     for index in range(len(column[i].value)):
+        #         gui_list.append(pn.widgets.TextInput(name=column[i].name + '/' + column[i].value[index], placeholder='Enter a file path here...', width=700))
+
+
+        # リポジトリ名/ 以降の相対パスを格納する
+        selected_data_dict = dict()
+        selected_data_count = 0
+        for column in columns:
+            if 'MultiSelect' in str(type(column)):
+                selected_data_dict[column.name] = list()
+                for file_path in column.value:
+                    selected_data_dict[column.name].append(os.path.join('experiments', package, column.name, file_path))
+                    selected_data_count += 1
+
+        # データが選択されていない場合
+        if selected_data_count == 0:
+            done_button.button_type = "danger"
+            return
+
+        from_repo_dict[SELECTED_DATA] = selected_data_dict
+        with open(path.FROM_REPO_JSON_PATH, 'w') as f:
+            json.dump(from_repo_dict, f, indent=4)
+
+        done_button.button_type = "success"
+        done_button.name = "選択完了しました。次の処理にお進みください。"
+
+    done_button = pn.widgets.Button(name= "選択を完了する", button_type= "primary")
+    done_button.on_click(gen_gui_list)
+
+    # Create a list of files for each input_data, source, and output_data folder.
+    def get_files(target, parameter) -> list:
+        if parameter == '':
+            cmd_glob = os.path.join(package_path, target, '**')
+            cmd_replace = os.path.join(package_path, target, '')
+        else:
+            cmd_glob = os.path.join(package_path, parameter, target, '**')
+            cmd_replace = os.path.join(package_path, parameter, target, '')
+        files = glob.glob(cmd_glob, recursive=True)
+        files = common.sortFilePath(files)
+        files = [file.replace(cmd_replace, '') for file in files if not os.path.isdir(file) ]
+        return files
+
+    # For each input_data, source, and output_data folder, create a MultiSelect screen to select the data to be retrieved and return a list of GUIs.
+    def generate_gui(files_list:dict) -> list:
+        gui_list = []
+        for key, value in files_list.items():
+            if key == 'input_data' or  key == 'source':
+                gui_list.append(pn.widgets.MultiSelect(name=key, options=value, size=8, sizing_mode='stretch_width'))
+            elif key == 'output_data':
+                gui_list.append(pn.widgets.MultiSelect(name=os.path.join(parameter, key), options=value, size=8, sizing_mode='stretch_width'))
+        return gui_list
+
+    # Generate a GUI that matches the configuration of the experimental package.
+    input_data_files = get_files(target='input_data', parameter='')
+    source_files = get_files(target='source', parameter='')
+    output_data_files = get_files(target='output_data', parameter=parameter)
+    files_list = {"input_data":input_data_files, "source":source_files, "output_data":output_data_files}
+    gui = generate_gui(files_list)
+
+    # Display GUI.
+    pn.extension()
+    columns = pn.Column()
+    for target in gui:
+        columns.append(target)
+    columns.append(done_button)
+    display(columns)
+
+
+
+
+
+def input_path():
+    '''データの格納先を入力するフォームを出力する
+
+    Exception:
+        JSONDecodeError: jsonファイルの形式が想定通りでない場合
+    '''
+    def verify_input_text(event):
+        '''入力された格納先を検証しファイルに記録する
+        '''
+
+        input_path_and_from_list = [(column.value_input, column.name) for column in columns if 'TextInput' in str(type(column))]
+        experiment_title = ex_pkg_info.get_current_experiment_title()
+
+        # 格納先パスの検証
+        err_msg = validate.validate_input_path(input_path_and_from_list, experiment_title)
+        if len(err_msg) > 0:
+            done_button.button_type = "danger"
+            done_button.name = err_msg
+            return
+
+
+        repo_name = from_repo_dict[REPO_NAME]
+        path_to_url_dict = dict()
+        repo_path = os.path.join(path.GET_REPO_PATH, repo_name)
+
+        done_button.name = repo_path
+
+        for input_path, input_from in input_path_and_from_list:
+
+            result = git_module.git_annex_whereis(os.path.join(repo_path, input_from), repo_path)
+            done_button.name = result
+            if 'URL' in result:
+                data = json.loads(result)
+                input_url = data['key'].replace(' ', '%20')
+
+            else:
+                html_url = from_repo_dict[HTML_URL]
+                ex_pkg_name = from_repo_dict[EX_PKG_NAME]
+                input_url = os.path.join(html_url, 'raw', 'master', 'experiments', ex_pkg_name, input_from).replace(' ', '%20')
+
+            ex_pkg_name = from_repo_dict[EX_PKG_NAME]
+
+            input_path = os.path.join(repo_path, 'experiments', ex_pkg_name, input_path)
+            path_to_url_dict[input_path] = input_url
+
+        from_repo_dict[PATH_TO_URL] = path_to_url_dict
+        with open(path.FROM_REPO_JSON_PATH, mode='w') as f:
+            json.dump(from_repo_dict, f, indent=4)
+
+        done_button.button_type = "success"
+        done_button.name = message.get('from_repo_s3', 'done_input')
+
+
+    with open(path.FROM_REPO_JSON_PATH, 'r') as f:
+        from_repo_dict:dict = json.load(f)
+    if not SELECTED_DATA in from_repo_dict.keys():
+        raise Exception('------------------------------------------------------')
+
+    selected_data = from_repo_dict[SELECTED_DATA]
+
+    # 入力フォーム表示
+    pn.extension()
+    columns = pn.Column()
+    for k, v in selected_data.items():
+        columns.append('### ' + k)
+        for selected_path in v:
+            columns.append(pn.widgets.TextInput(name=selected_path, placeholder=message.get('from_repo_s3', 'enter_a_file_path'), width=700))
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary")
+    columns.append(done_button)
+    done_button.on_click(verify_input_text)
+    display(columns)
 
 
 
@@ -291,7 +491,7 @@ def submit_user_auth_callback(first_choice, second_choice, button):
 #         display_util.display_info(message.get('from_repo_s3', 'process_success'))
 
 
-# def get_data():
+# def get_pkg():
 #     """取得データの実データをダウンロードする
 
 #     Exception:

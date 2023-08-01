@@ -118,7 +118,7 @@ def validate_experiment_folder_name(name:str, path:str, title:str, submit_button
         submit_button.name = m.get('setup_package','empty_error').format(title)
         return False
 
-    if not validate_format_username(name):
+    if not validate_format_input(name):
         submit_button.button_type = 'warning'
         submit_button.name = m.get('setup_package','pattern_error').format(title)
         return False

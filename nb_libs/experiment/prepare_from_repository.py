@@ -151,6 +151,13 @@ def choose_get_data():
     '''取得するデータを選択する
     '''
 
+
+    def update_second_choices(event):
+        selected_value = event.new
+        second_choice.options = second_choices_dict[selected_value]
+        second_choice.value = second_choices_dict[selected_value][0]
+
+
     with open(path.FROM_REPO_JSON_PATH, 'r') as f:
         from_repo_dict = json.load(f)
     if not {REPO_NAME, PRIVATE, SSH_URL, HTML_URL, DATASET_STRUCTURE_TYPE, EX_PKG_INFO}.issubset(set(from_repo_dict.keys())):
@@ -161,39 +168,30 @@ def choose_get_data():
     first_choices = ['--']
     second_choices_dict = {'--' : ['--']}
 
-    for k, v in from_repo_dict[EX_PKG_INFO].items():
-        first_choices.append(k)
-        second_choices_dict[k] = v
-
-
-    def update_second_choices(event):
-        selected_value = event.new
-        second_choice.options = second_choices_dict[selected_value]
-        second_choice.value = second_choices_dict[selected_value][0]
+    for ex_pkg, ex_param in from_repo_dict[EX_PKG_INFO].items():
+        first_choices.append(ex_pkg)
+        second_choices_dict[ex_pkg] = ex_param
 
     if from_repo_dict[DATASET_STRUCTURE_TYPE] == 'with_code':
-        first_choice = pn.widgets.Select(name='最初の選択', options=first_choices)
+        first_choice = pn.widgets.Select(name='実験パッケージ名：', options=first_choices)
         display(first_choice)
         button = pn.widgets.Button(name= '選択確定', button_type= "primary", width=700)
-        # button.on_click(submit_user_auth_callback(first_choice, button))
+        button.on_click(choose_get_data_callback(first_choice, "", button))
 
     elif from_repo_dict[DATASET_STRUCTURE_TYPE] == 'for_parameter':
 
-        first_choice = pn.widgets.Select(name='最初の選択', options=first_choices)
-        second_choice = pn.widgets.Select(name='次の選択', options=second_choices_dict[first_choices[0]])
+        first_choice = pn.widgets.Select(name='実験パッケージ名：', options=first_choices)
+        second_choice = pn.widgets.Select(name='パラメータ実験名：', options=second_choices_dict[first_choices[0]])
         display(first_choice)
         display(second_choice)
         button = pn.widgets.Button(name= '選択確定', button_type= "primary", width=700)
-        button.on_click(submit_user_auth_callback(first_choice, second_choice, button))
-
-
-    first_choice.param.watch(update_second_choices, 'value')
-
+        button.on_click(choose_get_data_callback(first_choice, second_choice, button))
+        first_choice.param.watch(update_second_choices, 'value')
 
     display(button)
 
 
-def submit_user_auth_callback(first_choice, second_choice, button):
+def choose_get_data_callback(first_choice, second_choice, button):
     """Processing method after click on submit button
 
     Check form values, authenticate users, and update RF configuration files.
@@ -206,7 +204,6 @@ def submit_user_auth_callback(first_choice, second_choice, button):
     def callback(event):
 
         button.button_type = 'success'
-        # button.name = '1st : {}, 2nd : {}'.format(first_choice.value, second_choice.value)
 
         with open(path.FROM_REPO_JSON_PATH, 'r') as f:
             from_repo_dict = json.load(f)
@@ -217,6 +214,7 @@ def submit_user_auth_callback(first_choice, second_choice, button):
         with open(path.FROM_REPO_JSON_PATH, 'w') as f:
             json.dump(from_repo_dict, f, indent=4)
         return
+
     return callback
 
 

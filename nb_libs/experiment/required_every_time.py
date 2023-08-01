@@ -258,9 +258,6 @@ def initial_experiment():
     # Columnを利用すると値を取れない場合がある
     for form in input_forms:
         display(form)
-    display(test_title)
-    display(test_folder_radio)
-    display(ci_title)
-    display(ci_folder_radio)
+    display(pn.Column(test_column, ci_column))
     display(button)
     display(error_message)

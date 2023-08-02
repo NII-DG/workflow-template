@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 import requests
 import traceback
 from pathlib import Path
@@ -66,7 +67,9 @@ def create_package():
         # create experimental package
         ex_pkg.create_ex_package(dmp.get_datasetStructure(), experiment_path)
         # create parameter folder
-        ex_pkg.rename_param_folder(experiment_path, params['parama_ex_name'])
+        parama_ex_name = params['parama_ex_name']
+        if len(parama_ex_name) > 0:
+            shutil.move(os.path.join(experiment_path, 'parameter'), os.path.join(experiment_path, parama_ex_name))
         # create ci folder
         if params['create_ci']:
             path = os.path.join(experiment_path, 'ci')

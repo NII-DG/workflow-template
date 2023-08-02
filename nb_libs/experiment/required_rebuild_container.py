@@ -185,7 +185,7 @@ def initial_forms():
     # form of user name and password
     input_forms = pre.create_user_auth_forms()
     # selectbox of experimental packages
-    ex_pkg_select = pre.create_select(name=msg_mod.get('setup_package', 'package_name_title'), option=get_experiment_titles())
+    ex_pkg_select = pre.create_select(name=msg_mod.get('setup_package', 'package_name_title'), options=get_experiment_titles())
     input_forms.append(ex_pkg_select)
 
     # Instance for exception messages

@@ -8,6 +8,7 @@ from datalad import api as datalad_api
 from urllib import parse
 from http import HTTPStatus
 from requests.exceptions import RequestException
+from datalad.support.exceptions import IncompleteResultsError
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
@@ -43,6 +44,7 @@ def input_repository():
 
 
     def on_click_callback(clicked_button: Button) -> None:
+
         common.delete_file(path.FROM_REPO_JSON_PATH)
 
         clone_url = text.value
@@ -56,15 +58,15 @@ def input_repository():
         pr = parse.urlparse(clone_url)
 
         # 先頭の'/'と'.git'を削除してから'/'で分割
-        repo_owner_and_name = pr.path[1:].replace('.git', '').split('/')
+        repo_owner_repo_name = pr.path[1:].replace('.git', '').split('/')
 
         # 要素が2つであること
-        if len(repo_owner_and_name) != 2:
+        if len(repo_owner_repo_name) != 2:
             button.name = message.get('from_repo_s3', 'invalid_url')
             button.button_type = 'danger'
             return
 
-        repo_owner, repo_name = repo_owner_and_name
+        repo_owner, repo_name = repo_owner_repo_name
         ginfork_token = token.get_ginfork_token()
         try:
             response = gin_api.get_repo_info(pr.scheme, pr.netloc, repo_owner, repo_name, ginfork_token)
@@ -81,7 +83,9 @@ def input_repository():
             button.button_type = 'danger'
             return
         else:
-            pass
+            button.name = message.get('from_repo_s3', 'invalid_url')
+            button.button_type = 'danger'
+            return
 
         repo_info = response.json()
 
@@ -93,36 +97,43 @@ def input_repository():
 
         #.tmp, .tmp/get_repoを作成
         os.makedirs(path.TMP_DIR, exist_ok=True)
-        if os.path.exists(path.GET_REPO_PATH):
+        if os.path.isdir(path.GET_REPO_PATH):
             shutil.rmtree(path.GET_REPO_PATH)
         os.mkdir(path.GET_REPO_PATH)
 
         # get_repo/:repo_nameの絶対パス
-        get_repo_name_path = os.path.join(path.GET_REPO_PATH, repo_name)
+        repository_path = os.path.join(path.GET_REPO_PATH, repo_name)
 
         git.Repo.clone_from(
             url=clone_url,
-            to_path=get_repo_name_path,
+            to_path=repository_path,
             multi_options=['-b master', '--depth 1', '--filter=blob:none']
         )
 
         # annexブランチをフェッチ
-        os.chdir(get_repo_name_path)
-        repo = git.Repo(get_repo_name_path)
-        repo.git.fetch('origin', 'git-annex:remotes/origin/git-annex')
-        os.chdir(os.environ['HOME'])
+        try:
+            os.chdir(repository_path)
+            repo = git.Repo(repository_path)
+            repo.git.fetch('origin', 'git-annex:remotes/origin/git-annex')
+        except Exception as e:
+            error_message.value = str(e)
+            button.button_type = 'danger'
+            return
+        finally:
+            os.chdir(path.HOME_PATH)
 
         # dmp.jsonが存在すること
         try:
-            with open(os.path.join(get_repo_name_path, 'dmp.json'), 'r') as f:
+            with open(os.path.join(repository_path, 'dmp.json'), 'r') as f:
                 dataset_structure = json.load(f)[DATASET_STRUCTURE]
         except (FileNotFoundError, JSONDecodeError, KeyError):
             button.name = message.get('from_repo_s3', 'invalid_repo')
             button.button_type = 'danger'
-            shutil.rmtree(get_repo_name_path)
+            if os.path.isdir(repository_path):
+                shutil.rmtree(repository_path)
             return
 
-        experiments_path = os.path.join(get_repo_name_path, 'experiments')
+        experiments_path = os.path.join(repository_path, 'experiments')
 
         ex_pkg_list = list()
         for ex_pkg in os.listdir(experiments_path):
@@ -133,7 +144,8 @@ def input_repository():
         if len(ex_pkg_list) == 0:
             button.name = message.get('from_repo_s3', 'invalid_repo')
             button.button_type = 'danger'
-            shutil.rmtree(get_repo_name_path)
+            if os.path.isdir(repository_path):
+                shutil.rmtree(repository_path)
             return
 
         ex_pkg_info_dict = dict()
@@ -157,7 +169,6 @@ def input_repository():
         with open(path.FROM_REPO_JSON_PATH, 'w') as f:
             json.dump(from_repo_dict, f, indent=4)
 
-
         button.name = message.get('from_repo_s3', 'done_input')
         button.button_type = 'success'
 
@@ -173,7 +184,8 @@ def input_repository():
     )
     button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary", width=300)
     button.on_click(on_click_callback)
-    display(text, button)
+    error_message = pre.layout_error_text()
+    display(text, button, error_message)
 
 
 
@@ -183,46 +195,50 @@ def choose_get_pkg():
 
     def update_second_choices(event):
         selected_value = event.new
-        second_choice.options = second_choices_dict[selected_value]
-        second_choice.value = second_choices_dict[selected_value][0]
+        ex_param_choice.options = ex_param_choices_dict[selected_value]
+        ex_param_choice.value = ex_param_choices_dict[selected_value][0]
 
-
-    with open(path.FROM_REPO_JSON_PATH, 'r') as f:
-        from_repo_dict:dict = json.load(f)
+    try:
+        with open(path.FROM_REPO_JSON_PATH, 'r') as f:
+            from_repo_dict:dict = json.load(f)
+    except FileNotFoundError:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        return
     if not {REPO_NAME, PRIVATE, SSH_URL, HTML_URL, DATASET_STRUCTURE_TYPE, EX_PKG_INFO}.issubset(set(from_repo_dict.keys())):
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         return
 
     pn.extension()
 
-    first_choices = ['--']
-    second_choices_dict = {'--' : ['--']}
+    ex_pkg_choices = ['--']
+    ex_param_choices_dict = {'--' : ['--']}
 
     for ex_pkg, ex_param in from_repo_dict[EX_PKG_INFO].items():
-        first_choices.append(ex_pkg)
-        second_choices_dict[ex_pkg] = ex_param
+        ex_pkg_choices.append(ex_pkg)
+        ex_param_choices_dict[ex_pkg] = ex_param
 
     if from_repo_dict[DATASET_STRUCTURE_TYPE] == 'with_code':
-        first_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'ex_pkg_name'), options=first_choices)
+        ex_pkg_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'ex_pkg_name'), options=ex_pkg_choices)
         button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "primary", width=300)
-        button.on_click(choose_get_pkg_callback(first_choice, None, button))
-        display(first_choice)
+        button.on_click(choose_get_pkg_callback(ex_pkg_choice, None, button, from_repo_dict))
+        display(ex_pkg_choice)
         display(button)
 
     elif from_repo_dict[DATASET_STRUCTURE_TYPE] == 'for_parameters':
-        first_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'ex_pkg_name'), options=first_choices)
-        second_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'param_ex_name'), options=second_choices_dict[first_choices[0]])
+        ex_pkg_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'ex_pkg_name'), options=ex_pkg_choices)
+        ex_param_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'param_ex_name'), options=ex_param_choices_dict[ex_pkg_choices[0]])
         button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "primary", width=300)
-        button.on_click(choose_get_pkg_callback(first_choice, second_choice, button))
-        first_choice.param.watch(update_second_choices, 'value')
-        display(first_choice)
-        display(second_choice)
+        button.on_click(choose_get_pkg_callback(ex_pkg_choice, ex_param_choice, button, from_repo_dict))
+        ex_pkg_choice.param.watch(update_second_choices, 'value')
+        display(ex_pkg_choice)
+        display(ex_param_choice)
         display(button)
 
     else:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
 
 
-def choose_get_pkg_callback(first_choice, second_choice, button):
+def choose_get_pkg_callback(ex_pkg_choice, ex_param_choice, button, from_repo_dict):
     """Processing method after click on submit button
 
     Check form values, authenticate users, and update RF configuration files.
@@ -234,24 +250,20 @@ def choose_get_pkg_callback(first_choice, second_choice, button):
     """
     def callback(event):
 
-
-        with open(path.FROM_REPO_JSON_PATH, 'r') as f:
-            from_repo_dict = json.load(f)
-
-        from_repo_dict[EX_PKG_NAME] = first_choice.value
+        from_repo_dict[EX_PKG_NAME] = ex_pkg_choice.value
         repo_name = from_repo_dict[REPO_NAME]
-        ex_pkg_path = os.path.join(path.GET_REPO_PATH, repo_name, 'experiments', first_choice.value)
+        ex_pkg_path = os.path.join(path.GET_REPO_PATH, repo_name, 'experiments', ex_pkg_choice.value)
 
         if not os.path.isdir(ex_pkg_path):
             button.button_type = 'danger'
             button.name = message.get('from_repo_s3', 'ex_pkg_not_selected')
             return
 
-        if second_choice is None:
+        if ex_param_choice is None:
             from_repo_dict[PARAM_EX_NAME] = ''
         else:
-            from_repo_dict[PARAM_EX_NAME] = second_choice.value
-            ex_param_path = os.path.join(ex_pkg_path, second_choice.value)
+            from_repo_dict[PARAM_EX_NAME] = ex_param_choice.value
+            ex_param_path = os.path.join(ex_pkg_path, ex_param_choice.value)
 
             if not os.path.isdir(ex_param_path):
                 button.button_type = 'danger'
@@ -321,9 +333,13 @@ def choose_get_data():
                 gui_list.append(pn.widgets.MultiSelect(name=os.path.join(parameter, key), options=value, size=8, sizing_mode='stretch_width'))
         return gui_list
 
+    try:
+        with open(path.FROM_REPO_JSON_PATH, 'r') as f:
+            from_repo_dict:dict = json.load(f)
+    except FileNotFoundError:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        return
 
-    with open(path.FROM_REPO_JSON_PATH, 'r') as f:
-        from_repo_dict:dict = json.load(f)
     if not {EX_PKG_NAME, PARAM_EX_NAME}.issubset(set(from_repo_dict.keys())):
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         return
@@ -356,8 +372,6 @@ def choose_get_data():
 def input_path():
     '''データの格納先を入力するフォームを出力する
 
-    Exception:
-        JSONDecodeError: jsonファイルの形式が想定通りでない場合
     '''
     def verify_input_text(event):
         '''入力された格納先を検証しファイルに記録する
@@ -373,7 +387,7 @@ def input_path():
             done_button.name = err_msg
             return
 
-        repo_name_path = os.path.join(path.GET_REPO_PATH, from_repo_dict[REPO_NAME])
+        repository_path = os.path.join(path.GET_REPO_PATH, from_repo_dict[REPO_NAME])
 
         path_to_url_dict = dict()
 
@@ -381,7 +395,7 @@ def input_path():
             # 格納先パス、取得パス
             for input_to, input_from in input_to_from_list:
 
-                result = git_module.git_annex_whereis('"{}"'.format(input_from), repo_name_path)
+                result = git_module.git_annex_whereis('"{}"'.format(input_from), repository_path)
                 ex_pkg_name = from_repo_dict[EX_PKG_NAME]
                 input_url = ''
                 if  len(result) > 0:
@@ -397,20 +411,24 @@ def input_path():
                 input_to = os.path.join(path.HOME_PATH, 'experiments', ex_pkg_name, input_to)
                 path_to_url_dict[input_to] = input_url
 
-            from_repo_dict[PATH_TO_URL] = path_to_url_dict
-            with open(path.FROM_REPO_JSON_PATH, mode='w') as f:
-                json.dump(from_repo_dict, f, indent=4)
         except Exception as e:
             error_message.value = str(e)
             return
 
+        from_repo_dict[PATH_TO_URL] = path_to_url_dict
+        with open(path.FROM_REPO_JSON_PATH, mode='w') as f:
+            json.dump(from_repo_dict, f, indent=4)
 
         done_button.button_type = "success"
         done_button.name = message.get('from_repo_s3', 'done_input')
 
+    try:
+        with open(path.FROM_REPO_JSON_PATH, 'r') as f:
+            from_repo_dict:dict = json.load(f)
+    except FileNotFoundError:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        return
 
-    with open(path.FROM_REPO_JSON_PATH, 'r') as f:
-        from_repo_dict:dict = json.load(f)
     if not SELECTED_DATA in from_repo_dict.keys():
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         return
@@ -430,7 +448,7 @@ def input_path():
                 width = 700)
             )
 
-    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary")
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary", width=300)
     columns.append(done_button)
     done_button.on_click(verify_input_text)
     error_message = pre.layout_error_text()
@@ -462,9 +480,17 @@ def add_url():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-        AddurlsError: addurlsに失敗した場合
+        IncompleteResultsError: addurlsに失敗した場合
     """
-    annex_util.addurl()
+
+    try:
+        annex_util.addurl(path.ADDURLS_CSV_PATH)
+    except FileNotFoundError as e:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        raise DidNotFinishError() from e
+    except IncompleteResultsError:
+        display_util.display_err(message.get('from_repo_s3', 'create_link_fail'))
+        raise
     display_util.display_info(message.get('from_repo_s3', 'create_link_success'))
 
 
@@ -537,11 +563,14 @@ def get_data():
 
 
 def remove_unused():
-    '''リポジトリを削除する'''
+    '''クローンしてきたリポジトリが存在すれば削除する'''
 
-    with open(path.FROM_REPO_JSON_PATH, 'r') as f:
-        repo_name_path = os.path.join(path.GET_REPO_PATH, json.load(f)[REPO_NAME])
-    if os.path.exists(repo_name_path):
+    try:
+        with open(path.FROM_REPO_JSON_PATH, 'r') as f:
+            repo_name_path = os.path.join(path.GET_REPO_PATH, json.load(f)[REPO_NAME])
+    except (FileNotFoundError, KeyError):
+        return
+    if os.path.isdir(repo_name_path):
         shutil.rmtree(repo_name_path)
 
 

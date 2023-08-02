@@ -12,8 +12,7 @@ from datalad.support.exceptions import IncompleteResultsError
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
-from ..utils.gin import sync
-from ..utils.gin import api as gin_api
+from ..utils.gin import api as gin_api, sync
 from ..utils.common import common
 from ..utils.except_class import DidNotFinishError, UnexpectedError
 from ..utils.params import token, ex_pkg_info

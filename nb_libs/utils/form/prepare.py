@@ -219,7 +219,7 @@ def initial_gin_user_auth():
     display(error_message)
 
 
-DEFAULT_WIDTH = 500
+DEFAULT_WIDTH = 600
 SELECT_DEFAULT_VALUE = '--'
 
 

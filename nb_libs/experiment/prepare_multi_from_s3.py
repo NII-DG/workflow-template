@@ -6,6 +6,7 @@ from IPython.display import display, clear_output, Javascript
 import panel as pn
 from datalad import api
 from botocore.exceptions import ClientError
+from datalad.support.exceptions import IncompleteResultsError
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
@@ -325,9 +326,17 @@ def add_url():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-        AddurlsError: addurlsに失敗した場合
+        IncompleteResultsError: addurlsに失敗した場合
     """
-    annex_util.addurl()
+
+    try:
+        annex_util.addurl(path.ADDURLS_CSV_PATH)
+    except FileNotFoundError as e:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        raise DidNotFinishError() from e
+    except IncompleteResultsError:
+        display_util.display_err(message.get('from_repo_s3', 'create_link_fail'))
+        raise
     display_util.display_info(message.get('from_repo_s3', 'create_link_success'))
 
 

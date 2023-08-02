@@ -5,6 +5,7 @@ from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
 from json.decoder import JSONDecodeError
 from datalad import api
+from datalad.support.exceptions import IncompleteResultsError
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
@@ -84,15 +85,15 @@ def input_url_path():
     style = {'description_width': 'initial'}
     text_path = Text(
         description = message.get('from_repo_s3', 'file_path'),
-        placeholder='Enter a file path here...',
-        layout=Layout(width='700px'),
-        style=style
+        placeholder = message.get('from_repo_s3', 'enter_a_file_path'),
+        layout = Layout(width='700px'),
+        style = style
     )
     text_url = Text(
-        description=message.get('from_repo_s3', 'object_url'),
-        placeholder='Enter a object URL here...',
-        layout=Layout(width='700px'),
-        style=style
+        description = message.get('from_repo_s3', 'object_url'),
+        placeholder = message.get('from_repo_s3', 'enter_object_url')
+        layout = Layout(width='700px'),
+        style = style
     )
 
     button = Button(description=message.get('from_repo_s3', 'end_input'), layout=Layout(width='250px'))
@@ -128,9 +129,17 @@ def add_url():
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
-        AddurlsError: addurlsに失敗した場合
+        IncompleteResultsError: addurlsに失敗した場合
     """
-    annex_util.addurl()
+
+    try:
+        annex_util.addurl(path.ADDURLS_CSV_PATH)
+    except FileNotFoundError as e:
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
+        raise DidNotFinishError() from e
+    except IncompleteResultsError:
+        display_util.display_err(message.get('from_repo_s3', 'create_link_fail'))
+        raise
     display_util.display_info(message.get('from_repo_s3', 'create_link_success'))
 
 

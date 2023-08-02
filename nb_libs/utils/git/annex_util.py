@@ -1,17 +1,15 @@
 import csv
 from datalad import api
-from datalad.support.exceptions import IncompleteResultsError
 from ..path import path
 from ..gin import sync
 from ..git import git_module
-from ..message import message, display
-from ..except_class import DidNotFinishError, AddurlsError
+from ..message import message
 
 
 def create_csv(who_link_dict: dict):
     '''datalad addurlで用いるcsvファイルを作成する
 
-        Args: 
+        Args:
             who_link_dict(dict): {who1: link1, who2: link2, ...}の形式の辞書
     '''
     with open(path.ADDURLS_CSV_PATH, mode='w') as f:
@@ -58,19 +56,10 @@ def annex_to_git(annex_file_paths:list, experiment_title:str):
         sync.register_metadata_for_downloaded_annexdata(file_path=annex_file_path)
 
 
-def addurl():
+def addurl(csv_path:str):
     """datalad addurlsを実行する
 
-    Exception:
-        DidNotFinishError: .tmp内のファイルが存在しない場合
-        AddurlsError: addurlsに失敗した場合
+    Args:
+        csv_path: csvファイルのパス
     """
-    try:
-        api.addurls(save=False, fast=True, urlfile= path.ADDURLS_CSV_PATH, urlformat='{link}', filenameformat='{who}')
-    except FileNotFoundError as e:
-        display.display_err(message.get('from_repo_s3', 'did_not_finish'))
-        raise DidNotFinishError() from e
-    except IncompleteResultsError as e:
-        display.display_err(message.get('from_repo_s3', 'create_link_fail'))
-        raise AddurlsError() from e
-    
+    api.addurls(save=False, fast=True, urlfile=csv_path, urlformat='{link}', filenameformat='{who}')

@@ -1,6 +1,7 @@
 import panel as pn
 from IPython.display import HTML, display
 from ..message import message
+import os
 
 # def git_conflict_resolve_form(conflicted_git_path:list):
 #     pn.extension()
@@ -34,7 +35,7 @@ class FileConfirmationPair:
     def file_path_exists(self):
         # 実際のファイルパスの存在確認ロジックを実装
         # ここでは仮にファイルが存在するとする
-        return True
+        return os.path.exists(self.file_path)
 
 def create_confirmation_form(file_paths):
     form_items = []

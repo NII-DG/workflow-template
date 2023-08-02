@@ -131,7 +131,7 @@ def syncs_config() -> tuple[list[str], str]:
     # set parameter
     nb_path = os.path.join(p.EXP_DIR_PATH, 'required_rebuild_container.ipynb')
     git_path = [nb_path]
-    commit_message = msg_mod.get('commit_message', 'required_every_time').format(experiment_title)
+    commit_message = msg_mod.get('commit_message', 'required_rebuild_container').format(experiment_title)
     # delete temporarily file
     delete_tmp_file()
     return git_path, commit_message

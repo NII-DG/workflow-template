@@ -19,6 +19,7 @@ from ..utils.except_class import DidNotFinishError, UnexpectedError
 from ..utils.params import token, ex_pkg_info
 from ..utils.form import prepare as pre
 
+
 # 辞書のキー
 GINFORK_TOKEN = 'ginfork_token'
 DATASET_STRUCTURE = "datasetStructure"
@@ -36,14 +37,18 @@ SOURCE = 'source'
 OUTPUT_DATA = 'output_data'
 PATH_TO_URL = 'path_to_url'
 KEY = 'key'
+URLS = 'urls'
+WHEREIS = 'whereis'
 
 
 def input_repository():
-    '''リポジトリのURLを入力するフォームを表示する
+    '''リポジトリURLを入力する
     '''
 
 
     def on_click_callback(clicked_button: Button) -> None:
+        '''入力されたURLの検証を行い、ファイルに記録する
+        '''
 
         common.delete_file(path.FROM_REPO_JSON_PATH)
 
@@ -68,6 +73,8 @@ def input_repository():
 
         repo_owner, repo_name = repo_owner_repo_name
         ginfork_token = token.get_ginfork_token()
+
+        # GIN-forkのapi/v1/reposを呼ぶ
         try:
             response = gin_api.get_repo_info(pr.scheme, pr.netloc, repo_owner, repo_name, ginfork_token)
         except RequestException:
@@ -150,6 +157,7 @@ def input_repository():
 
         ex_pkg_info_dict = dict()
 
+        # パラメータ実験名を取得
         for ex_pkg in ex_pkg_list:
             parameter_dirs = glob.glob(os.path.join(experiments_path, ex_pkg, '*/output_data/'))
             parameter_dirs = [dir.replace('/output_data/', '') for dir in parameter_dirs]
@@ -172,10 +180,11 @@ def input_repository():
         button.name = message.get('from_repo_s3', 'done_input')
         button.button_type = 'success'
 
-    pn.extension()
-    common.delete_file(path.FROM_REPO_JSON_PATH)
 
-    # リポジトリ名入力フォーム
+    common.delete_file(path.FROM_REPO_JSON_PATH)
+    pn.extension()
+
+    # 入力フォームを表示
     text = Text(
         description=message.get('from_repo_s3', 'url'),
         placeholder=message.get('from_repo_s3', 'enter_repo_url'),
@@ -188,15 +197,18 @@ def input_repository():
     display(text, button, error_message)
 
 
-
 def choose_get_pkg():
     '''取得するデータを選択する
     '''
 
+
     def update_second_choices(event):
+        '''実験パッケージ名が選択された際にパラメータ実験名の選択肢を更新する
+        '''
         selected_value = event.new
         ex_param_choice.options = ex_param_choices_dict[selected_value]
         ex_param_choice.value = ex_param_choices_dict[selected_value][0]
+
 
     try:
         with open(path.FROM_REPO_JSON_PATH, 'r') as f:
@@ -204,11 +216,11 @@ def choose_get_pkg():
     except FileNotFoundError:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         return
+
+    # 辞書のキーが存在すること
     if not {REPO_NAME, PRIVATE, SSH_URL, HTML_URL, DATASET_STRUCTURE_TYPE, EX_PKG_INFO}.issubset(set(from_repo_dict.keys())):
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         return
-
-    pn.extension()
 
     ex_pkg_choices = ['--']
     ex_param_choices_dict = {'--' : ['--']}
@@ -216,6 +228,9 @@ def choose_get_pkg():
     for ex_pkg, ex_param in from_repo_dict[EX_PKG_INFO].items():
         ex_pkg_choices.append(ex_pkg)
         ex_param_choices_dict[ex_pkg] = ex_param
+
+    # 入力フォームを表示
+    pn.extension()
 
     if from_repo_dict[DATASET_STRUCTURE_TYPE] == 'with_code':
         ex_pkg_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'ex_pkg_name'), options=ex_pkg_choices)
@@ -238,22 +253,25 @@ def choose_get_pkg():
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
 
 
-def choose_get_pkg_callback(ex_pkg_choice, ex_param_choice, button, from_repo_dict):
-    """Processing method after click on submit button
-
-    Check form values, authenticate users, and update RF configuration files.
+def choose_get_pkg_callback(ex_pkg_choice, ex_param_choice, button, from_repo_dict:dict):
+    '''選択された実験パッケージ名、パラメータ実験名をファイルに記録する
 
     Args:
-        user_auth_forms ([list(TextInput or PasswordInput)]) : [form instance]
-        error_message ([StaticText]) : [exception messages instance]
-        submit_button_user_auth ([Button]): [Submit button instance]
-    """
+        ex_pkg_choice: 実験パッケージのpanel.widgets.Select
+        ex_param_choice: パラメータ実験名のpanel.widgets.Select
+        button: 入力完了ボタン
+        from_repo_dict (dict): prepare_from_repositoryに記録する辞書
+    '''
+
     def callback(event):
+        '''選択された実験パッケージ名、パラメータ実験名をファイルに記録する
+        '''
 
         from_repo_dict[EX_PKG_NAME] = ex_pkg_choice.value
         repo_name = from_repo_dict[REPO_NAME]
         ex_pkg_path = os.path.join(path.GET_REPO_PATH, repo_name, 'experiments', ex_pkg_choice.value)
 
+        # 選択された実験パッケージ名、パラメータ実験名のフォルダが存在すること
         if not os.path.isdir(ex_pkg_path):
             button.button_type = 'danger'
             button.name = message.get('from_repo_s3', 'ex_pkg_not_selected')
@@ -281,10 +299,13 @@ def choose_get_pkg_callback(ex_pkg_choice, ex_param_choice, button, from_repo_di
 
 
 def choose_get_data():
+    '''取得するデータを選択する
+    '''
 
 
-
-    def gen_gui_list(event):
+    def record_selected(event):
+        '''選択されたデータをファイルに記録する
+        '''
 
         # :リポジトリ名/ 以降の相対パスを格納する
         selected_data_dict = dict()
@@ -310,8 +331,17 @@ def choose_get_data():
         done_button.name = message.get('from_repo_s3', 'done_choose')
 
 
-    # Create a list of files for each input_data, source, and output_data folder.
-    def get_files(target, parameter) -> list:
+    def get_files(target:str, parameter:str) -> list:
+        '''input_data, source, output_data配下のファイルのパスを取得する
+
+        Args:
+            target (str): input_data, source, output_dataのいずれか
+            parameter (str): パラメータ実験名
+
+        Returns:
+            list: input_data, source, output_data以降のファイルパスのリスト
+        '''
+
         if parameter == '':
             cmd_glob = os.path.join(package_path, target, '**')
             cmd_replace = os.path.join(package_path, target, '')
@@ -323,8 +353,16 @@ def choose_get_data():
         files = [file.replace(cmd_replace, '') for file in files if not os.path.isdir(file) ]
         return files
 
-    # For each input_data, source, and output_data folder, create a MultiSelect screen to select the data to be retrieved and return a list of GUIs.
+
     def generate_gui(files_dict:dict) -> list:
+        '''MultiSelectに値を格納する
+
+        Args:
+            files_dict (dict): {input_data, source, output_dataのいずれか : ファイルパスのリスト}の辞書
+
+        Returns:
+            list: MultiSelectのリスト
+        '''
         gui_list = []
         for key, value in files_dict.items():
             if key == 'input_data' or  key == 'source':
@@ -333,6 +371,7 @@ def choose_get_data():
                 gui_list.append(pn.widgets.MultiSelect(name=os.path.join(parameter, key), options=value, size=8, sizing_mode='stretch_width'))
         return gui_list
 
+
     try:
         with open(path.FROM_REPO_JSON_PATH, 'r') as f:
             from_repo_dict:dict = json.load(f)
@@ -340,6 +379,7 @@ def choose_get_data():
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         return
 
+    # 辞書のキーが存在すること
     if not {EX_PKG_NAME, PARAM_EX_NAME}.issubset(set(from_repo_dict.keys())):
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         return
@@ -351,7 +391,7 @@ def choose_get_data():
     package_path = os.path.join(path.GET_REPO_PATH, repo_name, 'experiments', package)
 
     done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "primary")
-    done_button.on_click(gen_gui_list)
+    done_button.on_click(record_selected)
 
     # Generate a GUI that matches the configuration of the experimental package.
     input_data_files = get_files(target='input_data', parameter='')
@@ -371,10 +411,11 @@ def choose_get_data():
 
 def input_path():
     '''データの格納先を入力するフォームを出力する
-
     '''
+
+
     def verify_input_text(event):
-        '''入力された格納先を検証しファイルに記録する
+        '''入力された格納先を検証し、ファイルに記録する
         '''
 
         input_to_from_list = [(column.value_input, column.name) for column in columns if 'TextInput' in str(type(column))]
@@ -388,20 +429,19 @@ def input_path():
             return
 
         repository_path = os.path.join(path.GET_REPO_PATH, from_repo_dict[REPO_NAME])
-
         path_to_url_dict = dict()
 
         try:
-            # 格納先パス、取得パス
             for input_to, input_from in input_to_from_list:
 
+                # git annex whereisでURLを取得する
                 result = git_module.git_annex_whereis('"{}"'.format(input_from), repository_path)
                 ex_pkg_name = from_repo_dict[EX_PKG_NAME]
                 input_url = ''
-                if  len(result) > 0:
+                if len(result) > 0:
                     data:dict = json.loads(result)
                     if KEY in data.keys() and 'URL' in data[KEY]:
-                        input_url = data['whereis'][0]['urls'][0].replace(' ', '%20')
+                        input_url = data[WHEREIS][0][URLS][0].replace(' ', '%20')
 
                 if len(input_url) == 0:
                     html_url = from_repo_dict[HTML_URL]
@@ -421,6 +461,7 @@ def input_path():
 
         done_button.button_type = "success"
         done_button.name = message.get('from_repo_s3', 'done_input')
+
 
     try:
         with open(path.FROM_REPO_JSON_PATH, 'r') as f:
@@ -482,7 +523,6 @@ def add_url():
         DidNotFinishError: .tmp内のファイルが存在しない場合
         IncompleteResultsError: addurlsに失敗した場合
     """
-
     try:
         annex_util.addurl(path.ADDURLS_CSV_PATH)
     except FileNotFoundError as e:
@@ -491,6 +531,7 @@ def add_url():
     except IncompleteResultsError:
         display_util.display_err(message.get('from_repo_s3', 'create_link_fail'))
         raise
+
     display_util.display_info(message.get('from_repo_s3', 'create_link_success'))
 
 

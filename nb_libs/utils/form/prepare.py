@@ -235,10 +235,10 @@ def create_param_form():
     return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=DEFAULT_WIDTH)
 
 
-def create_select(name:str, option:list[str]):
+def create_select(name:str, options:list[str]):
     default_value = [SELECT_DEFAULT_VALUE]
-    option = default_value + option
-    return pn.widgets.Select(name=name, option=option, width=DEFAULT_WIDTH, value=default_value)
+    options = default_value + options
+    return pn.widgets.Select(name=name, options=options, width=DEFAULT_WIDTH, value=default_value)
 
 
 def create_button(name):

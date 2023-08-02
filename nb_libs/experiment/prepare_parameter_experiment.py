@@ -103,12 +103,21 @@ def syncs_config() -> tuple[list[str], list[str], list[str], str, list[str]]:
 
 
 # ----- utils -----
-def submit_init_experiment_callback(input_forms, error_message, submit_button):
+def submit_init_experiment_callback(input_form, error_message, submit_button):
     """Processing method after click on submit button"""
     def callback(event):
         delete_tmp_file()
-        paramfolder_name = input_forms[0].value
-        package_name = ex_pkg_info.exec_get_ex_title()
+        paramfolder_name = input_form.value
+
+        try:
+            package_name = ex_pkg_info.exec_get_ex_title(deiplay_error=False)
+        except Exception as e:
+            submit_button.button_type = 'danger'
+            submit_button.name =  msg_mod.get('experiment_error', 'experiment_setup_unfinished')
+            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
+            error_message.object = pn.pane.HTML(error_message.value)
+            return
+
         # validate value for forms
         if not pre.validate_parameter_folder_name(paramfolder_name, package_name, submit_button):
             return

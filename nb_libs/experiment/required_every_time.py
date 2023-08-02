@@ -33,7 +33,7 @@ def set_params(ex_pkg_name:str, parama_ex_name:str, create_test_folder:bool, cre
     common.create_json_file(FILE_PATH, params_dict)
 
 
-def get_param():
+def get_params():
     with open(FILE_PATH, mode='r') as f:
             params = json.load(f)
     return params
@@ -61,7 +61,7 @@ def create_package():
     try:
         preparation_completed()
 
-        params = get_param()
+        params = get_params()
         experiment_path = p.create_experiments_with_subpath(params['ex_pkg_name'])
         # create experimental package
         ex_pkg.create_ex_package(dmp.get_datasetStructure(), experiment_path)
@@ -141,7 +141,7 @@ def setup_sibling():
 def add_container():
     """GIN-forkの実行環境一覧へ追加"""
     preparation_completed()
-    container.add_container()
+    container.add_container(ex_pkg_info.exec_get_ex_title())
 
 
 def finished_setup():

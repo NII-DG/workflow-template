@@ -28,10 +28,10 @@ def set_params(ex_pkg_name:str):
     common.create_json_file(FILE_PATH, params_dict)
 
 
-def get_param():
+def get_pkg_name()->str:
     with open(FILE_PATH, mode='r') as f:
             params = json.load(f)
-    return params
+    return params["ex_pkg_name"]
 
 
 def delete_tmp_file():
@@ -106,7 +106,9 @@ def setup_sibling():
 def add_container():
     """GIN-forkの実行環境一覧へ追加"""
     preparation_completed()
-    container.add_container()
+    experiment_title = get_pkg_name()
+    ex_pkg_info.set_current_experiment_title(experiment_title)
+    container.add_container(experiment_title)
 
 
 def finished_setup():

@@ -236,8 +236,8 @@ def create_param_form():
 
 
 def create_select(name:str, option:list[str]):
-    default_value = SELECT_DEFAULT_VALUE
-    option.append(default_value)
+    default_value = [SELECT_DEFAULT_VALUE]
+    option = default_value + option
     return pn.widgets.Select(name=name, option=option, width=DEFAULT_WIDTH, value=default_value)
 
 

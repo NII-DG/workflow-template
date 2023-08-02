@@ -84,15 +84,15 @@ def input_url_path():
     style = {'description_width': 'initial'}
     text_path = Text(
         description = message.get('from_repo_s3', 'file_path'),
-        placeholder='Enter a file path here...',
-        layout=Layout(width='700px'),
-        style=style
+        placeholder = message.get('from_repo_s3', 'enter_a_file_path'),
+        layout = Layout(width='700px'),
+        style = style
     )
     text_url = Text(
-        description=message.get('from_repo_s3', 'object_url'),
-        placeholder='Enter a object URL here...',
-        layout=Layout(width='700px'),
-        style=style
+        description = message.get('from_repo_s3', 'object_url'),
+        placeholder = message.get('from_repo_s3', 'enter_object_url')
+        layout = Layout(width='700px'),
+        style = style
     )
 
     button = Button(description=message.get('from_repo_s3', 'end_input'), layout=Layout(width='250px'))

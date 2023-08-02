@@ -1,9 +1,6 @@
 import os
 import json
-import shutil
-import requests
 import traceback
-from pathlib import Path
 
 import panel as pn
 from IPython.display import clear_output, display
@@ -12,11 +9,8 @@ from ..utils.ex_utils import dmp, package as ex_pkg
 from ..utils.common import common
 from ..utils.form import prepare as pre
 from ..utils.message import message as msg_mod, display as msg_display
-from ..utils.params import ex_pkg_info, token
-from ..utils.git import git_module
-from ..utils.gin import sync, ssh, container
+from ..utils.params import ex_pkg_info
 from ..utils.path import path as p
-from ..utils.flow import module as flow
 from ..utils.except_class import DidNotFinishError, DGTaskError
 
 FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'prepare_parameter_experiment.json')
@@ -113,7 +107,7 @@ def submit_init_experiment_callback(input_forms, error_message, submit_button):
     """Processing method after click on submit button"""
     def callback(event):
         delete_tmp_file()
-        paramfolder_name = input_forms[1].value
+        paramfolder_name = input_forms[0].value
         package_name = ex_pkg_info.exec_get_ex_title()
         # validate value for forms
         if not pre.validate_parameter_folder_name(paramfolder_name, package_name, submit_button):

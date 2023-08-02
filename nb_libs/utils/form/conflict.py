@@ -1,6 +1,9 @@
 import panel as pn
+from ..message import message, display as md
+from ..common import common
+from ..path import display as pd
 from IPython.display import HTML, display
-from ..message import message
+
 import os
 
 # def git_conflict_resolve_form(conflicted_git_path:list):
@@ -15,32 +18,35 @@ import os
 #     button.on_click(validate)
 #     display(pn.Column(button))
 
+
+conflict_resolve_form_whole_msg = pn.pane.HTML()
 # ファイルパスと確定ボタンの対を表すクラス
-class FileConfirmationPair:
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self.confirm_button = pn.widgets.Button(name="確定")
-        self.confirm_button.on_click(self.confirm_file)
+class GitFileResolvePair:
+    def __init__(self, index, target_file_path:str, all_paths:list):
+        self.file_path = target_file_path
+        self.all_paths = all_paths
 
-        self.success_label = pn.widgets.StaticText(value="")
+        self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'correction_complete'), button_type='primary')
+        self.confirm_button.on_click(self.confirm_resolve)
+        self.confirm_button.width = 200
 
-    def confirm_file(self, event):
-        # ファイルパスの確認ロジックをここに実装（ファイルが存在するか確認するなど）
-        # ここでは仮にファイルが存在するとする
-        if self.file_path_exists():
-            self.success_label.value = "成功"
-        else:
-            self.success_label.value = "失敗"
+        title = f'{index}：{self.file_path}'
+        link = f'../../../../edit/{self.file_path}'
+        link_html = pd.create_link(url=link, title=title)
+        self.label = pn.pane.HTML(link_html)
 
-    def file_path_exists(self):
-        # 実際のファイルパスの存在確認ロジックを実装
-        # ここでは仮にファイルが存在するとする
-        return os.path.exists(self.file_path)
+    def confirm_resolve(self, event):
+        # Confirm that the file has been edited
 
-def create_confirmation_form(file_paths):
+        # Check the status of all edits
+        pass
+
+def git_conflict_resolve_form(file_paths):
+    pn.extension()
     form_items = []
-    for file_path in file_paths:
-        pair = FileConfirmationPair(file_path)
-        form_items.append(pn.Row(pair.confirm_button, pair.success_label))
-
-    return display(pn.Column(*form_items))
+    for index, file_path in enumerate(common.sortFilePath(file_paths)):
+        pair = GitFileResolvePair(index, file_path, file_paths)
+        form_items.append(pn.Column(pair.label,pair.confirm_button))
+    conflict_resolve_form_whole_msg.object = ''
+    conflict_resolve_form_whole_msg.width = 900
+    return display(pn.Column(*form_items, conflict_resolve_form_whole_msg))

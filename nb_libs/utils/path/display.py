@@ -64,3 +64,6 @@ def exp_top_link():
     """実験フロートップページへのリンクを表示する"""
     html_text = exp_top_html()
     display(HTML(html_text))
+
+def create_link(url, title, target='_blank'):
+    return f'<a href="{url}" target="{target}">{title}</a>'

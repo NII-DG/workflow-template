@@ -37,6 +37,9 @@ def creat_html_msg(msg='', fore=None, back=None, tag='h1'):
     else:
         return "<" + tag + " style='" + style + "'>" + msg + "</" + tag + ">"
 
+def creat_html_msg_info_p(msg=''):
+    creat_html_msg(msg=msg, back='#9eff9e', tag='p')
+
 
 def display_html_msg(msg='', fore=None, back=None, tag='h1'):
     """メッセージ出力メソッド

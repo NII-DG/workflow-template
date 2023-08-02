@@ -25,7 +25,7 @@ def get_current_experiment_title():
         return None
 
 
-def exec_get_ex_title():
+def exec_get_ex_title(deiplay_error=True):
     '''現在実験中の実験パッケージ名を取得する
 
     Arg:
@@ -39,7 +39,8 @@ def exec_get_ex_title():
     '''
     experiment_title = get_current_experiment_title()
     if experiment_title is None:
-        msg_display.display_err(msg_mod.get('experiment_error', 'experiment_setup_unfinished'))
+        if deiplay_error:
+            msg_display.display_err(msg_mod.get('experiment_error', 'experiment_setup_unfinished'))
         raise DGTaskError
     return experiment_title
 

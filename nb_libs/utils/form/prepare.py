@@ -219,7 +219,7 @@ def initial_gin_user_auth():
     display(error_message)
 
 
-DEFAULT_WIDTH = 500
+DEFAULT_WIDTH = 600
 SELECT_DEFAULT_VALUE = '--'
 
 
@@ -235,10 +235,9 @@ def create_param_form():
     return pn.widgets.TextInput(name=m.get('setup_package','paramfolder_title'), placeholder=m.get('setup_package','paramfolder_help'), width=DEFAULT_WIDTH)
 
 
-def create_select(name:str, option:list[str]):
-    default_value = SELECT_DEFAULT_VALUE
-    option.append(default_value)
-    return pn.widgets.Select(name=name, option=option, width=DEFAULT_WIDTH, value=default_value)
+def create_select(name:str, options:list[str]):
+    options = [SELECT_DEFAULT_VALUE] + options
+    return pn.widgets.Select(name=name, options=options, width=DEFAULT_WIDTH, value=SELECT_DEFAULT_VALUE)
 
 
 def create_button(name):

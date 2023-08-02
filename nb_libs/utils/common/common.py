@@ -3,8 +3,11 @@ import re
 import os
 import json
 import shutil
-from ..except_class import ExecCmdError
+from pathlib import Path
+
 from natsort import natsorted
+
+from ..except_class import ExecCmdError
 
 
 def get_AND_elements(list_a, list_b :list)->list:
@@ -123,6 +126,28 @@ def delete_file(file_path:str):
     '''
     if os.path.isfile(file_path):
         os.remove(file_path)
+
+
+def cp_dir(src, dst):
+    """ src から dst へディレクトリをコピーする
+
+    Args:
+        src: コピー元ディレクトリ
+        dst: コピー先ディレクトリ
+
+    Note:
+        指定したディレクトリがなければ作成される。
+        ディレクトリに存在しないファイルのみ追加され、同じ名前のファイルが既にある場合、そのファイルは上書きされない
+    """
+    def f_exists(base, dst):
+        base, dst = Path(base), Path(dst)
+        def _ignore(path, names):   # サブディレクトリー毎に呼び出される
+            names = set(names)
+            rel = Path(path).relative_to(base)
+            return {f.name for f in (dst/ rel).glob('*') if f.name in names}
+        return _ignore
+
+    shutil.copytree(src, dst, ignore=f_exists(src, dst), dirs_exist_ok=True)
 
 
 def cp_file(old_file_path, new_file_path):

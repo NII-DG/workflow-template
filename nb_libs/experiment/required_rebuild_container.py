@@ -28,10 +28,10 @@ def set_params(ex_pkg_name:str):
     common.create_json_file(FILE_PATH, params_dict)
 
 
-def get_param():
+def get_pkg_name()->str:
     with open(FILE_PATH, mode='r') as f:
             params = json.load(f)
-    return params
+    return params["ex_pkg_name"]
 
 
 def delete_tmp_file():
@@ -106,7 +106,9 @@ def setup_sibling():
 def add_container():
     """GIN-forkの実行環境一覧へ追加"""
     preparation_completed()
-    container.add_container()
+    experiment_title = get_pkg_name()
+    ex_pkg_info.set_current_experiment_title(experiment_title)
+    container.add_container(experiment_title)
 
 
 def finished_setup():
@@ -129,7 +131,7 @@ def syncs_config() -> tuple[list[str], str]:
     # set parameter
     nb_path = os.path.join(p.EXP_DIR_PATH, 'required_rebuild_container.ipynb')
     git_path = [nb_path]
-    commit_message = msg_mod.get('commit_message', 'required_every_time').format(experiment_title)
+    commit_message = msg_mod.get('commit_message', 'required_rebuild_container').format(experiment_title)
     # delete temporarily file
     delete_tmp_file()
     return git_path, commit_message
@@ -183,7 +185,7 @@ def initial_forms():
     # form of user name and password
     input_forms = pre.create_user_auth_forms()
     # selectbox of experimental packages
-    ex_pkg_select = pre.create_select(name=msg_mod.get('setup_package', 'package_name_title'), option=get_experiment_titles())
+    ex_pkg_select = pre.create_select(name=msg_mod.get('setup_package', 'package_name_title'), options=get_experiment_titles())
     input_forms.append(ex_pkg_select)
 
     # Instance for exception messages

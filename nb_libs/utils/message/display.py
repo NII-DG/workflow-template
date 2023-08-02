@@ -133,3 +133,15 @@ def display_warm(msg=''):
     """
     back = "#ffff93"
     display_html_msg(msg, None, back, default_tag)
+
+def display_debug(msg=''):
+    """デバッグ用出力メソッド(pタグの背景色(#dcdcdc))
+
+    ARG
+    ---------------
+    msg : str
+        Description : メッセージ文字列
+        Default : ''
+    """
+    back = "#dcdcdc"
+    display_html_msg(msg, None, back, default_tag)

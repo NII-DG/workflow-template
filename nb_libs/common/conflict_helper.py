@@ -1,3 +1,4 @@
+import json
 import os
 import traceback
 from ..utils.params import ex_pkg_info as epi
@@ -6,8 +7,10 @@ from ..utils.message import message, display as md
 from ..utils.git import git_module as git
 from ..utils.common import common, file_operation as fo
 from ..utils.except_class import DGTaskError, NotFoundKey, FoundUnnecessarykey
+from ..utils.form.conflict import git_conflict_resolve_form
 from IPython.display import HTML, display
 from datalad import api
+import panel as pn
 
 
 
@@ -56,6 +59,11 @@ def analyze_conflict_status():
             git_custom_conflict_filepaths,
             annex_conflict_file_path_list
             )
+        md.display_debug(f'[DEBUG] git_conflict_file_path_list : {git_conflict_file_path_list}')
+        md.display_debug(f'[DEBUG] git_auto_conflict_filepaths : {git_auto_conflict_filepaths}')
+        md.display_debug(f'[DEBUG] git_custom_conflict_filepaths : {git_custom_conflict_filepaths}')
+        md.display_debug(f'[DEBUG] annex_conflict_file_path_list : {annex_conflict_file_path_list}')
+
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
@@ -81,14 +89,17 @@ def get_annex_variatns():
         need_key = [KEY_CONFLICT_FILES]
         no_need_key = [KEY_ANNEX_CONFLICT_PREPARE_INFO]
         check_key_rf_data(rf_data, need_key, no_need_key)
+
     except FileNotFoundError as e:
         err_msg = message.get('nb_exec', 'not_exec_pre_section')
         md.display_err(err_msg)
         raise DGTaskError() from e
+
     except FoundUnnecessarykey as e:
         err_msg = message.get('conflict_helper', 'non_already_done').format(message.get('conflict_helper','get_annex_variatns'))
         md.display_err(err_msg)
         raise DGTaskError() from e
+
     except NotFoundKey as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
@@ -97,20 +108,25 @@ def get_annex_variatns():
     # Get conflicted annex paths
     try:
         conflicted_annex_paths = get_conflicted_annex_paths_from_rf_data(rf_data)
+        md.display_debug(f'[DEBUG] conflicted_annex_paths : {conflicted_annex_paths}')
+        md.display_debug(f'[DEBUG] len(conflicted_annex_paths) : {len(conflicted_annex_paths)}')
         if len(conflicted_annex_paths) > 0:
             annex_rslv_info = get_annex_rslv_info(conflicted_annex_paths)
+            md.display_debug(f'[DEBUG] annex_rslv_info \n : {json.dumps(annex_rslv_info, indent=4)}')
             dl_data_remote_variatns(annex_rslv_info)
             record_rf_data_annex_rslv_info(rf_data, annex_rslv_info)
             ## Prompts operation of the next section
             msg = message.get('conflict_helper', 'finish_get_annex_variatns_done')
             md.display_info(msg)
             return
+
         else:
             record_rf_data_annex_rslv_info(rf_data)
             ## Prompts operation of the next section
             msg = message.get('conflict_helper', 'finish_get_annex_variatns_no_done')
             md.display_info(msg)
             return
+
     except Exception as e:
         err_msg = message.get('nb_exec', 'not_exec_pre_section')
         md.display_err(err_msg)
@@ -126,14 +142,17 @@ def record_preparing_event_for_resolving_conflict():
         need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO]
         no_need_key = [KEY_IS_PREPARE]
         check_key_rf_data(rf_data, need_key, no_need_key)
+
     except FileNotFoundError as e:
         err_msg = message.get('nb_exec', 'not_exec_pre_section')
         md.display_err(err_msg)
         raise DGTaskError() from e
+
     except FoundUnnecessarykey as e:
         err_msg = message.get('conflict_helper', 'non_already_done').format(message.get('conflict_helper','record_preparing_event_for_resolving_conflict'))
         md.display_err(err_msg)
         raise DGTaskError() from e
+
     except NotFoundKey as e:
         except_msg = traceback.format_exception_only(type(e), e)
         if KEY_CONFLICT_FILES in except_msg:
@@ -143,6 +162,7 @@ def record_preparing_event_for_resolving_conflict():
             err_msg = message.get('nb_exec', 'not_exec_pre_section')
             md.display_err(err_msg)
         raise DGTaskError() from e
+
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
@@ -156,6 +176,7 @@ def record_preparing_event_for_resolving_conflict():
         for git_path in git_conflict_filepaths:
             if not git_path.startswith(path.HOME_PATH):
                 git_path = os.path.join(path.HOME_PATH, git_path)
+            md.display_debug(f'[DEBUG] git add. git_path : {git_path}')
             git.git_add(git_path)
 
         # set commit msg
@@ -171,16 +192,19 @@ def record_preparing_event_for_resolving_conflict():
             md.display_err(err_msg)
             raise DGTaskError('Unexpected error: there is an abnormality in the file path list of the conflicting Git or Annex.')
 
+        md.display_debug(f'[DEBUG] commit_msg  : {commit_msg}')
         git.git_annex_lock(path.HOME_PATH)
         git.git_commmit(commit_msg)
         git.git_annex_unlock(path.HOME_PATH)
 
         ## updata rf_data
         record_rf_data_is_prepare(rf_data)
+
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
         raise DGTaskError() from e
+
     else:
         ## Prompts operation of the next section
         msg = message.get('conflict_helper', 'finish_record_preparing_event_for_resolving_conflict')
@@ -191,7 +215,50 @@ def record_preparing_event_for_resolving_conflict():
 def resolving_git_content():
     """3-1. gitコンテンツの競合解消
     """
-    pass
+    # Execution availability check
+    ## get rf data
+    try:
+        rf_data = get_rf_data()
+        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO, KEY_IS_PREPARE]
+        no_need_key = []
+        check_key_rf_data(rf_data, need_key, no_need_key)
+    except FileNotFoundError as e:
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    except NotFoundKey as e:
+        except_msg = traceback.format_exception_only(type(e), e)
+        if KEY_CONFLICT_FILES in except_msg:
+            err_msg = message.get('DEFAULT', 'unexpected')
+            md.display_err(err_msg)
+        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg:
+            err_msg = message.get('nb_exec', 'not_exec_pre_section')
+            md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    except Exception as e:
+        err_msg = message.get('DEFAULT', 'unexpected')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    # get user resolving conflicted git paths from rf_data
+    conflicted_git_path = get_user_custom_conflicted_git_paths_from_rf_data(rf_data)
+
+    # Check path number
+    if len(conflicted_git_path) > 0:
+        # display conflict resolve form
+        git_conflict_resolve_form(conflicted_git_path)
+
+    else:
+        # no need doing section
+        msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'resolving_git_content'))
+        md.display_err(msg)
+        return
+
+
+
+
 
 def select_action_for_resolving_annex():
     """3-2. Annexコンテンツの競合解消アクションを選択
@@ -388,6 +455,9 @@ def get_rf_data():
 
 def get_conflicted_annex_paths_from_rf_data(rf_data: dict):
     return rf_data[KEY_CONFLICT_FILES][KEY_ANNEX]
+
+def get_user_custom_conflicted_git_paths_from_rf_data(rf_data: dict):
+    return rf_data[KEY_CONFLICT_FILES][KEY_GIT][KEY_GIT_USER]
 
 def get_conflicted_git_paths_from_rf_data(rf_data: dict):
     return rf_data[KEY_CONFLICT_FILES][KEY_GIT][KEY_GIT_ALL]

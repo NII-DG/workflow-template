@@ -7,7 +7,6 @@ from ..utils.message import message, display as md
 from ..utils.git import git_module as git
 from ..utils.common import common, file_operation as fo
 from ..utils.except_class import DGTaskError, NotFoundKey, FoundUnnecessarykey
-from ..utils.form.conflict import git_conflict_resolve_form
 from IPython.display import HTML, display
 from datalad import api
 import panel as pn
@@ -251,6 +250,7 @@ def resolving_git_content():
         git_conflict_resolve_form(conflicted_git_path)
 
     else:
+        record_rf_data_resolving_git(rf_data)
         # no need doing section
         msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'resolving_git_content'))
         md.display_err(msg)
@@ -263,7 +263,57 @@ def resolving_git_content():
 def select_action_for_resolving_annex():
     """3-2. Annexコンテンツの競合解消アクションを選択
     """
-    pass
+    # Execution availability check
+    ## get rf data
+    try:
+        rf_data = get_rf_data()
+        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO, KEY_IS_PREPARE, KEY_RESOLVING_GIT]
+        no_need_key = []
+        check_key_rf_data(rf_data, need_key, no_need_key)
+
+    except FileNotFoundError as e:
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    except NotFoundKey as e:
+        except_msg = traceback.format_exception_only(type(e), e)
+        if KEY_CONFLICT_FILES in except_msg:
+            err_msg = message.get('DEFAULT', 'unexpected')
+            md.display_err(err_msg)
+        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg or KEY_RESOLVING_GIT in except_msg:
+            err_msg = message.get('nb_exec', 'not_exec_pre_section')
+            md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    except Exception as e:
+        err_msg = message.get('DEFAULT', 'unexpected')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    # get user resolving conflicted annex paths from rf_data
+    conflicted_annex_path = get_conflicted_annex_paths_from_rf_data(rf_data=rf_data)
+    prepare_info = rf_data.get(KEY_ANNEX_CONFLICT_PREPARE_INFO)
+
+
+    # Check path number
+    if len(conflicted_annex_path) > 0 and prepare_info != None:
+        # display conflict resolve form
+        annex_conflict_resolve_action_form(rf_data)
+    elif len(conflicted_annex_path) > 0 and prepare_info == None:
+        msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(msg)
+        return
+    elif len(conflicted_annex_path) <= 0 and prepare_info != None:
+        msg = message.get('DEFAULT', 'unexpected_errors_format').format('競合の解析情報が異常です')
+        md.display_err(msg)
+        return
+    else:
+        record_rf_data_action_resolving_annex(False, rf_data)
+        # no need doing section
+        msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'resolving_git_content'))
+        md.display_info(msg)
+        return
 
 def rename_variants():
     """3-3. ≪両方を残す≫を選択したファイル名の入力
@@ -414,6 +464,10 @@ def get_extension_for_varinat(path):
         return ''
     return extension
 
+"""
+conflict_helper.json操作群
+"""
+
 RF_DATA_FILE_PATH = os.path.join(path.RF_FORM_DATA_DIR, 'conflict_helper.json')
 KEY_CONFLICT_FILES = 'conflict_files'
 KEY_GIT = 'git'
@@ -423,6 +477,11 @@ KEY_GIT_USER = 'user'
 KEY_ANNEX = 'annex'
 KEY_ANNEX_CONFLICT_PREPARE_INFO = 'annex_conflict_prepare_info'
 KEY_IS_PREPARE = 'is_prepare'
+KEY_RESOLVING_GIT = 'resolving_git'
+KEY_ACTION_RESOLVING_ANNEX = 'action_resolving_annex'
+KEY_RENAME_RESOLVING_ANNEX = 'rename_resolving_annex'
+KEY_ACTION = 'action'
+KEY_ANNEX_SELECTED_ACTION = 'annex_selected_action'
 
 def record_rf_data_conflict_info(
         git_conflict_file_path_list, git_auto_conflict_filepaths, git_custom_conflict_filepaths, annex_conflict_file_path_list):
@@ -441,16 +500,40 @@ def record_rf_data_conflict_info(
     os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
     fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
 
-def record_rf_data_annex_rslv_info(rf_data, annex_rslv_info=None):
+def record_rf_data_annex_rslv_info(rf_data=None, annex_rslv_info=None):
+    if rf_data == None:
+        rf_data = get_rf_data()
     rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO] = annex_rslv_info
     fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
 
-def record_rf_data_is_prepare(rf_data):
+def record_rf_data_is_prepare(rf_data=None):
+    if rf_data == None:
+        rf_data = get_rf_data()
     rf_data[KEY_IS_PREPARE] = True
     fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
 
+def record_rf_data_resolving_git(rf_data=None):
+    if rf_data == None:
+        rf_data = get_rf_data()
+    rf_data[KEY_RESOLVING_GIT] = True
+    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
 
-def get_rf_data():
+def record_rf_data_action_resolving_annex(value:bool, rf_data=None):
+    if rf_data == None:
+        rf_data = get_rf_data()
+    rf_data[KEY_ACTION_RESOLVING_ANNEX] = value
+    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
+
+def record_rf_data_annex_selected_action(value:dict, rf_data=None):
+    if rf_data == None:
+        rf_data = get_rf_data()
+    rf_data[KEY_ACTION_RESOLVING_ANNEX] = True
+    rf_data[KEY_ANNEX_SELECTED_ACTION] = value
+    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
+
+
+
+def get_rf_data()->dict:
     return fo.read_from_json(RF_DATA_FILE_PATH)
 
 def get_conflicted_annex_paths_from_rf_data(rf_data: dict):
@@ -461,6 +544,9 @@ def get_user_custom_conflicted_git_paths_from_rf_data(rf_data: dict):
 
 def get_conflicted_git_paths_from_rf_data(rf_data: dict):
     return rf_data[KEY_CONFLICT_FILES][KEY_GIT][KEY_GIT_ALL]
+
+def get_annex_rslv_info_from_rf_data(rf_data: dict)->dict:
+    return rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO]
 
 def get_conflicted_git_annex_paths_from_rf_data(rf_data: dict):
     return get_conflicted_git_paths_from_rf_data(rf_data), get_conflicted_annex_paths_from_rf_data(rf_data)
@@ -474,3 +560,166 @@ def check_key_rf_data(rf_data: dict, need_key, no_need_key :list):
             raise NotFoundKey('Required key is included in the data. KEY[{}]'.format(key))
         if key in no_need_key:
             raise FoundUnnecessarykey('Unnecessary key is included in the data. KEY[{}]'.format(key))
+
+
+"""
+FORM CLASS
+"""
+git_conflict_rslv_form_whole_msg = pn.pane.HTML()
+
+class GitFileResolveForm:
+    """3-1. gitコンテンツの競合解消のフォームクラス
+    """
+    def __init__(self, index, target_file_path:str, all_paths:list):
+        self.file_path = target_file_path
+        self.all_paths = all_paths
+
+        self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'correction_complete'), button_type='default')
+        self.confirm_button.on_click(self.confirm_resolve)
+        self.confirm_button.width = 200
+
+        title = f'{index}：{self.file_path}'
+        link = f'../../../../edit/{self.file_path}'
+        link_html = pd.create_link(url=link, title=title)
+        self.label = pn.pane.HTML(link_html)
+
+    def confirm_resolve(self, event):
+        try:
+            modified_files = git.get_modified_filepaths()
+            # Confirm that the file has been edited
+            if self.file_path in modified_files:
+                self.confirm_button.button_type = 'success'
+                self.confirm_button.name = message.get('conflict_helper', 'correction_complete')
+            else:
+                self.confirm_button.button_type = 'danger'
+                self.confirm_button.name = message.get('conflict_helper', 'correction_imcomplete')
+
+            # Check the status of all edits
+            if is_correction_complete(self.all_paths, modified_files):
+                msg=message.get('conflict_helper','all_correction_complete')
+                git_conflict_rslv_form_whole_msg.object = md.creat_html_msg_info_p(msg=msg)
+                # update conflict_helper.json
+                record_rf_data_resolving_git()
+
+        except Exception as e:
+            err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
+            git_conflict_rslv_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
+
+
+def git_conflict_resolve_form(file_paths):
+    pn.extension()
+    form_items = []
+    for index, file_path in enumerate(common.sortFilePath(file_paths)):
+        pair = GitFileResolveForm(index, file_path, file_paths)
+        form_items.append(pn.Column(pair.label,pair.confirm_button))
+    git_conflict_rslv_form_whole_msg.object = ''
+    git_conflict_rslv_form_whole_msg.width = 900
+    if is_correction_complete(file_paths):
+        msg=message.get('conflict_helper','already_all_correction_complete')
+        git_conflict_rslv_form_whole_msg.object = md.creat_html_msg_info_p(msg=msg)
+        record_rf_data_resolving_git()
+
+    display(pn.Column(*form_items, git_conflict_rslv_form_whole_msg))
+
+def is_correction_complete(target_paths, modified_files=None)->bool:
+    if modified_files == None:
+        modified_files = git.get_modified_filepaths()
+    now_target_modified_files = common.get_AND_elements(target_paths, modified_files)
+    return len(target_paths) == len(now_target_modified_files)
+
+
+
+"""
+Annexアクション選択フォーム
+"""
+annex_action_form_whole_msg = pn.pane.HTML()
+
+DEFUALT = 'default'
+LOCAL_REMAIN = 'local'
+REMOTE_REMAIN = 'remote'
+BOTH_REMAIN = 'both'
+
+class AnnexFileActionForm:
+    """3-1. gitコンテンツの競合解消のフォームクラス
+    """
+    def __init__(self, rf_data:dict):
+        # set rf_data
+        self.rf_data = rf_data
+        # set confirm_button
+        self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'action_confirmed'), button_type='default')
+        self.confirm_button.on_click(self.submit)
+        top_col = pn.Column()
+        # get file list
+        annex_rslv_info = get_annex_rslv_info_from_rf_data(self.rf_data)
+        filepaths = common.sortFilePath(list(annex_rslv_info.keys()))
+
+        options = dict()
+        options[message.get('conflict_helper', 'defualt')] = DEFUALT
+        options[message.get('conflict_helper', 'local_remain')] = LOCAL_REMAIN
+        options[message.get('conflict_helper', 'remote_remain')] = REMOTE_REMAIN
+        options[message.get('conflict_helper', 'both_remain')] = BOTH_REMAIN
+        # set options
+        self.options = options
+        # set file_col_num
+        self.file_col_num = len(filepaths)
+
+        # set top_col
+        self.top_col_data = list()
+        for index, filepath in enumerate(filepaths):
+            local_remote = annex_rslv_info[filepath]
+            base_file = pn.widgets.StaticText(name=str(index), value=filepath)
+
+            local_path = local_remote['local']
+            local_url = f'../../../../edit/{local_path}'
+            local_link_html = pd.create_link(url=local_url, title=message.get('conflict_helper','local_variant'))
+            local_link = pn.pane.HTML(local_link_html)
+
+            remote_path = local_remote['remote']
+            remoto_url = f'../../../../edit/{remote_path}'
+            remoto_link_html = pd.create_link(url=remoto_url, title=message.get('conflict_helper','remote_variant'))
+            remoto_link = pn.pane.HTML(remoto_link_html)
+            head_data = [base_file, local_link, remoto_link]
+
+            selector = pn.widgets.Select(options=self.options)
+            file_col_data = [head_data, selector]
+            self.top_col_data.append(file_col_data)
+
+    def submit(self, event):
+        top_col = self.top_col_data
+        file_clo_num = self.file_col_num
+
+        annex_selected_action = dict()
+
+        for i in range(file_clo_num):
+            base_file_path = top_col[i][0][0].value
+            selected_key = top_col[i][0].value
+            selected_value = self.options[selected_key]
+
+            if selected_value == DEFUALT:
+                # DEFUALT値が選ばれたら選択エラー、再度入力
+                pass
+
+            annex_selected_action[base_file_path] = {'action' : selected_value}
+
+        # update conflict_helper.json
+        record_rf_data_annex_selected_action(annex_selected_action)
+
+
+
+
+
+def annex_conflict_resolve_action_form(rf_data:dict):
+    pn.extension()
+    form = AnnexFileActionForm(rf_data)
+    annex_action_form_whole_msg.object = ''
+    annex_action_form_whole_msg.width = 900
+    top_col = pn.Column()
+    for file_col_data in form.top_col_data:
+        head_data = file_col_data[0]
+        head = pn.Row(*head_data)
+        selector = file_col_data[1]
+        file_col = pn.Column(head, selector)
+        top_col.append(file_col)
+
+
+    display(pn.Column(top_col, form.confirm_button ,annex_action_form_whole_msg))

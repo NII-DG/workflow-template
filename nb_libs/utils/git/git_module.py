@@ -167,6 +167,33 @@ def get_conflict_filepaths() -> list[str]:
             conflict_filepaths.append(path)
     return conflict_filepaths
 
+def get_modified_filepaths() -> list[str]:
+    """Get delete file paths in Changes not staged for commit from git status
+
+    Returns:
+        list: delete filepaths
+    """
+    result = exec_git_status()
+    lines = result.split('\n')
+    delete_filepaths = list[str]()
+    is_not_staged = False
+    for l in lines:
+        if 'Changes not staged for commit:' in l:
+            is_not_staged = True
+            continue
+        if 'modified' in l and is_not_staged:
+            # get conflict filepath
+            ## ex : ['\tmodified:', '', '', 'WORKFLOWS/untitled.txt']
+            path_split = l.split(' ')[3:]
+            path = ''
+            for p in path_split:
+                if path == '':
+                    path = p
+                else:
+                    path = '{} {}'.format(path, p)
+            delete_filepaths.append(path)
+    return delete_filepaths
+
 def get_delete_filepaths() -> list[str]:
     """Get delete file paths in Changes not staged for commit from git status
 

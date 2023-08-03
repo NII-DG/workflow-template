@@ -13,7 +13,7 @@ from ..utils.gin import sync
 from ..utils.common import common
 from ..utils.aws import s3
 from ..utils.except_class import DidNotFinishError, UnexpectedError
-
+from ..utils.params import ex_pkg_info
 
 # 辞書のキー
 S3_OBJECT_URL = 's3_object_url'
@@ -30,7 +30,6 @@ def input_url_path():
     """
 
     def on_click_callback(clicked_button: Button) -> None:
-
         common.delete_file(path.UNIT_S3_JSON_PATH)
 
         input_url = str(text_url.value)
@@ -43,19 +42,12 @@ def input_url_path():
         elif len(msg := (s3.access_s3_url(input_url))) > 0:
             err_msg = msg
 
-        try:
-            with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
-                experiment_title = json.load(f)[EX_PKG_NAME]
-        except FileNotFoundError:
+        experiment_title = ex_pkg_info.get_current_experiment_title()
+        if experiment_title is None:
             clear_output()
             display(text_url, text_path, button)
             display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
-            raise
-        except (KeyError, JSONDecodeError):
-            clear_output()
-            display(text_url, text_path, button)
-            display_util.display_err(message.get('from_repo_s3', 'unexpected'))
-            raise
+            return
 
         # 格納先パスの検証
         if len(err_msg) == 0:
@@ -183,11 +175,14 @@ def get_data():
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
         UnexpectedError: 想定外のエラーが発生した場合
     """
+    experiment_title = ex_pkg_info.get_current_experiment_title()
+    if experiment_title is None:
+        display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+        raise DidNotFinishError()
+
     try:
         # The data stored in the source folder is managed by git, but once committed in git annex to preserve the history.
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
-        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
-            experiment_title = json.load(f)[EX_PKG_NAME]
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_file_path = json.load(f)[DEST_FILE_PATH]
 
@@ -224,9 +219,11 @@ def prepare_sync() -> dict:
     display(Javascript('IPython.notebook.save_checkpoint();'))
 
     git_file_paths = []
+    experiment_title = ex_pkg_info.get_current_experiment_title()
+    if experiment_title is None:
+        display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+        raise DidNotFinishError()
     try:
-        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
-            experiment_title = json.load(f)[EX_PKG_NAME]
         with open(path.UNIT_S3_JSON_PATH, mode='r') as f:
             dest_file_path = json.load(f)[DEST_FILE_PATH]
     except FileNotFoundError as e:

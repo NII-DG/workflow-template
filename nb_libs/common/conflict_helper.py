@@ -372,6 +372,7 @@ def rename_variants():
 
 
 
+
 def auto_resolve_task_notebooks():
     """4-1. データの調整 - タスクNotebookの自動解消
     """
@@ -683,7 +684,7 @@ REMOTE_REMAIN = 'remote'
 BOTH_REMAIN = 'both'
 
 class AnnexFileActionForm:
-    """3-1. gitコンテンツの競合解消アクションフォームクラス
+    """3-2. Annexコンテンツの競合解消アクションフォームクラス
     """
     def __init__(self, rf_data:dict):
         # set rf_data
@@ -696,13 +697,16 @@ class AnnexFileActionForm:
         annex_rslv_info = get_annex_rslv_info_from_rf_data(self.rf_data)
         filepaths = common.sortFilePath(list(annex_rslv_info.keys()))
 
+        # generate option on selector
         options = dict()
         options[message.get('conflict_helper', 'defualt')] = DEFUALT
         options[message.get('conflict_helper', 'local_remain')] = LOCAL_REMAIN
         options[message.get('conflict_helper', 'remote_remain')] = REMOTE_REMAIN
         options[message.get('conflict_helper', 'both_remain')] = BOTH_REMAIN
+
         # set options
         self.options = options
+
         # set file_col_num
         self.file_col_num = len(filepaths)
 
@@ -713,13 +717,11 @@ class AnnexFileActionForm:
             base_file = pn.widgets.StaticText(name=str(index), value=filepath)
 
             local_path = local_remote['local']
-            local_url = f'../../../../edit/{local_path}'
-            local_link_html = pd.create_link(url=local_url, title=message.get('conflict_helper','local_variant'))
+            local_link_html = create_edit_link_for_local(local_path)
             local_link = pn.pane.HTML(local_link_html)
 
             remote_path = local_remote['remote']
-            remoto_url = f'../../../../edit/{remote_path}'
-            remoto_link_html = pd.create_link(url=remoto_url, title=message.get('conflict_helper','remote_variant'))
+            remoto_link_html = create_edit_link_for_remote(remote_path)
             remoto_link = pn.pane.HTML(remoto_link_html)
             head_data = [base_file, local_link, remoto_link]
 
@@ -775,3 +777,67 @@ def annex_conflict_resolve_action_form(rf_data:dict):
 
 
     display(pn.Column(top_col, form.confirm_button ,annex_action_form_whole_msg))
+
+
+"""
+Annexリネーム選択フォーム
+"""
+annex_rename_form_whole_msg = pn.pane.HTML()
+class AnnexFileRenameForm:
+    """3-3. Annexコンテンツの競合解消リネームフォームクラス
+    """
+    def __init__(self, rf_data:dict, both_rename_list:list):
+        # set rf_data
+        self.rf_data = rf_data
+        # sort
+        both_rename_list = common.sortFilePath(both_rename_list)
+        # set both_rename_list
+        self.both_rename_list = both_rename_list
+        self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'rename_confirmed'), button_type='default')
+        self.confirm_button.on_click(self.submit)
+
+        for both_rename_path in both_rename_list:
+            varitant_info = rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO][both_rename_path]
+            local_path = varitant_info['local']
+            local_link_html = create_edit_link_for_local(local_path)
+            local_link = pn.pane.HTML(local_link_html)
+
+            remote_path = varitant_info['remote']
+            remoto_link_html = create_edit_link_for_remote(remote_path)
+            remoto_link = pn.pane.HTML(remoto_link_html)
+
+
+
+
+
+
+
+
+        pass
+
+    def submit(self, event):
+        pass
+
+def create_edit_link_for_local(path:str)->str:
+    return create_edit_link(path, message.get('conflict_helper','local_variant'))
+
+def create_edit_link_for_remote(path:str)->str:
+    return create_edit_link(path, message.get('conflict_helper','remote_variant'))
+
+def create_edit_link(path:str, title:str)->str:
+    url = f'../../../../edit/{path}'
+    local_link_html = pd.create_link(url=url, title=title)
+    return local_link_html
+
+
+
+
+def annex_conflict_resolve_rename_form(rf_data:dict, both_rename_list:list):
+    pn.extension()
+    form = AnnexFileRenameForm(rf_data, both_rename_list)
+    annex_rename_form_whole_msg.object = ''
+    annex_rename_form_whole_msg.width = 900
+    top_col = pn.Column()
+
+
+    display(pn.Column(annex_rename_form_whole_msg))

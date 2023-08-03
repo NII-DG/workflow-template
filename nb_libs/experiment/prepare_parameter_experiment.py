@@ -63,26 +63,23 @@ def create_param_folder():
     experiment_title, param_name = get_params()
 
     # validation
-    try:
-        # フォルダ名の空文字禁止
-        for v in [experiment_title, param_name]:
-            if len(v) <= 0:
-                raise DGTaskError
-
-        # 親フォルダが存在していない場合エラー
-        if not os.path.isdir(p.create_experiments_with_subpath(experiment_title)):
+    # フォルダ名の空文字禁止
+    for v in [experiment_title, param_name]:
+        if len(v) <= 0:
+            msg_display.display_err(msg_mod.get('setup_package', 'param_validate_error'))
             raise DGTaskError
 
-        # 作成するフォルダと同名のフォルダが存在する場合エラー
-        if os.path.isdir(p.create_experiments_with_subpath(experiment_title, param_name)):
-            raise DGTaskError
+    # 親フォルダが存在していない場合のエラー
+    if not os.path.isdir(p.create_experiments_with_subpath(experiment_title)):
+        msg_display.display_err(msg_mod.get('DEFAULT', 'unexpected'))
+        raise DGTaskError
 
-    except DGTaskError as e:
+    # 作成するフォルダと同名のフォルダが存在する場合のエラー
+    if os.path.isdir(p.create_experiments_with_subpath(experiment_title, param_name)):
         msg_display.display_err(msg_mod.get('setup_package', 'param_validate_error'))
-        raise e
+        raise DGTaskError
 
-    else:
-        ex_pkg.create_param_folder(p.create_experiments_with_subpath(experiment_title, param_name))
+    ex_pkg.create_param_folder(p.create_experiments_with_subpath(experiment_title, param_name))
 
 
 def syncs_config() -> tuple[list[str], list[str], list[str], str, list[str]]:
@@ -141,8 +138,12 @@ def submit_init_experiment_callback(input_form, error_message, submit_button):
 def initial_experiment():
     pn.extension()
 
-    if not dmp.is_for_parameter(dmp.get_datasetStructure()):
-        msg_display.display_warm(msg_mod.get('setup_package','excluded_warm'))
+    try:
+        if not dmp.is_for_parameter(dmp.get_datasetStructure()):
+            msg_display.display_warm(msg_mod.get('setup_package','excluded_warm'))
+            return
+    except FileNotFoundError:
+        msg_display.display_warm(msg_mod.get('setup_package','dmp_not_found'))
         return
 
     # form

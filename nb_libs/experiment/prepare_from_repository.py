@@ -644,7 +644,7 @@ def prepare_sync() -> dict:
             git_file_paths.append(annex_file_path)
 
     annex_file_paths = list(set(annex_file_paths) - set(git_file_paths))
-    git_file_paths.append(path.EXP_DIR_PATH + path.PREPARE_FROM_REPOSITORY)
+    git_file_paths.append(os.path.join(path.EXP_DIR_PATH, path.PREPARE_FROM_REPOSITORY))
 
     sync_repo_args = dict()
     sync_repo_args['git_path'] = git_file_paths

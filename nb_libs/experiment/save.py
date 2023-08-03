@@ -1,4 +1,4 @@
-'''prepare_from_local.ipynbから呼び出されるモジュール'''
+'''save.ipynbから呼び出されるモジュール'''
 from ..utils.path import path
 from ..utils.ex_utils import save_util
 
@@ -6,7 +6,7 @@ from ..utils.ex_utils import save_util
 def input_message():
     '''データの格納先を入力するフォームを出力する'''
 
-    save_util.input_message(path.FROM_LOCAL_JSON_PATH)
+    save_util.input_message(path.SAVE_JSON_PATH)
 
 
 def prepare_sync() -> dict:
@@ -20,4 +20,4 @@ def prepare_sync() -> dict:
         dict: syncs_with_repoの引数が入った辞書
     '''
 
-    return save_util.prepare_sync(path.FROM_LOCAL_JSON_PATH, path.PREPARE_FROM_LOCAL)
+    return save_util.prepare_sync(path.SAVE_JSON_PATH, path.SAVE)

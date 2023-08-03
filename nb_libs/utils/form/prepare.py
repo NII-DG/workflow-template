@@ -162,24 +162,20 @@ def validate_select_default(select_value, error_message, submit_button)->bool:
         return True
 
 
-def validate_commit_message(message:str, submit_button) -> bool:
+def validate_commit_message(message:str) -> str:
     '''コミットメッセージのバリデーションを行う
 
     Args:
         message (str): コミットメッセージ
-        submit_button: ボタン
     Returns:
-        bool: okの場合True
+        str: エラーメッセージ
     '''
+
     if len(message) == 0:
-        submit_button.button_type = 'warning'
-        submit_button.name = m.get('vaildate','empty_commit_message')
-        return False
+        return m.get('validate','empty_commit_message')
     elif len(message) > 100:
-        submit_button.button_type = 'warning'
-        submit_button.name = m.get('vaildate','too_long_commit_message')
-        return False
-    return True
+        return m.get('validate','too_long_commit_message')
+    return ''
 
 
 def setup_local(user_name, password):

@@ -26,7 +26,6 @@ def submit_message_callback(input_form:pn.widgets.TextInput, submit_button:pn.wi
 
 
     def callback(event):
-
         common.delete_file(json_file_path)
 
         commit_message = input_form.value
@@ -54,7 +53,6 @@ def input_message(json_file_path:str):
         Args:
             json_file_path (str): コミットメッセージを保存するjsonファイルのパス
     '''
-
     common.delete_file(json_file_path)
 
     pn.extension()
@@ -85,7 +83,6 @@ def prepare_sync(json_file_path:str, notebook_file_path:str) -> dict:
     Returns:
         dict: syncs_with_repoの引数が入った辞書
     '''
-
     display(Javascript('IPython.notebook.save_checkpoint();'))
     experiment_title = ex_pkg_info.exec_get_ex_title()
     experiment_path = path.create_experiments_with_subpath(experiment_title)

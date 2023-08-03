@@ -161,3 +161,7 @@ def create_json_file(file_path:str, params_dict:dict):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, 'w') as f:
         json.dump(params_dict, f, indent=4)
+
+def read_json_file(file_path:str):
+    with open(file_path) as f:
+        return json.load(f)

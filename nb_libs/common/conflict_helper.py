@@ -5,7 +5,7 @@ from ..utils.params import ex_pkg_info as epi
 from ..utils.path import path, display as pd
 from ..utils.message import message, display as md
 from ..utils.git import git_module as git
-from ..utils.common import common, file_operation as fo
+from ..utils.common import common
 from ..utils.except_class import DGTaskError, NotFoundKey, FoundUnnecessarykey
 from IPython.display import HTML, display
 from datalad import api
@@ -309,16 +309,68 @@ def select_action_for_resolving_annex():
         md.display_err(msg)
         return
     else:
-        record_rf_data_action_resolving_annex(False, rf_data)
+        record_rf_data_annex_selected_action(rf_data=rf_data)
         # no need doing section
-        msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'resolving_git_content'))
+        msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'select_action_for_resolving_annex'))
         md.display_info(msg)
         return
 
 def rename_variants():
     """3-3. ≪両方を残す≫を選択したファイル名の入力
     """
-    pass
+        # Execution availability check
+    ## get rf data
+    try:
+        rf_data = get_rf_data()
+        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO, KEY_IS_PREPARE, KEY_RESOLVING_GIT, KEY_ANNEX_SELECTED_ACTION]
+        no_need_key = []
+        check_key_rf_data(rf_data, need_key, no_need_key)
+
+    except FileNotFoundError as e:
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    except NotFoundKey as e:
+        except_msg = traceback.format_exception_only(type(e), e)
+        if KEY_CONFLICT_FILES in except_msg:
+            err_msg = message.get('DEFAULT', 'unexpected')
+            md.display_err(err_msg)
+        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg or KEY_RESOLVING_GIT in except_msg or KEY_ANNEX_SELECTED_ACTION in except_msg:
+            err_msg = message.get('nb_exec', 'not_exec_pre_section')
+            md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    except Exception as e:
+        err_msg = message.get('DEFAULT', 'unexpected')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    annex_selectef_action = rf_data[KEY_ANNEX_SELECTED_ACTION]
+
+    both_annex_path = list()
+
+    if annex_selectef_action is None:
+        # not need operate cell
+        msg = message.get('conflict_helper','no_need_exec_cell').format(message.get('conflict_helper','rename_variants'))
+        md.display_info(msg)
+        return
+    else:
+        # get annex path selected both
+        for key, val in annex_selectef_action.item():
+            action_type = val['action']
+            if action_type == BOTH_REMAIN:
+                both_annex_path.append(key)
+
+    if len(both_annex_path) <= 0:
+        # not need operate cell
+        msg = message.get('conflict_helper','no_need_exec_cell').format(message.get('conflict_helper','rename_variants'))
+        md.display_info(msg)
+        return
+
+    # NEED operate cell for form
+
+
 
 def auto_resolve_task_notebooks():
     """4-1. データの調整 - タスクNotebookの自動解消
@@ -478,8 +530,6 @@ KEY_ANNEX = 'annex'
 KEY_ANNEX_CONFLICT_PREPARE_INFO = 'annex_conflict_prepare_info'
 KEY_IS_PREPARE = 'is_prepare'
 KEY_RESOLVING_GIT = 'resolving_git'
-KEY_ACTION_RESOLVING_ANNEX = 'action_resolving_annex'
-KEY_RENAME_RESOLVING_ANNEX = 'rename_resolving_annex'
 KEY_ACTION = 'action'
 KEY_ANNEX_SELECTED_ACTION = 'annex_selected_action'
 
@@ -498,43 +548,36 @@ def record_rf_data_conflict_info(
     }
     os.makedirs(path.TMP_DIR, exist_ok=True)
     os.makedirs(path.RF_FORM_DATA_DIR, exist_ok=True)
-    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
+    common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
 def record_rf_data_annex_rslv_info(rf_data=None, annex_rslv_info=None):
     if rf_data == None:
         rf_data = get_rf_data()
     rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO] = annex_rslv_info
-    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
+    common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
 def record_rf_data_is_prepare(rf_data=None):
     if rf_data == None:
         rf_data = get_rf_data()
     rf_data[KEY_IS_PREPARE] = True
-    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
+    common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
 def record_rf_data_resolving_git(rf_data=None):
     if rf_data == None:
         rf_data = get_rf_data()
     rf_data[KEY_RESOLVING_GIT] = True
-    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
+    common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
-def record_rf_data_action_resolving_annex(value:bool, rf_data=None):
+def record_rf_data_annex_selected_action(value=None, rf_data=None,):
     if rf_data == None:
         rf_data = get_rf_data()
-    rf_data[KEY_ACTION_RESOLVING_ANNEX] = value
-    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
-
-def record_rf_data_annex_selected_action(value:dict, rf_data=None):
-    if rf_data == None:
-        rf_data = get_rf_data()
-    rf_data[KEY_ACTION_RESOLVING_ANNEX] = True
     rf_data[KEY_ANNEX_SELECTED_ACTION] = value
-    fo.write_to_json(RF_DATA_FILE_PATH, rf_data)
+    common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
 
 
 def get_rf_data()->dict:
-    return fo.read_from_json(RF_DATA_FILE_PATH)
+    return common.read_json_file(RF_DATA_FILE_PATH)
 
 def get_conflicted_annex_paths_from_rf_data(rf_data: dict):
     return rf_data[KEY_CONFLICT_FILES][KEY_ANNEX]
@@ -706,7 +749,7 @@ class AnnexFileActionForm:
                 annex_selected_action[base_file_path] = {'action' : selected_value}
 
             # update conflict_helper.json
-            record_rf_data_annex_selected_action(annex_selected_action)
+            record_rf_data_annex_selected_action(value=annex_selected_action, rf_data=self.rf_data)
             self.confirm_button.button_type = 'success'
             self.confirm_button.name = message.get('conflict_helper', 'complete_action')
             return

@@ -14,13 +14,15 @@ from ..utils.path import path as p
 from ..utils.except_class import DidNotFinishError, DGTaskError
 
 FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'prepare_parameter_experiment.json')
+KEY_EX_PKG = 'ex_pkg_name'
+KEY_EX_PARAM = 'param_ex_name'
 
 
 # ----- tmp_file handling -----
 def set_params(ex_pkg_name:str, param_ex_name:str):
     params_dict = {
-    "ex_pkg_name" : ex_pkg_name,
-    "param_ex_name" : param_ex_name,
+    KEY_EX_PKG : ex_pkg_name,
+    KEY_EX_PARAM : param_ex_name,
     }
     common.create_json_file(FILE_PATH, params_dict)
 
@@ -29,8 +31,8 @@ def get_params()->tuple[str, str]:
     with open(FILE_PATH, mode='r') as f:
             params = json.load(f)
     try:
-        experiment_title = params["ex_pkg_name"]
-        param_name = params["param_ex_name"]
+        experiment_title = params[KEY_EX_PKG]
+        param_name = params[KEY_EX_PARAM]
 
     except KeyError:
         msg_display.display_err(msg_mod.get('setup_sync', 'not_entered'))

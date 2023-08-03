@@ -54,6 +54,7 @@ TMP_CONFLICT_DIR = os.path.join(TMP_DIR, 'conflict')
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')
 MULTI_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_multi_from_s3.json')
 FROM_REPO_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_from_repository.json')
+FROM_LOCAL_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_from_local.json')
 
 ## File under /home/jovyan/.tmp/validation/
 REQUEST_ID_FILE_PATH = os.path.join(TMP_VALIDATION_DIR, 'request_id.txt')
@@ -71,7 +72,7 @@ def create_experiments_with_subpath(experiment_title, sub_path=''):
     Arg:
         experiment_title(str): 実験パッケージ名
 
-        sub_path(str): 実験パッケージ配下のパス
+        sub_path(str): 実験パッケージ配下のパス（オプション）
     Return:
         str: 実験パッケージ配下の絶対パス
     '''

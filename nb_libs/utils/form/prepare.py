@@ -162,6 +162,26 @@ def validate_select_default(select_value, error_message, submit_button)->bool:
         return True
 
 
+def validate_commit_message(message:str, submit_button) -> bool:
+    '''コミットメッセージのバリデーションを行う
+
+    Args:
+        message (str): コミットメッセージ
+        submit_button: ボタン
+    Returns:
+        bool: okの場合True
+    '''
+    if len(message) == 0:
+        submit_button.button_type = 'warning'
+        submit_button.name = m.get('vaildate','empty_commit_message')
+        return False
+    elif len(message) > 100:
+        submit_button.button_type = 'warning'
+        submit_button.name = m.get('vaildate','too_long_commit_message')
+        return False
+    return True
+
+
 def setup_local(user_name, password):
     params = param_json.get_params()
     pr = parse.urlparse(params['siblings']['ginHttp'])

@@ -80,7 +80,7 @@ def patch_container():
     try:
         pr = parse.urlparse(param_json.get_gin_http())
         user_token = token.get_ginfork_token()
-        server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
+        server_name = os.environ["JUPYTERHUB_SERVER_NAME"]
         uid = str(user_info.get_user_id())
 
         response = api.patch_container(pr.scheme, pr.netloc, user_token, server_name, uid)
@@ -107,11 +107,10 @@ def delete_container():
     EXCEPTION
     ---------------
     """
-
     try:
         pr = parse.urlparse(param_json.get_gin_http())
         user_token = token.get_ginfork_token()
-        server_name = os.environ["JUPYTERHUB_SERVICE_PREFIX"].split('/')[3]
+        server_name = os.environ["JUPYTERHUB_SERVER_NAME"]
         uid = str(user_info.get_user_id())
 
         response = api.delete_container(pr.scheme, pr.netloc, user_token, server_name, uid)
@@ -127,3 +126,6 @@ def delete_container():
     except Exception:
         display.display_err(message.get('container_api', 'unexpected'))
         raise
+
+    else:
+        display.display_html_msg(msg=server_name, tag='h2')

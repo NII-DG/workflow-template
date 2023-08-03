@@ -1,4 +1,4 @@
-'''prepare_from_local.py, save.pyから呼び出されるモジュール'''
+'''おもにprepare_from_local.py, save.pyから呼び出されるモジュール'''
 import os, json
 from IPython.display import display, Javascript
 import panel as pn

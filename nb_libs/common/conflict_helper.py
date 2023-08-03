@@ -640,7 +640,7 @@ REMOTE_REMAIN = 'remote'
 BOTH_REMAIN = 'both'
 
 class AnnexFileActionForm:
-    """3-1. gitコンテンツの競合解消のフォームクラス
+    """3-1. gitコンテンツの競合解消アクションフォームクラス
     """
     def __init__(self, rf_data:dict):
         # set rf_data
@@ -685,27 +685,36 @@ class AnnexFileActionForm:
             self.top_col_data.append(file_col_data)
 
     def submit(self, event):
-        top_col = self.top_col_data
-        file_clo_num = self.file_col_num
+        try:
+            top_col = self.top_col_data
+            file_clo_num = self.file_col_num
 
-        annex_selected_action = dict()
+            annex_selected_action = dict()
 
-        for i in range(file_clo_num):
-            base_file_path = top_col[i][0][0].value
-            selected_key = top_col[i][0].value
-            selected_value = self.options[selected_key]
+            for i in range(file_clo_num):
 
-            if selected_value == DEFUALT:
-                # DEFUALT値が選ばれたら選択エラー、再度入力
-                pass
+                selected_key = top_col[i][0].value
+                selected_value = self.options[selected_key]
 
-            annex_selected_action[base_file_path] = {'action' : selected_value}
+                if selected_value == DEFUALT:
+                    # DEFUALT値が選ばれたら選択エラー、再度入力
+                    self.confirm_button.button_type = 'danger'
+                    self.confirm_button.name = message.get('conflict_helper', 'select_default_error')
+                    return
 
-        # update conflict_helper.json
-        record_rf_data_annex_selected_action(annex_selected_action)
+                base_file_path = top_col[i][0][0].value
+                annex_selected_action[base_file_path] = {'action' : selected_value}
 
-
-
+            # update conflict_helper.json
+            record_rf_data_annex_selected_action(annex_selected_action)
+            self.confirm_button.button_type = 'success'
+            self.confirm_button.name = message.get('conflict_helper', 'complete_action')
+            return
+        except Exception as e:
+            self.confirm_button.button_type = 'danger'
+            self.confirm_button.name = message.get('DEFAULT', 'unexpected')
+            err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
+            annex_action_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
 
 
 def annex_conflict_resolve_action_form(rf_data:dict):

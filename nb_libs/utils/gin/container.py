@@ -128,4 +128,5 @@ def delete_container():
         raise
 
     else:
-        display.display_html_msg(msg=server_name, tag='h2')
+        msg = message.get('container_api', 'server_name').format(server_name)
+        display.display_html_msg(msg=msg, tag='h2')

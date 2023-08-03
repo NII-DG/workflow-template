@@ -340,7 +340,7 @@ def save_annex():
     try:
         git_module.git_annex_lock(path.HOME_PATH)
         sync.save_annex_and_register_metadata(
-            gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3_bucket').format(bucket_name))
+            gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('commit_message', 'data_from_s3_bucket').format(bucket_name))
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         raise UnexpectedError() from e
@@ -408,7 +408,7 @@ def prepare_sync() -> dict:
     sync_repo_args['gitannex_path'] = annex_file_paths
     sync_repo_args['gitannex_files'] = annex_file_paths
     sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
-    sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
+    sync_repo_args['message'] = message.get('commit_message', 'prepare_data').format(experiment_title)
 
     common.delete_file(path.MULTI_S3_JSON_PATH)
     common.delete_file(path.ADDURLS_CSV_PATH)

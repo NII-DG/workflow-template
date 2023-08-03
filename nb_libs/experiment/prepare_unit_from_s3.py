@@ -150,7 +150,7 @@ def save_annex():
         # *No metadata is assigned to the annexed file because the actual data has not yet been acquired.
         annex_file_paths = [dest_file_path]
         git_module.git_annex_lock(path.HOME_PATH)
-        sync.save_annex_and_register_metadata(gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3'))
+        sync.save_annex_and_register_metadata(gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('commit_message', 'data_from_s3'))
     except FileNotFoundError as e:
         display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
@@ -247,7 +247,7 @@ def prepare_sync() -> dict:
     sync_repo_args['gitannex_path'] = annex_file_paths
     sync_repo_args['gitannex_files'] = annex_file_paths
     sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
-    sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
+    sync_repo_args['message'] = message.get('commit_message', 'prepare_data').format(experiment_title)
 
     common.delete_file(path.UNIT_S3_JSON_PATH)
     common.delete_file(path.ADDURLS_CSV_PATH)

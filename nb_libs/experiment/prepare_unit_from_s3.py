@@ -91,7 +91,7 @@ def input_url_path():
     )
     text_url = Text(
         description = message.get('from_repo_s3', 'object_url'),
-        placeholder = message.get('from_repo_s3', 'enter_object_url')
+        placeholder = message.get('from_repo_s3', 'enter_object_url'),
         layout = Layout(width='700px'),
         style = style
     )

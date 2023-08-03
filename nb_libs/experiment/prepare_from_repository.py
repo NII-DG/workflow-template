@@ -653,7 +653,7 @@ def prepare_sync() -> dict:
     sync_repo_args['gitannex_path'] = annex_file_paths
     sync_repo_args['gitannex_files'] = annex_file_paths
     sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
-    sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
+    sync_repo_args['message'] = message.get('commit_message', 'prepare_data').format(experiment_title)
 
     common.delete_file(path.FROM_REPO_JSON_PATH)
     common.delete_file(path.ADDURLS_CSV_PATH)

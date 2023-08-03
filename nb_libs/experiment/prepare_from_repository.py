@@ -418,7 +418,7 @@ def input_path():
         '''
 
         input_to_from_list = [(column.value_input, column.name) for column in columns if 'TextInput' in str(type(column))]
-        experiment_title = ex_pkg_info.get_current_experiment_title()
+        experiment_title = ex_pkg_info.exec_get_ex_title()
 
         # 格納先パスの検証
         err_msg = validate.validate_input_path(input_to_from_list, experiment_title)
@@ -589,7 +589,7 @@ def get_data():
     annex_file_paths = list(path_to_url_dict.keys())
 
     try:
-        experiment_title = ex_pkg_info.get_current_experiment_title()
+        experiment_title = ex_pkg_info.exec_get_ex_title()
         datalad_api.get(path=annex_file_paths)
         annex_util.annex_to_git(annex_file_paths, experiment_title)
     except Exception as e:
@@ -623,7 +623,7 @@ def prepare_sync() -> dict:
     """
 
     display(Javascript('IPython.notebook.save_checkpoint();'))
-    experiment_title = experiment_title = ex_pkg_info.get_current_experiment_title()
+    experiment_title = experiment_title = ex_pkg_info.exec_get_ex_title()
 
     try:
         with open(path.FROM_REPO_JSON_PATH, mode='r') as f:

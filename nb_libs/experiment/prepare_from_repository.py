@@ -435,7 +435,6 @@ def input_path():
 
                 # git annex whereisでURLを取得する
                 result = git_module.git_annex_whereis('"{}"'.format(input_from), repository_path)
-                ex_pkg_name = from_repo_dict[EX_PKG_NAME]
                 input_url = ''
                 if len(result) > 0:
                     data:dict = json.loads(result)
@@ -446,8 +445,7 @@ def input_path():
                     html_url = from_repo_dict[HTML_URL]
                     input_url = os.path.join(html_url, 'raw', 'master', input_from).replace(' ', '%20')
 
-                ex_pkg_name = ex_pkg_info.get_current_experiment_title()
-                input_to = os.path.join(path.HOME_PATH, 'experiments', ex_pkg_name, input_to)
+                input_to = os.path.join(path.HOME_PATH, 'experiments', experiment_title, input_to)
                 path_to_url_dict[input_to] = input_url
 
         except Exception as e:

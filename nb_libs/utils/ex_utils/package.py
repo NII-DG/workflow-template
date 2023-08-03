@@ -1,5 +1,4 @@
 import os
-import shutil
 import glob
 
 from ..common import common
@@ -36,7 +35,14 @@ def create_param_folder(param_folder_path:str):
 
 
 def create_syncs_path(experiment_path:str)-> tuple[list[str], list[str], list[str]]:
-    os.chdir(experiment_path)
+    """実験パッケージ配下のファイルパスを同期種別毎に返す
+
+    Args:
+        experiment_path (str): 実験パッケージまでの絶対パス
+
+    Returns:
+        tuple[list[str], list[str], list[str]]: gitとgit-annex管理するファイルのパス
+    """
 
     #**************************************************#
     #* Generate a list of folder paths to be managed by Git-annex. #

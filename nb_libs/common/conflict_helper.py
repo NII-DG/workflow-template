@@ -493,9 +493,9 @@ def get_annex_rslv_info(conflicted_annex_paths):
                 variant_list = dict[str, str]()
                 abs_candidate_file_path = os.path.join(path.HOME_PATH, candidate_file_path)
                 if os.path.isfile(abs_candidate_file_path):
-                    variant_list['local'] =  candidate_file_path
+                    variant_list[LOCAL] =  candidate_file_path
                 else:
-                    variant_list['remote'] =  candidate_file_path
+                    variant_list[REMOTE] =  candidate_file_path
                 annex_rslv_info[conflict_annex_path] = variant_list
     return annex_rslv_info
 
@@ -503,7 +503,7 @@ def dl_data_remote_variatns(annex_rslv_info:dict):
     to_datalad_get_paths = []
     for v in annex_rslv_info.values():
         to_datalad_get_paths.append(
-            os.path.join(path.HOME_PATH,v['remote'])
+            os.path.join(path.HOME_PATH,v[REMOTE])
             )
     if len(to_datalad_get_paths) > 0:
         api.get(path=to_datalad_get_paths)
@@ -716,11 +716,11 @@ class AnnexFileActionForm:
             local_remote = annex_rslv_info[filepath]
             base_file = pn.widgets.StaticText(name=str(index), value=filepath)
 
-            local_path = local_remote['local']
+            local_path = local_remote[LOCAL]
             local_link_html = create_edit_link_for_local(local_path)
             local_link = pn.pane.HTML(local_link_html)
 
-            remote_path = local_remote['remote']
+            remote_path = local_remote[REMOTE]
             remoto_link_html = create_edit_link_for_remote(remote_path)
             remoto_link = pn.pane.HTML(remoto_link_html)
             head_data = [base_file, local_link, remoto_link]
@@ -732,13 +732,12 @@ class AnnexFileActionForm:
     def submit(self, event):
         try:
             top_col = self.top_col_data
-            file_clo_num = self.file_col_num
 
             annex_selected_action = dict()
 
-            for i in range(file_clo_num):
+            for index in range(self.file_col_num):
 
-                selected_key = top_col[i][0].value
+                selected_key = top_col[index][0].value
                 selected_value = self.options[selected_key]
 
                 if selected_value == DEFUALT:
@@ -747,7 +746,7 @@ class AnnexFileActionForm:
                     self.confirm_button.name = message.get('conflict_helper', 'select_default_error')
                     return
 
-                base_file_path = top_col[i][0][0].value
+                base_file_path = top_col[index][0][0].value
                 annex_selected_action[base_file_path] = {'action' : selected_value}
 
             # update conflict_helper.json
@@ -783,6 +782,9 @@ def annex_conflict_resolve_action_form(rf_data:dict):
 Annexリネーム選択フォーム
 """
 annex_rename_form_whole_msg = pn.pane.HTML()
+
+LOCAL = 'local'
+REMOTE = 'remote'
 class AnnexFileRenameForm:
     """3-3. Annexコンテンツの競合解消リネームフォームクラス
     """
@@ -796,27 +798,170 @@ class AnnexFileRenameForm:
         self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'rename_confirmed'), button_type='default')
         self.confirm_button.on_click(self.submit)
 
-        for both_rename_path in both_rename_list:
+        self.file_col_num = len(both_rename_list)
+
+        self.top_col_data = list()
+        for index, both_rename_path in enumerate(both_rename_list):
             varitant_info = rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO][both_rename_path]
-            local_path = varitant_info['local']
+            # create head data
+            local_path = varitant_info[LOCAL]
             local_link_html = create_edit_link_for_local(local_path)
             local_link = pn.pane.HTML(local_link_html)
-
-            remote_path = varitant_info['remote']
+            remote_path = varitant_info[REMOTE]
             remoto_link_html = create_edit_link_for_remote(remote_path)
             remoto_link = pn.pane.HTML(remoto_link_html)
+            base_file = pn.widgets.StaticText(name=str(index), value=both_rename_path)
+            head_data = [base_file, local_link, remoto_link]
 
-
-
-
-
-
-
-
-        pass
+            # create local input
+            local_input = pn.widgets.TextInput(name=message.get('conflict_helper','local_variant'), placeholder=message.get('conflict_helper','enter_file_name'), width=700)
+            # create remote input
+            remote_input = pn.widgets.TextInput(name=message.get('conflict_helper','local_variant'), placeholder=message.get('conflict_helper','enter_file_name'), width=700)
+            file_col_data = [head_data, local_input, remote_input]
+            self.top_col_data.append(file_col_data)
 
     def submit(self, event):
+        try:
+
+            submited_top_col_data = self.top_col_data
+
+            input_data = dict()
+            for index in range(self.file_col_num):
+                # get base file path
+                base_file_path = submited_top_col_data[index][0][0].value
+                # get input value of local rename
+                local_input = submited_top_col_data[index][1].value_input
+                # get input value of remote rename
+                remote_input = submited_top_col_data[index][2].value_input
+                # add form data to input_data
+                input_data[base_file_path] = {LOCAL: local_input, REMOTE : remote_input}
+
+            err_html = self.validate(input_data)
+            if len(err_html) > 0:
+                # form err
+                self.confirm_button.button_type = 'danger'
+                self.confirm_button.name = message.get('conflict_helper', 'invaid_file_name')
+                annex_rename_form_whole_msg.object = err_html
+                return
+            else:
+                # validation OK
+                self.confirm_button.button_type = 'success'
+                self.confirm_button.name = message.get('conflict_helper', 'complete_rename')
+                return
+
+
+        except Exception as e:
+            self.confirm_button.button_type = 'danger'
+            self.confirm_button.name = message.get('DEFAULT', 'unexpected')
+            err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
+            annex_rename_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
+
         pass
+
+
+
+
+    def validate(self, input_data:dict)->str:
+        ERR_VARIANT_NEME = 'err_variant_name'
+        ERR_EMPTY = 'err_empty'
+        ERR_EXTENTION = 'err_extention'
+        ERR_ALREADY = 'err_already'
+        ERR_END_SLASH = 'err_end_slash'
+        ERR_BACK_SLASH = 'err_back_slash'
+        ERR_UNIQUE = 'ERR_UNIQUE'
+        ERR_ONE_SIDE_SELECT = 'err_one_side_select'
+
+        # prepare validation
+        variant_names = list[str]()
+        both_rename_list = self.both_rename_list
+        for both_rename_path in both_rename_list:
+            varitant_info = self.rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO][both_rename_path]
+            variant_names.append(os.path.basename(varitant_info[LOCAL]))
+            variant_names.append(os.path.basename(varitant_info[REMOTE]))
+
+        all_conflict_annex_path = list[str]()
+        for key in self.rf_data[KEY_ANNEX_SELECTED_ACTION].keys():
+            all_conflict_annex_path.append(key)
+
+        absolute_not_both_rename_list = list()
+        for conflict_annex_path in all_conflict_annex_path:
+            if conflict_annex_path not in both_rename_list:
+                absolute_not_both_rename_list.append(os.path.join(path.HOME_PATH, conflict_annex_path))
+
+        absolute_input_path = list()
+        err_sumary = dict[str, dict[str,list[str]]]()
+        for base_file_path, input in input_data.items():
+            local_name = input[LOCAL]
+            remote_name = input[REMOTE]
+            # 空文字だとエラー
+            if len(local_name) <= 0:
+                err_sumary[base_file_path][LOCAL].append(ERR_EMPTY)
+            if len(remote_name) <= 0:
+                err_sumary[base_file_path][REMOTE].append(ERR_EMPTY)
+
+            # スラッシュが含まれるとエラー
+            if '/' in local_name:
+                err_sumary[base_file_path][LOCAL].append(ERR_END_SLASH)
+            if '/' in remote_name:
+                err_sumary[base_file_path][REMOTE].append(ERR_END_SLASH)
+
+            # バックスラッシュが含まれるとエラー
+            if '\\' in local_name:
+                err_sumary[base_file_path][LOCAL].append(ERR_BACK_SLASH)
+            if '\\' in remote_name:
+                err_sumary[base_file_path][REMOTE].append(ERR_BACK_SLASH)
+
+            # 拡張子が不一致だとエラー
+            if get_extension_for_varinat(base_file_path) != get_extension_for_varinat(local_name):
+                err_sumary[base_file_path][LOCAL].append(ERR_EXTENTION)
+            if get_extension_for_varinat(base_file_path) != get_extension_for_varinat(remote_name):
+                err_sumary[base_file_path][REMOTE].append(ERR_EXTENTION)
+
+            # バリアント名だとエラー
+            if '.variant-' in local_name:
+                err_sumary[base_file_path][LOCAL].append(ERR_VARIANT_NEME)
+            if '.variant-' in remote_name:
+                err_sumary[base_file_path][REMOTE].append(ERR_VARIANT_NEME)
+
+
+            absolute_base_dir = os.path.join(path.HOME_PATH, os.path.dirname(base_file_path))
+            absolute_local_path = os.path.join(absolute_base_dir, local_name)
+            absolute_input_path.append(absolute_local_path)
+            absolute_remote_path = os.path.join(absolute_base_dir, remote_name)
+            absolute_input_path.append(absolute_remote_path)
+            # 既存ファイルと同名だとエラー
+            if os.path.exists(absolute_local_path):
+                err_sumary[base_file_path][LOCAL].append(ERR_ALREADY)
+
+            if os.path.exists(absolute_remote_path):
+                err_sumary[base_file_path][REMOTE].append(ERR_ALREADY)
+
+            # どちらかを残す選択データと一致していたらエラー
+            if absolute_local_path in absolute_not_both_rename_list:
+                err_sumary[base_file_path][LOCAL].append(ERR_ONE_SIDE_SELECT)
+            if absolute_remote_path in absolute_not_both_rename_list:
+                err_sumary[base_file_path][REMOTE].append(ERR_ONE_SIDE_SELECT)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        pass
+
 
 def create_edit_link_for_local(path:str)->str:
     return create_edit_link(path, message.get('conflict_helper','local_variant'))

@@ -1,11 +1,12 @@
 import json
 import os
+import shutil
 import traceback
 from ..utils.params import ex_pkg_info as epi
 from ..utils.path import path, display as pd
 from ..utils.message import message, display as md
 from ..utils.git import git_module as git
-from ..utils.common import common
+from ..utils.common import common, raise_error
 from ..utils.except_class import DGTaskError, NotFoundKey, FoundUnnecessarykey
 from IPython.display import HTML, display
 from datalad import api
@@ -374,10 +375,78 @@ def rename_variants():
 
 
 
-def auto_resolve_task_notebooks():
+def auto_resolve_task_notebooks()->bool:
     """4-1. データの調整 - タスクNotebookの自動解消
     """
-    pass
+    # Execution availability check
+    ## get rf data
+    try:
+        rf_data = get_rf_data()
+        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO, KEY_IS_PREPARE, KEY_RESOLVING_GIT, KEY_ANNEX_SELECTED_ACTION]
+        no_need_key = []
+        check_key_rf_data(rf_data, need_key, no_need_key)
+
+    except FileNotFoundError as e:
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    except NotFoundKey as e:
+        except_msg = traceback.format_exception_only(type(e), e)
+        if KEY_CONFLICT_FILES in except_msg:
+            err_msg = message.get('DEFAULT', 'unexpected')
+            md.display_err(err_msg)
+        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg or KEY_RESOLVING_GIT in except_msg or KEY_ANNEX_SELECTED_ACTION in except_msg:
+            err_msg = message.get('nb_exec', 'not_exec_pre_section')
+            md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    except Exception as e:
+        err_msg = message.get('DEFAULT', 'unexpected')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+
+    ## rf_data[annex_selected_action]の中を検査する。
+    if rf_data[KEY_ANNEX_SELECTED_ACTION] is not None:
+        annex_selected_action = rf_data[KEY_ANNEX_SELECTED_ACTION]
+        ## 両ファイルを残す選択データに対して、リネーム値が設定されていなければエラー
+        for value in annex_selected_action.values():
+            if value[KEY_ACTION] == BOTH_REMAIN:
+                local_name = value.get(KEY_LOCAL_NAME)
+                remote_name = value.get(KEY_REMOTE_NAME)
+                if local_name is None and remote_name is None:
+                    err_msg = message.get('nb_exec', 'not_exec_pre_section')
+                    md.display_err(err_msg)
+                    raise DGTaskError('Not Found Both Rename Values')
+                elif (local_name is None and remote_name is not None):
+                    err_msg = message.get('DEFAULT', 'unexpected')
+                    md.display_err(err_msg)
+                    raise DGTaskError('Not Found Only REMOTE Rename Values')
+                elif (local_name is not None and remote_name is None):
+                    err_msg = message.get('DEFAULT', 'unexpected')
+                    md.display_err(err_msg)
+                    raise DGTaskError('Not Found Only LOCAL Rename Values')
+                else:
+                    continue
+
+    # conflict_helper.jsonから「競合自動回復Gitファイルパス」を取得する。
+    auto_resolve_paths = rf_data[KEY_CONFLICT_FILES][KEY_GIT_AUTO]
+    if len(auto_resolve_paths)>0:
+        save_task_notebooks_to_repo_from_tmp(auto_resolve_paths)
+        del_tmp_task_notebooks()
+        msg = message.get('conflict_helper', 'complete_adjust_task_notebook')
+        md.display_info(msg)
+        return True
+    else:
+        msg = message.get('conflict_helper', 'no_need_adjust_task_notebook')
+        md.display_info(msg)
+        return True
+
+
+
+
+
+
 
 def adjust_annex_data():
     """4-1. データの調整 - Annexコンテンツのバリアントファイルのデータ調整
@@ -456,9 +525,23 @@ def is_rf_notebook(filepath : str)->bool:
     """
     return '.ipynb' in filepath and not (filepath.startswith('experiments/'))
 
+def del_tmp_task_notebooks():
+    shutil.rmtree(path.TMP_CONFLICT_DIR)
+
+
 def save_task_notebooks_to_tmp(filepaths : list):
     for path in filepaths:
         copy_local_content_to_tmp(path)
+
+def save_task_notebooks_to_repo_from_tmp(filepaths : list):
+    for path in filepaths:
+        copy_tmp_content_to_repo(path)
+
+def copy_tmp_content_to_repo(target_path:str):
+    src_path = os.path.join(path.TMP_CONFLICT_DIR, target_path)
+    dect_path = os.path.join(path.HOME_PATH, target_path)
+    shutil.copy2(src_path, dect_path)
+
 
 def copy_local_content_to_tmp(target_path:str):
     """Copy locale version contents under .tmp/conflict
@@ -992,21 +1075,6 @@ class AnnexFileRenameForm:
         else:
             return ''
 
-
-def create_edit_link_for_local(path:str)->str:
-    return create_edit_link(path, message.get('conflict_helper','local_variant'))
-
-def create_edit_link_for_remote(path:str)->str:
-    return create_edit_link(path, message.get('conflict_helper','remote_variant'))
-
-def create_edit_link(path:str, title:str)->str:
-    url = f'../../../../edit/{path}'
-    local_link_html = pd.create_link(url=url, title=title)
-    return local_link_html
-
-
-
-
 def annex_conflict_resolve_rename_form(rf_data:dict, both_rename_list:list):
     pn.extension()
     form = AnnexFileRenameForm(rf_data, both_rename_list)
@@ -1022,3 +1090,19 @@ def annex_conflict_resolve_rename_form(rf_data:dict, both_rename_list:list):
         top_col.append(file_col)
 
     display(pn.Column(top_col, form.confirm_button, annex_rename_form_whole_msg))
+
+
+
+def create_edit_link_for_local(path:str)->str:
+    return create_edit_link(path, message.get('conflict_helper','local_variant'))
+
+def create_edit_link_for_remote(path:str)->str:
+    return create_edit_link(path, message.get('conflict_helper','remote_variant'))
+
+def create_edit_link(path:str, title:str)->str:
+    url = f'../../../../edit/{path}'
+    local_link_html = pd.create_link(url=url, title=title)
+    return local_link_html
+
+def not_exec_pre_cell_raise():
+    raise_error.not_exec_pre_cell_raise()

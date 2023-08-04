@@ -10,6 +10,7 @@ from ..utils.message import display as msg_display, message
 from ..utils.except_class import DGTaskError, ExecCmdError
 from ..utils.dg_core import api as core_api
 from ..utils.path import path
+from ..utils.common import raise_error
 import requests
 from ..utils.gin import api as gin_api
 from urllib import parse
@@ -130,9 +131,7 @@ def prepare_matadata()->Any:
         raise DGTaskError() from e
 
 def not_exec_pre_cell_raise():
-    msg = message.get('nb_exec', 'not_exec_pre_cell')
-    msg_display.display_err(msg)
-    raise DGTaskError('The immediately preceding cell may not have been executed')
+    raise_error.not_exec_pre_cell_raise()
 
 def not_exec_pre_cell():
     msg = message.get('nb_exec', 'not_exec_pre_cell')

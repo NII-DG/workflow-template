@@ -99,7 +99,7 @@ def create_syncs_path(experiment_path:str)-> tuple[list[str], list[str], list[st
                         dirs.append('{}/{}'.format(dirname,ex_param_path_child))
 
     # Obtain files directly under the experimental package.
-    files = [f for f in files if os.path.isfile(f)]
+    files = [f for f in files if os.path.isfile(os.path.join(experiment_path, f))]
 
     # Generate a list of folder paths and file paths to be managed by Git.
     files.extend(dirs)

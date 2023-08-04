@@ -1,7 +1,7 @@
 import os
 import json
-from ..path import path as p
 
+from ..path import path as p
 
 def is_for_parameter(dataset_structure:str):
     """データセット構造種別がfor_parameterかどうかを判定する
@@ -20,7 +20,6 @@ def is_for_parameter(dataset_structure:str):
 
 def fetch_gin_monitoring_assigned_values():
     """dmp.jsonからcontentSize, workflowIdentifier, datasetStructureの値を取得する"""
-
     dmp_file_path = os.path.join(p.HOME_PATH, 'dmp.json')
     with open(dmp_file_path, mode='r') as f:
         dmp_json = json.load(f)

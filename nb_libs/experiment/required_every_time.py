@@ -21,15 +21,19 @@ from ..utils.except_class import DidNotFinishError, Unauthorized
 
 
 FILE_PATH = os.path.join(p.RF_FORM_DATA_DIR, 'required_every_time.json')
+KEY_EX_PKG = 'ex_pkg_name'
+KEY_EX_PARAM = 'param_ex_name'
+KEY_CREATE_TEST = 'create_test_folder'
+KEY_CREATE_CI = 'create_ci'
 
 
 # ----- tmp_file handling -----
 def set_params(ex_pkg_name:str, parama_ex_name:str, create_test_folder:bool, create_ci:bool):
     params_dict = {
-    "ex_pkg_name" : ex_pkg_name,
-    "parama_ex_name" : parama_ex_name,
-    "create_test_folder" : create_test_folder,
-    "create_ci" : create_ci
+    KEY_EX_PKG : ex_pkg_name,
+    KEY_EX_PARAM : parama_ex_name,
+    KEY_CREATE_TEST : create_test_folder,
+    KEY_CREATE_CI : create_ci
     }
     common.create_json_file(FILE_PATH, params_dict)
 
@@ -63,20 +67,20 @@ def create_package():
         preparation_completed()
 
         params = get_params()
-        experiment_path = p.create_experiments_with_subpath(params['ex_pkg_name'])
+        experiment_path = p.create_experiments_with_subpath(params[KEY_EX_PKG])
         # create experimental package
         ex_pkg.create_ex_package(dmp.get_datasetStructure(), experiment_path)
         # create parameter folder
-        parama_ex_name = params['parama_ex_name']
+        parama_ex_name = params[KEY_EX_PARAM]
         if len(parama_ex_name) > 0:
             shutil.move(os.path.join(experiment_path, 'parameter'), os.path.join(experiment_path, parama_ex_name))
         # create ci folder
-        if params['create_ci']:
+        if params[KEY_CREATE_CI]:
             path = os.path.join(experiment_path, 'ci')
             os.makedirs(path, exist_ok=True)
             Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)
         # create test folder
-        if params['create_test_folder']:
+        if params[KEY_CREATE_TEST]:
             path = os.path.join(experiment_path, 'source', 'test')
             os.makedirs(path, exist_ok=True)
             Path(os.path.join(path, '.gitkeep')).touch(exist_ok=True)

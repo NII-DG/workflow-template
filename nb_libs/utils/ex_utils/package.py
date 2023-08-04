@@ -1,5 +1,4 @@
 import os
-import shutil
 import glob
 
 from ..common import common
@@ -36,7 +35,14 @@ def create_param_folder(param_folder_path:str):
 
 
 def create_syncs_path(experiment_path:str)-> tuple[list[str], list[str], list[str]]:
-    os.chdir(experiment_path)
+    """実験パッケージ配下のファイルパスを同期種別毎に返す
+
+    Args:
+        experiment_path (str): 実験パッケージまでの絶対パス
+
+    Returns:
+        tuple[list[str], list[str], list[str]]: gitとgit-annex管理するファイルのパス
+    """
 
     #**************************************************#
     #* Generate a list of folder paths to be managed by Git-annex. #
@@ -69,10 +75,10 @@ def create_syncs_path(experiment_path:str)-> tuple[list[str], list[str], list[st
     #* Generate a list of directory paths and file paths to be managed by Git. #
     #********************************************************#
     # Obtain a list of directories and files directly under the experimental package.
-    files = os.listdir()
+    files = os.listdir(experiment_path)
 
     # Delete Git-annex managed directories (input_data and output_data) from the retrieved list.
-    dirs = [f for f in files if os.path.isdir(f)]
+    dirs = [f for f in files if os.path.isdir(os.path.join(experiment_path, f))]
 
     for dirname in dirs:
         if dirname == 'input_data' :
@@ -83,7 +89,7 @@ def create_syncs_path(experiment_path:str)-> tuple[list[str], list[str], list[st
 
     for dirname in dirs:
         if dirname != 'ci' and dirname != 'source':
-            full_param_dir = '{}/{}/params'.format(experiment_path,dirname)
+            full_param_dir = '{}/{}/params'.format(experiment_path, dirname)
             if os.path.isdir(full_param_dir):
                 dirs.remove(dirname)
                 ex_param_path = '{}/{}'.format(experiment_path, dirname)

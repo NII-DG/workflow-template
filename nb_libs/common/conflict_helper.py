@@ -124,7 +124,7 @@ def get_annex_variatns():
             return
 
     except Exception as e:
-        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
         raise DGTaskError() from e
 
@@ -662,7 +662,9 @@ def get_annex_rslv_info(conflicted_annex_paths):
             candidate_file_path = candidate_file_path.replace(refds, '', 1)
 
             if candidate_file_path.startswith(target_path) and equal_extension(conflict_annex_path, candidate_file_path) :
-                variant_list = dict[str, str]()
+                variant_list = annex_rslv_info.get(conflict_annex_path)
+                if variant_list is None:
+                    variant_list = dict[str, str]()
                 abs_candidate_file_path = os.path.join(path.HOME_PATH, candidate_file_path)
                 if os.path.isfile(abs_candidate_file_path):
                     variant_list[KEY_LOCAL] =  candidate_file_path

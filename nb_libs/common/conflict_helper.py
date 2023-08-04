@@ -221,37 +221,36 @@ def resolving_git_content():
     except FileNotFoundError as e:
         err_msg = message.get('nb_exec', 'not_exec_pre_section')
         md.display_err(err_msg)
-        raise DGTaskError() from e
-
+        return
     except NotFoundKey as e:
         except_msg = traceback.format_exception_only(type(e), e)
         if KEY_CONFLICT_FILES in except_msg:
             err_msg = message.get('DEFAULT', 'unexpected')
             md.display_err(err_msg)
+            raise DGTaskError() from e
         elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg:
             err_msg = message.get('nb_exec', 'not_exec_pre_section')
             md.display_err(err_msg)
-        raise DGTaskError() from e
-
+            return
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
         raise DGTaskError() from e
-
-    # get user resolving conflicted git paths from rf_data
-    conflicted_git_path = get_user_custom_conflicted_git_paths_from_rf_data(rf_data)
-
-    # Check path number
-    if len(conflicted_git_path) > 0:
-        # display conflict resolve form
-        git_conflict_resolve_form(conflicted_git_path)
-
     else:
-        record_rf_data_resolving_git(rf_data)
-        # no need doing section
-        msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'resolving_git_content'))
-        md.display_err(msg)
-        return
+        # get user resolving conflicted git paths from rf_data
+        conflicted_git_path = get_user_custom_conflicted_git_paths_from_rf_data(rf_data)
+
+        # Check path number
+        if len(conflicted_git_path) > 0:
+            # display conflict resolve form
+            git_conflict_resolve_form(conflicted_git_path)
+
+        else:
+            record_rf_data_resolving_git(rf_data)
+            # no need doing section
+            msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'resolving_git_content'))
+            md.display_err(msg)
+            return
 
 
 
@@ -271,46 +270,47 @@ def select_action_for_resolving_annex():
     except FileNotFoundError as e:
         err_msg = message.get('nb_exec', 'not_exec_pre_section')
         md.display_err(err_msg)
-        raise DGTaskError() from e
+        return
 
     except NotFoundKey as e:
         except_msg = traceback.format_exception_only(type(e), e)
         if KEY_CONFLICT_FILES in except_msg:
             err_msg = message.get('DEFAULT', 'unexpected')
             md.display_err(err_msg)
+            raise DGTaskError() from e
         elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg or KEY_RESOLVING_GIT in except_msg:
             err_msg = message.get('nb_exec', 'not_exec_pre_section')
             md.display_err(err_msg)
-        raise DGTaskError() from e
+            return
 
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
         raise DGTaskError() from e
-
-    # get user resolving conflicted annex paths from rf_data
-    conflicted_annex_path = get_conflicted_annex_paths_from_rf_data(rf_data=rf_data)
-    prepare_info = rf_data.get(KEY_ANNEX_CONFLICT_PREPARE_INFO)
-
-
-    # Check path number
-    if len(conflicted_annex_path) > 0 and prepare_info != None:
-        # display conflict resolve form
-        annex_conflict_resolve_action_form(rf_data)
-    elif len(conflicted_annex_path) > 0 and prepare_info == None:
-        msg = message.get('nb_exec', 'not_exec_pre_section')
-        md.display_err(msg)
-        return
-    elif len(conflicted_annex_path) <= 0 and prepare_info != None:
-        msg = message.get('DEFAULT', 'unexpected_errors_format').format('競合の解析情報が異常です')
-        md.display_err(msg)
-        return
     else:
-        record_rf_data_annex_selected_action(rf_data=rf_data)
-        # no need doing section
-        msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'select_action_for_resolving_annex'))
-        md.display_info(msg)
-        return
+        # get user resolving conflicted annex paths from rf_data
+        conflicted_annex_path = get_conflicted_annex_paths_from_rf_data(rf_data=rf_data)
+        prepare_info = rf_data.get(KEY_ANNEX_CONFLICT_PREPARE_INFO)
+
+
+        # Check path number
+        if len(conflicted_annex_path) > 0 and prepare_info != None:
+            # display conflict resolve form
+            annex_conflict_resolve_action_form(rf_data)
+        elif len(conflicted_annex_path) > 0 and prepare_info == None:
+            msg = message.get('nb_exec', 'not_exec_pre_section')
+            md.display_err(msg)
+            return
+        elif len(conflicted_annex_path) <= 0 and prepare_info != None:
+            msg = message.get('DEFAULT', 'unexpected_errors_format').format('競合の解析情報が異常です')
+            md.display_err(msg)
+            return
+        else:
+            record_rf_data_annex_selected_action(rf_data=rf_data)
+            # no need doing section
+            msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'select_action_for_resolving_annex'))
+            md.display_info(msg)
+            return
 
 def rename_variants():
     """3-3. ≪両方を残す≫を選択したファイル名の入力
@@ -326,47 +326,48 @@ def rename_variants():
     except FileNotFoundError as e:
         err_msg = message.get('nb_exec', 'not_exec_pre_section')
         md.display_err(err_msg)
-        raise DGTaskError() from e
+        return
 
     except NotFoundKey as e:
         except_msg = traceback.format_exception_only(type(e), e)
         if KEY_CONFLICT_FILES in except_msg:
             err_msg = message.get('DEFAULT', 'unexpected')
             md.display_err(err_msg)
+            raise DGTaskError() from e
         elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg or KEY_RESOLVING_GIT in except_msg or KEY_ANNEX_SELECTED_ACTION in except_msg:
             err_msg = message.get('nb_exec', 'not_exec_pre_section')
             md.display_err(err_msg)
-        raise DGTaskError() from e
+            return
 
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
         raise DGTaskError() from e
-
-    annex_selectef_action = rf_data[KEY_ANNEX_SELECTED_ACTION]
-
-    both_annex_path = list()
-
-    if annex_selectef_action is None:
-        # not need operate cell
-        msg = message.get('conflict_helper','no_need_exec_cell').format(message.get('conflict_helper','rename_variants'))
-        md.display_info(msg)
-        return
     else:
-        # get annex path selected both
-        for key, val in annex_selectef_action.item():
-            action_type = val['action']
-            if action_type == BOTH_REMAIN:
-                both_annex_path.append(key)
+        annex_selectef_action = rf_data[KEY_ANNEX_SELECTED_ACTION]
 
-    if len(both_annex_path) <= 0:
-        # not need operate cell
-        msg = message.get('conflict_helper','no_need_exec_cell').format(message.get('conflict_helper','rename_variants'))
-        md.display_info(msg)
-        return
+        both_annex_path = list()
 
-    # NEED operate cell for form
-    annex_conflict_resolve_rename_form(rf_data=rf_data, both_rename_list=both_annex_path)
+        if annex_selectef_action is None:
+            # not need operate cell
+            msg = message.get('conflict_helper','no_need_exec_cell').format(message.get('conflict_helper','rename_variants'))
+            md.display_info(msg)
+            return
+        else:
+            # get annex path selected both
+            for key, val in annex_selectef_action.item():
+                action_type = val['action']
+                if action_type == BOTH_REMAIN:
+                    both_annex_path.append(key)
+
+        if len(both_annex_path) <= 0:
+            # not need operate cell
+            msg = message.get('conflict_helper','no_need_exec_cell').format(message.get('conflict_helper','rename_variants'))
+            md.display_info(msg)
+            return
+
+        # NEED operate cell for form
+        annex_conflict_resolve_rename_form(rf_data=rf_data, both_rename_list=both_annex_path)
 
 
 

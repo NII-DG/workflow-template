@@ -85,8 +85,10 @@ def datalad_create(dir_path:str):
     """
     if not os.path.isdir(os.path.join(dir_path, ".datalad")):
         api.create(path=dir_path, force=True)
+        clear_output()
         msg_display.display_info(msg_mod.get('setup_sync', 'datalad_create_success'))
     else:
+        clear_output()
         msg_display.display_warm(msg_mod.get('setup_sync', 'datalad_create_already'))
 
 

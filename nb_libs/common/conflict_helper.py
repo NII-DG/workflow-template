@@ -957,8 +957,6 @@ class AnnexFileRenameForm:
                 if remote_path == duplicates_path:
                     err_sumary[base_file_path][REMOTE].append(ERR_UNIQUE)
 
-
-
         # err_sumaryとduplicates_pathsに値がある場合、エラー文を作成する。
         if len(err_sumary.keys()) > 0:
             new_line = '<br>'

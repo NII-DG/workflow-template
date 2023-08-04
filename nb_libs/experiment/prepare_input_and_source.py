@@ -9,19 +9,19 @@ MESSAGE_SECTION_NAME = 'prepare_input_and_source'
 
 def create_ref_prepare_from_repository():
     display(HTML(button_html(path.PREPARE_FROM_REPOSITORY, message.get(
-        MESSAGE_SECTION_NAME, 'prepare_from_gin_fork_title'))))
+        MESSAGE_SECTION_NAME, 'prepare_from_gin_fork_title'), button_width='650px')))
 
 
 def create_ref_prepare_unit_from_s3():
     display(HTML(button_html(path.PREPARE_UNIT_FROM_S3, message.get(
-        MESSAGE_SECTION_NAME, 'prepare_unit_from_s3_title'))))
+        MESSAGE_SECTION_NAME, 'prepare_unit_from_s3_title'), button_width='650px')))
 
 
 def create_ref_prepare_multi_from_s3():
     display(HTML(button_html(path.PREPARE_MULTI_FROM_S3, message.get(
-        MESSAGE_SECTION_NAME, 'prepare_multi_from_s3_title'))))
+        MESSAGE_SECTION_NAME, 'prepare_multi_from_s3_title'), button_width='650px')))
 
 
 def create_ref_prepare_from_local():
     display(HTML(button_html(path.PREPARE_FROM_LOCAL, message.get(
-        MESSAGE_SECTION_NAME, 'prepare_from_local_title'))))
+        MESSAGE_SECTION_NAME, 'prepare_from_local_title'), button_width='650px')))

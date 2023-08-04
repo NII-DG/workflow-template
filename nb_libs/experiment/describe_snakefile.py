@@ -18,7 +18,7 @@ def create_ref_snakefile():
         snakefile_path = os.path.join(
             '..', '..', '..', '..', 'edit', 'experiments', experiment_title, path.SNAKE_FILE)
         display(HTML(button_html(snakefile_path, message.get(
-            MESSAGE_SECTION_NAME, 'snakefile_ref_title'), target='_blank')))
+            MESSAGE_SECTION_NAME, 'snakefile_ref_title'), target='_blank', button_width='450px')))
     else:
         display_util.display_err(message.get(
             'experiment_error', 'experiment_setup_unfinished'))
@@ -28,7 +28,7 @@ def create_ref_how_to_make_snakefile():
     snakefile_manual_path = os.path.join(
         path.SNAKE_DOC_DIR, path.HOW_TO_SNAKE_MAKE)
     display(HTML(button_html(snakefile_manual_path, message.get(
-        MESSAGE_SECTION_NAME, 'how_to_make_snakefile_ref_title'), target='_blank')))
+        MESSAGE_SECTION_NAME, 'how_to_make_snakefile_ref_title'), target='_blank', button_width='450px')))
 
 
 def sync_snakefile_description():

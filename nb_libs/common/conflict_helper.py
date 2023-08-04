@@ -369,6 +369,7 @@ def rename_variants():
         return
 
     # NEED operate cell for form
+    annex_conflict_resolve_rename_form(rf_data=rf_data, both_rename_list=both_annex_path)
 
 
 
@@ -533,6 +534,8 @@ KEY_IS_PREPARE = 'is_prepare'
 KEY_RESOLVING_GIT = 'resolving_git'
 KEY_ACTION = 'action'
 KEY_ANNEX_SELECTED_ACTION = 'annex_selected_action'
+KEY_LOCAL_NAME = 'local_name'
+KEY_REMOTE_NAME = 'remote_name'
 
 def record_rf_data_conflict_info(
         git_conflict_file_path_list, git_auto_conflict_filepaths, git_custom_conflict_filepaths, annex_conflict_file_path_list):
@@ -573,6 +576,16 @@ def record_rf_data_annex_selected_action(value=None, rf_data=None,):
     if rf_data == None:
         rf_data = get_rf_data()
     rf_data[KEY_ANNEX_SELECTED_ACTION] = value
+    common.create_json_file(RF_DATA_FILE_PATH, rf_data)
+
+def record_rf_data_annex_rename(value:dict, rf_data=None,):
+    if rf_data == None:
+        rf_data = get_rf_data()
+
+    for path, input in value.items():
+        rf_data[KEY_ANNEX_SELECTED_ACTION][path][KEY_LOCAL_NAME] = input[LOCAL]
+        rf_data[KEY_ANNEX_SELECTED_ACTION][path][KEY_REMOTE_NAME] = input[REMOTE]
+
     common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
 
@@ -841,25 +854,21 @@ class AnnexFileRenameForm:
                 # form err
                 self.confirm_button.button_type = 'danger'
                 self.confirm_button.name = message.get('conflict_helper', 'invaid_file_name')
-                annex_rename_form_whole_msg.object = err_html
+                annex_rename_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_html)
                 return
             else:
                 # validation OK
+                ## 入力情報を記録する
+                record_rf_data_annex_rename(value=input_data, rf_data=self.rf_data)
                 self.confirm_button.button_type = 'success'
                 self.confirm_button.name = message.get('conflict_helper', 'complete_rename')
                 return
-
-
         except Exception as e:
             self.confirm_button.button_type = 'danger'
             self.confirm_button.name = message.get('DEFAULT', 'unexpected')
             err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
             annex_rename_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
-
-        pass
-
-
-
+            return
 
     def validate(self, input_data:dict)->str:
         ERR_VARIANT_NEME = 'err_variant_name'
@@ -1004,6 +1013,12 @@ def annex_conflict_resolve_rename_form(rf_data:dict, both_rename_list:list):
     annex_rename_form_whole_msg.object = ''
     annex_rename_form_whole_msg.width = 900
     top_col = pn.Column()
+    for file_col_data in form.top_col_data:
+        head_data = file_col_data[0]
+        head = pn.Row(*head_data)
+        local_input = file_col_data[1]
+        remote_input = file_col_data[2]
+        file_col = pn.Column(head, local_input, remote_input)
+        top_col.append(file_col)
 
-
-    display(pn.Column(annex_rename_form_whole_msg))
+    display(pn.Column(top_col, form.confirm_button, annex_rename_form_whole_msg))

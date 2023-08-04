@@ -866,9 +866,9 @@ class AnnexFileRenameForm:
         ERR_EMPTY = 'err_empty'
         ERR_EXTENTION = 'err_extention'
         ERR_ALREADY = 'err_already'
-        ERR_END_SLASH = 'err_end_slash'
+        ERR_SLASH = 'err_slash'
         ERR_BACK_SLASH = 'err_back_slash'
-        ERR_UNIQUE = 'ERR_UNIQUE'
+        ERR_UNIQUE = 'err_unique'
         ERR_ONE_SIDE_SELECT = 'err_one_side_select'
 
         # prepare validation
@@ -883,12 +883,12 @@ class AnnexFileRenameForm:
         for key in self.rf_data[KEY_ANNEX_SELECTED_ACTION].keys():
             all_conflict_annex_path.append(key)
 
-        absolute_not_both_rename_list = list()
+        not_both_rename_list = list()
         for conflict_annex_path in all_conflict_annex_path:
             if conflict_annex_path not in both_rename_list:
-                absolute_not_both_rename_list.append(os.path.join(path.HOME_PATH, conflict_annex_path))
+                not_both_rename_list.append(conflict_annex_path)
 
-        absolute_input_path = list()
+        input_path = list()
         err_sumary = dict[str, dict[str,list[str]]]()
         for base_file_path, input in input_data.items():
             local_name = input[LOCAL]
@@ -901,9 +901,9 @@ class AnnexFileRenameForm:
 
             # スラッシュが含まれるとエラー
             if '/' in local_name:
-                err_sumary[base_file_path][LOCAL].append(ERR_END_SLASH)
+                err_sumary[base_file_path][LOCAL].append(ERR_SLASH)
             if '/' in remote_name:
-                err_sumary[base_file_path][REMOTE].append(ERR_END_SLASH)
+                err_sumary[base_file_path][REMOTE].append(ERR_SLASH)
 
             # バックスラッシュが含まれるとエラー
             if '\\' in local_name:
@@ -924,24 +924,74 @@ class AnnexFileRenameForm:
                 err_sumary[base_file_path][REMOTE].append(ERR_VARIANT_NEME)
 
 
-            absolute_base_dir = os.path.join(path.HOME_PATH, os.path.dirname(base_file_path))
-            absolute_local_path = os.path.join(absolute_base_dir, local_name)
-            absolute_input_path.append(absolute_local_path)
-            absolute_remote_path = os.path.join(absolute_base_dir, remote_name)
-            absolute_input_path.append(absolute_remote_path)
+            base_dir = os.path.dirname(base_file_path)
+
+            local_path = os.path.join(base_dir, local_name)
+            input_path.append(local_path)
+            remote_path = os.path.join(base_dir, remote_name)
+            input_path.append(remote_path)
             # 既存ファイルと同名だとエラー
-            if os.path.exists(absolute_local_path):
+            if os.path.exists(os.path.join(path.HOME_PATH, local_path)):
                 err_sumary[base_file_path][LOCAL].append(ERR_ALREADY)
 
-            if os.path.exists(absolute_remote_path):
+            if os.path.exists(os.path.join(path.HOME_PATH, remote_path)):
                 err_sumary[base_file_path][REMOTE].append(ERR_ALREADY)
 
             # どちらかを残す選択データと一致していたらエラー
-            if absolute_local_path in absolute_not_both_rename_list:
+            if local_path in not_both_rename_list:
                 err_sumary[base_file_path][LOCAL].append(ERR_ONE_SIDE_SELECT)
-            if absolute_remote_path in absolute_not_both_rename_list:
+            if remote_path in not_both_rename_list:
                 err_sumary[base_file_path][REMOTE].append(ERR_ONE_SIDE_SELECT)
 
+        # 入力内で重複しているパスを取得する。
+        duplicates_paths = list(set([x for x in input_path if input_path.count(x) > 1]))
+        ## 重複しているデータを検出して、エラータイプを追加する
+        for base_file_path, input in input_data.items():
+            base_dir = os.path.dirname(base_file_path)
+            local_path = os.path.join(base_dir, input[LOCAL])
+            remote_path = os.path.join(base_dir, input[REMOTE])
+
+            for duplicates_path in duplicates_paths:
+                if local_path == duplicates_path:
+                    err_sumary[base_file_path][LOCAL].append(ERR_UNIQUE)
+                if remote_path == duplicates_path:
+                    err_sumary[base_file_path][REMOTE].append(ERR_UNIQUE)
+
+
+
+        # err_sumaryとduplicates_pathsに値がある場合、エラー文を作成する。
+        if len(err_sumary.keys()) > 0:
+            new_line = '<br>'
+            indent_1 = '<span style="margin-left: 1rem;">'
+            indent_2 = '<span style="margin-left: 1rem;">'
+            err_msg = '<br>'
+            for err_base_path, err_info in err_sumary.items():
+                err_local_list = err_info[LOCAL]
+                err_remote_list = err_info[REMOTE]
+                if len(err_local_list)>0 or len(err_remote_list)>0:
+                    # 不正値があるパスを追加する
+                    err_msg = err_msg + new_line + err_base_path
+
+                    if len(err_local_list)>0:
+                        err_msg = err_msg + new_line + indent_1 + message.get('conflict_helper', 'local_variant')
+                        for err_type in err_local_list:
+                            err_msg = err_msg + new_line + indent_2 + message.get('conflict_helper', err_type)
+
+                    if len(err_remote_list)>0:
+                        err_msg = err_msg + new_line + indent_1 + message.get('conflict_helper', 'remote_variant')
+                        for err_type in err_remote_list:
+                            err_msg = err_msg + new_line + indent_2 + message.get('conflict_helper', err_type)
+
+
+
+
+
+
+
+
+
+        else:
+            return ''
 
 
 

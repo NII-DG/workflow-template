@@ -13,7 +13,7 @@ from ..utils.message import message, display as display_util
 from ..utils.gin import sync
 from ..utils.common import common
 from ..utils.except_class import DidNotFinishError, UnexpectedError
-
+from ..utils.params import ex_pkg_info
 
 # 辞書のキー
 PATH_TO_URL = 'path_to_url'
@@ -27,26 +27,6 @@ SELECTED_PATHS = 'selected_paths'
 LOCATION_CONSTRAINT = 'LocationConstraint'
 CONTENTS = 'Contents'
 KEY = 'Key'
-
-
-def get_experiment_title() -> str:
-    '''ex_pkg_info.jsonを開いて実験パッケージ名を取得する
-
-    Returns:
-        str: 実験パッケージ名
-    Exception:
-        DidNotFinishError: ファイルが存在しない場合
-        KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
-    '''
-    try:
-        with open(path.PKG_INFO_JSON_PATH, mode='r') as f:
-            return json.load(f)[EX_PKG_NAME]
-    except FileNotFoundError as e:
-        display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
-        raise DidNotFinishError() from e
-    except (KeyError, JSONDecodeError):
-        display_util.display_err(message.get('from_repo_s3', 'unexpected'))
-        raise
 
 
 def get_path_to_url_dict() -> dict:
@@ -260,7 +240,11 @@ def input_path():
         '''入力された格納先を検証しファイルに記録する
         '''
 
-        experiment_title = get_experiment_title()
+        experiment_title = ex_pkg_info.get_current_experiment_title()
+        if experiment_title is None:
+            display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+            return
+
         input_path_url_list = [(line.value_input, line.name) for line in column if 'TextInput' in str(type(line))]
 
         # 格納先パスの検証
@@ -356,7 +340,7 @@ def save_annex():
     try:
         git_module.git_annex_lock(path.HOME_PATH)
         sync.save_annex_and_register_metadata(
-            gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('from_repo_s3', 'data_from_s3_bucket').format(bucket_name))
+            gitannex_path=annex_file_paths, gitannex_files=[], message=message.get('commit_message', 'data_from_s3_bucket').format(bucket_name))
     except Exception as e:
         display_util.display_err(message.get('from_repo_s3', 'process_fail'))
         raise UnexpectedError() from e
@@ -373,7 +357,11 @@ def get_data():
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
         UnexpectedError: 想定外のエラーが発生した場合
     """
-    experiment_title = get_experiment_title()
+    experiment_title = ex_pkg_info.get_current_experiment_title()
+    if experiment_title is None:
+        display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+        raise DidNotFinishError()
+
     path_to_url_dict = get_path_to_url_dict()
     annex_file_paths = list(path_to_url_dict.keys())
     try:
@@ -399,7 +387,11 @@ def prepare_sync() -> dict:
 
     display(Javascript('IPython.notebook.save_checkpoint();'))
 
-    experiment_title = get_experiment_title()
+    experiment_title = ex_pkg_info.get_current_experiment_title()
+    if experiment_title is None:
+        display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+        raise DidNotFinishError()
+
     path_to_url_dict = get_path_to_url_dict()
     annex_file_paths = list(path_to_url_dict.keys())
     git_file_paths = []
@@ -409,14 +401,14 @@ def prepare_sync() -> dict:
             git_file_paths.append(annex_file_path)
 
     annex_file_paths = list(set(annex_file_paths) - set(git_file_paths))
-    git_file_paths.append(path.EXP_DIR_PATH + path.PREPARE_MULTI_FROM_S3)
+    git_file_paths.append(os.path.join(path.EXP_DIR_PATH, path.PREPARE_MULTI_FROM_S3))
 
     sync_repo_args = dict()
     sync_repo_args['git_path'] = git_file_paths
     sync_repo_args['gitannex_path'] = annex_file_paths
     sync_repo_args['gitannex_files'] = annex_file_paths
     sync_repo_args['get_paths'] = [path.create_experiments_with_subpath(experiment_title)]
-    sync_repo_args['message'] = message.get('from_repo_s3', 'prepare_data').format(experiment_title)
+    sync_repo_args['message'] = message.get('commit_message', 'prepare_data').format(experiment_title)
 
     common.delete_file(path.MULTI_S3_JSON_PATH)
     common.delete_file(path.ADDURLS_CSV_PATH)

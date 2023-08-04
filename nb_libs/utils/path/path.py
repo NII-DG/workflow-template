@@ -19,6 +19,7 @@ PREPARE_FROM_REPOSITORY = 'prepare_from_repository.ipynb'
 PREPARE_UNIT_FROM_S3 = 'prepare_unit_from_s3.ipynb'
 PREPARE_MULTI_FROM_S3 = 'prepare_multi_from_s3.ipynb'
 PREPARE_FROM_LOCAL = 'prepare_from_local.ipynb'
+SAVE = 'save.ipynb'
 
 DESCRIBE_EXPERIMENT = 'describe_experiment.ipynb'
 DESCRIBE_SNAKEFILE = 'describe_snakefile.ipynb'
@@ -54,6 +55,8 @@ TMP_CONFLICT_DIR = os.path.join(TMP_DIR, 'conflict')
 UNIT_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_unit_from_s3.json')
 MULTI_S3_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_multi_from_s3.json')
 FROM_REPO_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_from_repository.json')
+FROM_LOCAL_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'prepare_from_local.json')
+SAVE_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'save.json')
 
 ## File under /home/jovyan/.tmp/validation/
 REQUEST_ID_FILE_PATH = os.path.join(TMP_VALIDATION_DIR, 'request_id.txt')
@@ -71,7 +74,7 @@ def create_experiments_with_subpath(experiment_title, sub_path=''):
     Arg:
         experiment_title(str): 実験パッケージ名
 
-        sub_path(str): 実験パッケージ配下のパス
+        sub_path(str): 実験パッケージ配下のパス（オプション）
     Return:
         str: 実験パッケージ配下の絶対パス
     '''

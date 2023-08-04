@@ -46,7 +46,7 @@ def annex_to_git(annex_file_paths:list, experiment_title:str):
         # Unlock only the paths under the source folder.
         git_module.git_annex_unlock(git_file_paths)
         git_module.git_add(git_file_paths)
-        git_module.git_commmit(message.get('from_repo_s3', 'annex_to_git'))
+        git_module.git_commmit(message.get('commit_message', 'annex_to_git'))
         git_module.git_annex_remove_metadata(git_file_paths)
         git_module.git_annex_unannex(git_file_paths)
 

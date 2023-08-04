@@ -75,10 +75,6 @@ def analyze_conflict_status():
         md.display_info(msg)
 
 
-
-
-
-
 def get_annex_variatns():
     """2-1. annex競合バリアントファイルの入手
     """
@@ -448,15 +444,86 @@ def auto_resolve_task_notebooks()->bool:
 
 
 
-def adjust_annex_data():
+def adjust_annex_data()->tuple[list[str],list[str]]:
     """4-1. データの調整 - Annexコンテンツのバリアントファイルのデータ調整
     """
-    pass
+    ## get rf data
+    try:
+        rf_data = get_rf_data()
+    except Exception as e:
+        err_msg = message.get('DEFAULT', 'unexpected')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
 
-def prepare_sync():
+    # 競合Annexファイルパスリストを取得する
+    annex_conflict_paths = rf_data[KEY_CONFLICT_FILES][KEY_ANNEX]
+    if len(annex_conflict_paths)>0:
+        ## Annex選択アクション情報を取得
+        annex_selected_action = rf_data[KEY_ANNEX_SELECTED_ACTION]
+        ## Annex競合解消準備情報を取得
+        annex_prepare_info = rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO]
+        path_after_rename_list = list()
+        delete_file_path_list = list()
+        for conflict_annex_path, info in annex_selected_action.items():
+            # アクション種別を取得
+            action_type = info[KEY_ACTION]
+            if action_type == BOTH_REMAIN:
+                # ローカルバリアントリネーム
+                local_rename = info[KEY_LOCAL_NAME]
+                local_variant_filepath = annex_prepare_info[conflict_annex_path][KEY_LOCAL]
+                local_path_after_rename = rename_file(base_filepath=local_variant_filepath, future_name=local_rename)
+                path_after_rename_list.append(local_path_after_rename)
+                # リモートバリアントリネーム
+                remote_rename = info[KEY_REMOTE_NAME]
+                remote_variant_filepath = annex_prepare_info[conflict_annex_path][KEY_REMOTE]
+                remote_path_after_rename = rename_file(base_filepath=remote_variant_filepath, future_name=remote_rename)
+                path_after_rename_list.append(remote_path_after_rename)
+            elif action_type == LOCAL_REMAIN:
+                # ローカルバリアントリネーム
+                local_rename = os.path.basename(conflict_annex_path)
+                local_variant_filepath = annex_prepare_info[conflict_annex_path][KEY_LOCAL]
+                path_after_rename = rename_file(base_filepath=local_variant_filepath,future_name=local_rename)
+                path_after_rename_list.append(path_after_rename)
+                # リモートバリアント削除
+                remote_variant_filepath = annex_prepare_info[conflict_annex_path][KEY_REMOTE]
+                common.delete_file(file_path=os.path.join(path.HOME_PATH, remote_variant_filepath), raise_err=True)
+                delete_file_path_list.append(remote_variant_filepath)
+            elif action_type == REMOTE_REMAIN:
+                # リモートバリアントリネーム
+                remote_rename = os.path.basename(conflict_annex_path)
+                remote_variant_filepath = annex_prepare_info[conflict_annex_path][KEY_REMOTE]
+                path_after_rename = rename_file(base_filepath=remote_variant_filepath, future_name=remote_rename)
+                path_after_rename_list.append(path_after_rename)
+                # ローカルバリアント削除
+                local_variant_filepath = annex_prepare_info[conflict_annex_path][KEY_LOCAL]
+                common.delete_file(file_path=os.path.join(path.HOME_PATH, local_variant_filepath), raise_err=True)
+                delete_file_path_list.append(local_variant_filepath)
+            else:
+                err_msg = message.get('DEFAULT', 'unexpected')
+                md.display_err(err_msg)
+                raise DGTaskError(f'Set invalid action type in annex_selected_action. [File Path] : {conflict_annex_path}')
+        return path_after_rename_list, delete_file_path_list
+    else:
+        msg = message.get('conflict_helper', 'no_need_adjust_task_notebook')
+        md.display_info(msg)
+        return [], []
+
+def prepare_sync(path_after_rename_list:list[str], delete_file_path_list:list[str]):
     """4-2. 同期の準備
     """
-    pass
+    try:
+        rf_data = get_rf_data()
+    except Exception as e:
+        err_msg = message.get('DEFAULT', 'unexpected')
+        md.display_err(err_msg)
+        raise DGTaskError() from e
+    git_sync_paths = list()
+    git_confilict_paths = rf_data[KEY_CONFLICT_FILES][KEY_GIT][KEY_GIT_ALL]
+    for
+    git_sync_paths.extend(git_confilict_paths)
+    git_sync_paths.extend(delete_file_path_list)
+    git_sync_paths.append()
+
 
 
 RF_FORM_FILE = os.path.join(path.RF_FORM_DATA_DIR, 'conflict_helper.json')
@@ -577,9 +644,9 @@ def get_annex_rslv_info(conflicted_annex_paths):
                 variant_list = dict[str, str]()
                 abs_candidate_file_path = os.path.join(path.HOME_PATH, candidate_file_path)
                 if os.path.isfile(abs_candidate_file_path):
-                    variant_list[LOCAL] =  candidate_file_path
+                    variant_list[KEY_LOCAL] =  candidate_file_path
                 else:
-                    variant_list[REMOTE] =  candidate_file_path
+                    variant_list[KEY_REMOTE] =  candidate_file_path
                 annex_rslv_info[conflict_annex_path] = variant_list
     return annex_rslv_info
 
@@ -587,7 +654,7 @@ def dl_data_remote_variatns(annex_rslv_info:dict):
     to_datalad_get_paths = []
     for v in annex_rslv_info.values():
         to_datalad_get_paths.append(
-            os.path.join(path.HOME_PATH,v[REMOTE])
+            os.path.join(path.HOME_PATH,v[KEY_REMOTE])
             )
     if len(to_datalad_get_paths) > 0:
         api.get(path=to_datalad_get_paths)
@@ -619,6 +686,8 @@ KEY_ACTION = 'action'
 KEY_ANNEX_SELECTED_ACTION = 'annex_selected_action'
 KEY_LOCAL_NAME = 'local_name'
 KEY_REMOTE_NAME = 'remote_name'
+KEY_LOCAL = 'local'
+KEY_REMOTE = 'remote'
 
 def record_rf_data_conflict_info(
         git_conflict_file_path_list, git_auto_conflict_filepaths, git_custom_conflict_filepaths, annex_conflict_file_path_list):
@@ -666,8 +735,8 @@ def record_rf_data_annex_rename(value:dict, rf_data=None,):
         rf_data = get_rf_data()
 
     for path, input in value.items():
-        rf_data[KEY_ANNEX_SELECTED_ACTION][path][KEY_LOCAL_NAME] = input[LOCAL]
-        rf_data[KEY_ANNEX_SELECTED_ACTION][path][KEY_REMOTE_NAME] = input[REMOTE]
+        rf_data[KEY_ANNEX_SELECTED_ACTION][path][KEY_LOCAL_NAME] = input[KEY_LOCAL]
+        rf_data[KEY_ANNEX_SELECTED_ACTION][path][KEY_REMOTE_NAME] = input[KEY_REMOTE]
 
     common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
@@ -812,11 +881,11 @@ class AnnexFileActionForm:
             local_remote = annex_rslv_info[filepath]
             base_file = pn.widgets.StaticText(name=str(index), value=filepath)
 
-            local_path = local_remote[LOCAL]
+            local_path = local_remote[KEY_LOCAL]
             local_link_html = create_edit_link_for_local(local_path)
             local_link = pn.pane.HTML(local_link_html)
 
-            remote_path = local_remote[REMOTE]
+            remote_path = local_remote[KEY_REMOTE]
             remoto_link_html = create_edit_link_for_remote(remote_path)
             remoto_link = pn.pane.HTML(remoto_link_html)
             head_data = [base_file, local_link, remoto_link]
@@ -879,8 +948,6 @@ Annexリネーム選択フォーム
 """
 annex_rename_form_whole_msg = pn.pane.HTML()
 
-LOCAL = 'local'
-REMOTE = 'remote'
 class AnnexFileRenameForm:
     """3-3. Annexコンテンツの競合解消リネームフォームクラス
     """
@@ -900,10 +967,10 @@ class AnnexFileRenameForm:
         for index, both_rename_path in enumerate(both_rename_list):
             varitant_info = rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO][both_rename_path]
             # create head data
-            local_path = varitant_info[LOCAL]
+            local_path = varitant_info[KEY_LOCAL]
             local_link_html = create_edit_link_for_local(local_path)
             local_link = pn.pane.HTML(local_link_html)
-            remote_path = varitant_info[REMOTE]
+            remote_path = varitant_info[KEY_REMOTE]
             remoto_link_html = create_edit_link_for_remote(remote_path)
             remoto_link = pn.pane.HTML(remoto_link_html)
             base_file = pn.widgets.StaticText(name=str(index), value=both_rename_path)
@@ -930,7 +997,7 @@ class AnnexFileRenameForm:
                 # get input value of remote rename
                 remote_input = submited_top_col_data[index][2].value_input
                 # add form data to input_data
-                input_data[base_file_path] = {LOCAL: local_input, REMOTE : remote_input}
+                input_data[base_file_path] = {KEY_LOCAL: local_input, KEY_REMOTE : remote_input}
 
             err_html = self.validate(input_data)
             if len(err_html) > 0:
@@ -968,8 +1035,8 @@ class AnnexFileRenameForm:
         both_rename_list = self.both_rename_list
         for both_rename_path in both_rename_list:
             varitant_info = self.rf_data[KEY_ANNEX_CONFLICT_PREPARE_INFO][both_rename_path]
-            variant_names.append(os.path.basename(varitant_info[LOCAL]))
-            variant_names.append(os.path.basename(varitant_info[REMOTE]))
+            variant_names.append(os.path.basename(varitant_info[KEY_LOCAL]))
+            variant_names.append(os.path.basename(varitant_info[KEY_REMOTE]))
 
         all_conflict_annex_path = list[str]()
         for key in self.rf_data[KEY_ANNEX_SELECTED_ACTION].keys():
@@ -983,37 +1050,37 @@ class AnnexFileRenameForm:
         input_path = list()
         err_sumary = dict[str, dict[str,list[str]]]()
         for base_file_path, input in input_data.items():
-            local_name = input[LOCAL]
-            remote_name = input[REMOTE]
+            local_name = input[KEY_LOCAL]
+            remote_name = input[KEY_REMOTE]
             # 空文字だとエラー
             if len(local_name) <= 0:
-                err_sumary[base_file_path][LOCAL].append(ERR_EMPTY)
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_EMPTY)
             if len(remote_name) <= 0:
-                err_sumary[base_file_path][REMOTE].append(ERR_EMPTY)
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_EMPTY)
 
             # スラッシュが含まれるとエラー
             if '/' in local_name:
-                err_sumary[base_file_path][LOCAL].append(ERR_SLASH)
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_SLASH)
             if '/' in remote_name:
-                err_sumary[base_file_path][REMOTE].append(ERR_SLASH)
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_SLASH)
 
             # バックスラッシュが含まれるとエラー
             if '\\' in local_name:
-                err_sumary[base_file_path][LOCAL].append(ERR_BACK_SLASH)
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_BACK_SLASH)
             if '\\' in remote_name:
-                err_sumary[base_file_path][REMOTE].append(ERR_BACK_SLASH)
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_BACK_SLASH)
 
             # 拡張子が不一致だとエラー
             if get_extension_for_varinat(base_file_path) != get_extension_for_varinat(local_name):
-                err_sumary[base_file_path][LOCAL].append(ERR_EXTENTION)
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_EXTENTION)
             if get_extension_for_varinat(base_file_path) != get_extension_for_varinat(remote_name):
-                err_sumary[base_file_path][REMOTE].append(ERR_EXTENTION)
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_EXTENTION)
 
             # バリアント名だとエラー
             if '.variant-' in local_name:
-                err_sumary[base_file_path][LOCAL].append(ERR_VARIANT_NEME)
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_VARIANT_NEME)
             if '.variant-' in remote_name:
-                err_sumary[base_file_path][REMOTE].append(ERR_VARIANT_NEME)
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_VARIANT_NEME)
 
 
             base_dir = os.path.dirname(base_file_path)
@@ -1024,30 +1091,30 @@ class AnnexFileRenameForm:
             input_path.append(remote_path)
             # 既存ファイルと同名だとエラー
             if os.path.exists(os.path.join(path.HOME_PATH, local_path)):
-                err_sumary[base_file_path][LOCAL].append(ERR_ALREADY)
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_ALREADY)
 
             if os.path.exists(os.path.join(path.HOME_PATH, remote_path)):
-                err_sumary[base_file_path][REMOTE].append(ERR_ALREADY)
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_ALREADY)
 
             # どちらかを残す選択データと一致していたらエラー
             if local_path in not_both_rename_list:
-                err_sumary[base_file_path][LOCAL].append(ERR_ONE_SIDE_SELECT)
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_ONE_SIDE_SELECT)
             if remote_path in not_both_rename_list:
-                err_sumary[base_file_path][REMOTE].append(ERR_ONE_SIDE_SELECT)
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_ONE_SIDE_SELECT)
 
         # 入力内で重複しているパスを取得する。
         duplicates_paths = list(set([x for x in input_path if input_path.count(x) > 1]))
         ## 重複しているデータを検出して、エラータイプを追加する
         for base_file_path, input in input_data.items():
             base_dir = os.path.dirname(base_file_path)
-            local_path = os.path.join(base_dir, input[LOCAL])
-            remote_path = os.path.join(base_dir, input[REMOTE])
+            local_path = os.path.join(base_dir, input[KEY_LOCAL])
+            remote_path = os.path.join(base_dir, input[KEY_REMOTE])
 
             for duplicates_path in duplicates_paths:
                 if local_path == duplicates_path:
-                    err_sumary[base_file_path][LOCAL].append(ERR_UNIQUE)
+                    err_sumary[base_file_path][KEY_LOCAL].append(ERR_UNIQUE)
                 if remote_path == duplicates_path:
-                    err_sumary[base_file_path][REMOTE].append(ERR_UNIQUE)
+                    err_sumary[base_file_path][KEY_REMOTE].append(ERR_UNIQUE)
 
         # err_sumaryとduplicates_pathsに値がある場合、エラー文を作成する。
         if len(err_sumary.keys()) > 0:
@@ -1056,8 +1123,8 @@ class AnnexFileRenameForm:
             indent_2 = '<span style="margin-left: 1rem;">'
             err_msg = '<br>'
             for err_base_path, err_info in err_sumary.items():
-                err_local_list = err_info[LOCAL]
-                err_remote_list = err_info[REMOTE]
+                err_local_list = err_info[KEY_LOCAL]
+                err_remote_list = err_info[KEY_REMOTE]
                 if len(err_local_list)>0 or len(err_remote_list)>0:
                     # 不正値があるパスを追加する
                     err_msg = err_msg + new_line + err_base_path
@@ -1106,3 +1173,10 @@ def create_edit_link(path:str, title:str)->str:
 
 def not_exec_pre_cell_raise():
     raise_error.not_exec_pre_cell_raise()
+
+
+def rename_file(base_filepath, future_name)->str:
+    dirname = os.path.dirname(base_filepath)
+    future_name_filepath = os.path.join(dirname, future_name)
+    git.git_mv(base_filepath, future_name_filepath)
+    return future_name_filepath

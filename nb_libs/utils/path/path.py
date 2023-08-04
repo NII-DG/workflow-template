@@ -9,6 +9,7 @@ FLOW_DIR = "WORKFLOWS"
 NOTEBOOK_DIR = "notebooks"
 RESEARCH_DIR = "research"
 EXPERIMENT_DIR = "experiment"
+COMMON_DIR = 'common'
 SNAKE_DOC_DIR = 'docs'
 
 # notebook
@@ -19,6 +20,7 @@ PREPARE_FROM_REPOSITORY = 'prepare_from_repository.ipynb'
 PREPARE_UNIT_FROM_S3 = 'prepare_unit_from_s3.ipynb'
 PREPARE_MULTI_FROM_S3 = 'prepare_multi_from_s3.ipynb'
 PREPARE_FROM_LOCAL = 'prepare_from_local.ipynb'
+CONFLICT_HELPER = 'conflict_helper.ipynb'
 SAVE = 'save.ipynb'
 
 DESCRIBE_EXPERIMENT = 'describe_experiment.ipynb'
@@ -42,6 +44,7 @@ VALIDATION_RESULTS_DIR_PATH = os.path.join(HOME_PATH, 'validation_results')
 DATA_PATH = os.path.join(FROW_PATH, 'data')
 RES_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, RESEARCH_DIR)
 EXP_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, EXPERIMENT_DIR)
+COMMON_DIR_PATH = os.path.join(FROW_PATH, NOTEBOOK_DIR, COMMON_DIR)
 
 ## File and Directory under /home/jovyan/.tmp/
 TMP_DIR = os.path.join(HOME_PATH, '.tmp')

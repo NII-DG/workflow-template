@@ -517,17 +517,34 @@ def prepare_sync(path_after_rename_list:list[str], delete_file_path_list:list[st
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
         raise DGTaskError() from e
+
+    # 同期：git pathの作成
     git_sync_paths = list()
     git_confilict_paths = rf_data[KEY_CONFLICT_FILES][KEY_GIT][KEY_GIT_ALL]
-    for
-    git_sync_paths.extend(git_confilict_paths)
-    git_sync_paths.extend(delete_file_path_list)
-    git_sync_paths.append()
+    # 競合Gitファイルパスリストの追加
+    for git_path in git_confilict_paths:
+        git_sync_paths.append(os.path.join(path.HOME_PATH, git_path))
+    # 削除ファイルの追加
+    for git_path in delete_file_path_list:
+        git_sync_paths.append(os.path.join(path.HOME_PATH, git_path))
+    # 当該タスクNotebookの追加
+    git_sync_paths.append(os.path.join(path.COMMON_DIR_PATH, path.CONFLICT_HELPER))
 
+    # 同期：annex pathの作成
+    annex_sync_list = list()
+    # リネームリストの追加
+    for annex_path in path_after_rename_list:
+        annex_sync_list.append(os.path.join(path.HOME_PATH, annex_path))
+
+    commit_msg = message.get('conflict_helper', 'commit_message')
+
+    # gitからの出力結果のエンコードを有効化する
+    git.enable_encoding_git()
+
+    return git_sync_paths, annex_sync_list, commit_msg
 
 
 RF_FORM_FILE = os.path.join(path.RF_FORM_DATA_DIR, 'conflict_helper.json')
-
 
 def exist_rf_form_file()->bool:
     """Check for the existence of the conflict_helper.json file

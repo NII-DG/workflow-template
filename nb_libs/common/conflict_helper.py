@@ -981,36 +981,9 @@ class AnnexFileRenameForm:
                         err_msg = err_msg + new_line + indent_1 + message.get('conflict_helper', 'remote_variant')
                         for err_type in err_remote_list:
                             err_msg = err_msg + new_line + indent_2 + message.get('conflict_helper', err_type)
-
-
-
-
-
-
-
-
-
+            return err_msg
         else:
             return ''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        pass
 
 
 def create_edit_link_for_local(path:str)->str:

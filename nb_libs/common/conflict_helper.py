@@ -240,7 +240,7 @@ def resolving_git_content():
             record_rf_data_resolving_git(rf_data)
             # no need doing section
             msg = message.get('conflict_helper', 'no_need_exec_cell').format(message.get('conflict_helper', 'resolving_git_content'))
-            md.display_err(msg)
+            md.display_info(msg)
             return
 
 

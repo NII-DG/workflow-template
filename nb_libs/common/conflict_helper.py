@@ -549,6 +549,7 @@ def prepare_sync(path_after_rename_list:list[str], delete_file_path_list:list[st
 
     # ~/.tmp/rf_form_data/conflict_helper.jsonを削除する。
     common.delete_file(RF_FORM_FILE, raise_err=True)
+    md.display_info(message.get('conflict_helper','complete_prepare_sync'))
 
     return git_sync_paths, annex_sync_list, commit_msg
 

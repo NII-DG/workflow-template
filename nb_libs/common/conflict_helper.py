@@ -810,10 +810,10 @@ class GitFileResolveForm:
         self.confirm_button.on_click(self.confirm_resolve)
         self.confirm_button.width = 200
 
-        title = f'{index}：{self.file_path}'
+        title = f'{index} : {self.file_path}'
         link = f'../../../../edit/{self.file_path}'
         link_html = pd.create_link(url=link, title=title)
-        self.label = pn.pane.HTML(link_html)
+        self.label = pn.pane.HTML(link_html,width=700)
 
     def confirm_resolve(self, event):
         try:
@@ -836,6 +836,7 @@ class GitFileResolveForm:
         except Exception as e:
             err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
             git_conflict_rslv_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
+            git_conflict_rslv_form_whole_msg.height = 60
 
 
 def git_conflict_resolve_form(file_paths):
@@ -845,7 +846,7 @@ def git_conflict_resolve_form(file_paths):
         pair = GitFileResolveForm(index, file_path, file_paths)
         form_items.append(pn.Column(pair.label,pair.confirm_button))
     git_conflict_rslv_form_whole_msg.object = ''
-    git_conflict_rslv_form_whole_msg.width = 900
+    git_conflict_rslv_form_whole_msg.width =700
     if is_correction_complete(file_paths):
         msg=message.get('conflict_helper','already_all_correction_complete')
         git_conflict_rslv_form_whole_msg.object = md.creat_html_msg_info_p(msg=msg)
@@ -864,7 +865,6 @@ def is_correction_complete(target_paths, modified_files=None)->bool:
 """
 Annexアクション選択フォーム
 """
-annex_action_form_whole_msg = pn.pane.HTML()
 
 DEFUALT = 'default'
 LOCAL_REMAIN = 'local'
@@ -878,9 +878,8 @@ class AnnexFileActionForm:
         # set rf_data
         self.rf_data = rf_data
         # set confirm_button
-        self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'action_confirmed'), button_type='default')
+        self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'action_confirmed'), button_type='default', width=300)
         self.confirm_button.on_click(self.submit)
-        top_col = pn.Column()
         # get file list
         annex_rslv_info = get_annex_rslv_info_from_rf_data(self.rf_data)
         filepaths = common.sortFilePath(list(annex_rslv_info.keys()))
@@ -902,7 +901,7 @@ class AnnexFileActionForm:
         self.top_col_data = list()
         for index, filepath in enumerate(filepaths):
             local_remote = annex_rslv_info[filepath]
-            base_file = pn.widgets.StaticText(name=str(index), value=filepath)
+            base_file = pn.widgets.StaticText(name=str(index), value=filepath, width=700)
 
             local_path = local_remote[KEY_LOCAL]
             local_link_html = create_edit_link_for_local(local_path)
@@ -913,9 +912,14 @@ class AnnexFileActionForm:
             remoto_link = pn.pane.HTML(remoto_link_html)
             head_data = [base_file, local_link, remoto_link]
 
-            selector = pn.widgets.Select(options=self.options)
+            selector = pn.widgets.Select(options=self.options, width=200)
             file_col_data = [head_data, selector]
             self.top_col_data.append(file_col_data)
+
+        self.whole_msg = pn.pane.HTML()
+        self.whole_msg.object = ''
+        self.whole_msg.width = 700
+
 
     def submit(self, event):
         try:
@@ -946,14 +950,13 @@ class AnnexFileActionForm:
             self.confirm_button.button_type = 'danger'
             self.confirm_button.name = message.get('DEFAULT', 'unexpected')
             err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
-            annex_action_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
+            self.whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
+            self.whole_msg.height = 60
 
 
 def annex_conflict_resolve_action_form(rf_data:dict):
     pn.extension()
     form = AnnexFileActionForm(rf_data)
-    annex_action_form_whole_msg.object = ''
-    annex_action_form_whole_msg.width = 900
     top_col = pn.Column()
     for file_col_data in form.top_col_data:
         head_data = file_col_data[0]
@@ -963,7 +966,7 @@ def annex_conflict_resolve_action_form(rf_data:dict):
         top_col.append(file_col)
 
 
-    display(pn.Column(top_col, form.confirm_button ,annex_action_form_whole_msg))
+    display(pn.Column(top_col, form.confirm_button ,form.whole_msg))
 
 
 """

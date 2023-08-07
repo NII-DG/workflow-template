@@ -960,9 +960,8 @@ def annex_conflict_resolve_action_form(rf_data:dict):
     top_col = pn.Column()
     for file_col_data in form.top_col_data:
         head_data = file_col_data[0]
-        head = pn.Row(*head_data)
         selector = file_col_data[1]
-        file_col = pn.Column(head, selector)
+        file_col = pn.Column(*head_data, selector)
         top_col.append(file_col)
 
 
@@ -1202,10 +1201,9 @@ def annex_conflict_resolve_rename_form(rf_data:dict, both_rename_list:list):
     top_col = pn.Column()
     for file_col_data in form.top_col_data:
         head_data = file_col_data[0]
-        head = pn.Row(*head_data)
         local_input = file_col_data[1]
         remote_input = file_col_data[2]
-        file_col = pn.Column(head, local_input, remote_input)
+        file_col = pn.Column(*head_data, local_input, remote_input)
         top_col.append(file_col)
 
     display(pn.Column(top_col, form.confirm_button, form.whole_msg))

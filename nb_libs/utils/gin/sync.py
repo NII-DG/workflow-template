@@ -224,8 +224,12 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                     if '\\u3000' in path:
                         path = path.replace('\\u3000', '　')
                     if common.is_should_annex_content_path(path):
+                        if not path.startswith(p.HOME_PATH):
+                            path = os.path.join(p.HOME_PATH, path)
                         adjust_add_annex_paths.append(path)
                     else:
+                        if not path.startswith(p.HOME_PATH):
+                             path = os.path.join(p.HOME_PATH, path)
                         adjust_add_git_paths.append(path)
                 print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
                 print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
@@ -243,8 +247,12 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                         if '\\u3000' in path:
                             path = path.replace('\\u3000', '　')
                         if common.is_should_annex_content_path(path):
+                            if not path.startswith(p.HOME_PATH):
+                                path = os.path.join(p.HOME_PATH, path)
                             adjust_add_annex_paths.append(path)
                         else:
+                            if not path.startswith(p.HOME_PATH):
+                                path = os.path.join(p.HOME_PATH, path)
                             adjust_add_git_paths.append(path)
                     print('[INFO] git add. path : {}'.format(adjust_add_git_paths))
                     print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))

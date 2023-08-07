@@ -77,7 +77,7 @@ def get_annex_variatns():
     ## get rf data
     try:
         rf_data = get_rf_data()
-        need_key = [KEY_CONFLICT_FILES]
+        need_key = []
         no_need_key = [KEY_ANNEX_CONFLICT_PREPARE_INFO]
         check_key_rf_data(rf_data, need_key, no_need_key)
 
@@ -91,7 +91,7 @@ def get_annex_variatns():
         md.display_err(err_msg)
         raise DGTaskError() from e
 
-    except NotFoundKey as e:
+    except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
         raise DGTaskError() from e
@@ -129,7 +129,7 @@ def record_preparing_event_for_resolving_conflict():
     ## get rf data
     try:
         rf_data = get_rf_data()
-        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO]
+        need_key = [KEY_ANNEX_CONFLICT_PREPARE_INFO]
         no_need_key = [KEY_IS_PREPARE]
         check_key_rf_data(rf_data, need_key, no_need_key)
 
@@ -144,13 +144,8 @@ def record_preparing_event_for_resolving_conflict():
         raise DGTaskError() from e
 
     except NotFoundKey as e:
-        except_msg = traceback.format_exception_only(type(e), e)
-        if KEY_CONFLICT_FILES in except_msg:
-            err_msg = message.get('DEFAULT', 'unexpected')
-            md.display_err(err_msg)
-        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg:
-            err_msg = message.get('nb_exec', 'not_exec_pre_section')
-            md.display_err(err_msg)
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
         raise DGTaskError() from e
 
     except Exception as e:
@@ -206,7 +201,7 @@ def resolving_git_content():
     ## get rf data
     try:
         rf_data = get_rf_data()
-        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO, KEY_IS_PREPARE]
+        need_key = [KEY_IS_PREPARE]
         no_need_key = []
         check_key_rf_data(rf_data, need_key, no_need_key)
     except FileNotFoundError as e:
@@ -214,15 +209,9 @@ def resolving_git_content():
         md.display_err(err_msg)
         return
     except NotFoundKey as e:
-        except_msg = traceback.format_exception_only(type(e), e)
-        if KEY_CONFLICT_FILES in except_msg:
-            err_msg = message.get('DEFAULT', 'unexpected')
-            md.display_err(err_msg)
-            raise DGTaskError() from e
-        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg:
-            err_msg = message.get('nb_exec', 'not_exec_pre_section')
-            md.display_err(err_msg)
-            return
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        return
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
@@ -254,7 +243,7 @@ def select_action_for_resolving_annex():
     ## get rf data
     try:
         rf_data = get_rf_data()
-        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO, KEY_IS_PREPARE, KEY_RESOLVING_GIT]
+        need_key = [KEY_RESOLVING_GIT]
         no_need_key = []
         check_key_rf_data(rf_data, need_key, no_need_key)
 
@@ -264,15 +253,9 @@ def select_action_for_resolving_annex():
         return
 
     except NotFoundKey as e:
-        except_msg = traceback.format_exception_only(type(e), e)
-        if KEY_CONFLICT_FILES in except_msg:
-            err_msg = message.get('DEFAULT', 'unexpected')
-            md.display_err(err_msg)
-            raise DGTaskError() from e
-        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg or KEY_RESOLVING_GIT in except_msg:
-            err_msg = message.get('nb_exec', 'not_exec_pre_section')
-            md.display_err(err_msg)
-            return
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        return
 
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
@@ -310,7 +293,7 @@ def rename_variants():
     ## get rf data
     try:
         rf_data = get_rf_data()
-        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO, KEY_IS_PREPARE, KEY_RESOLVING_GIT, KEY_ANNEX_SELECTED_ACTION]
+        need_key = [KEY_ANNEX_SELECTED_ACTION]
         no_need_key = []
         check_key_rf_data(rf_data, need_key, no_need_key)
 
@@ -320,15 +303,9 @@ def rename_variants():
         return
 
     except NotFoundKey as e:
-        except_msg = traceback.format_exception_only(type(e), e)
-        if KEY_CONFLICT_FILES in except_msg:
-            err_msg = message.get('DEFAULT', 'unexpected')
-            md.display_err(err_msg)
-            raise DGTaskError() from e
-        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg or KEY_RESOLVING_GIT in except_msg or KEY_ANNEX_SELECTED_ACTION in except_msg:
-            err_msg = message.get('nb_exec', 'not_exec_pre_section')
-            md.display_err(err_msg)
-            return
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        return
 
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
@@ -370,7 +347,7 @@ def auto_resolve_task_notebooks()->bool:
     ## get rf data
     try:
         rf_data = get_rf_data()
-        need_key = [KEY_CONFLICT_FILES, KEY_ANNEX_CONFLICT_PREPARE_INFO, KEY_IS_PREPARE, KEY_RESOLVING_GIT, KEY_ANNEX_SELECTED_ACTION]
+        need_key = [KEY_RESOLVING_GIT, KEY_ANNEX_SELECTED_ACTION]
         no_need_key = []
         check_key_rf_data(rf_data, need_key, no_need_key)
 
@@ -380,13 +357,8 @@ def auto_resolve_task_notebooks()->bool:
         raise DGTaskError() from e
 
     except NotFoundKey as e:
-        except_msg = traceback.format_exception_only(type(e), e)
-        if KEY_CONFLICT_FILES in except_msg:
-            err_msg = message.get('DEFAULT', 'unexpected')
-            md.display_err(err_msg)
-        elif KEY_ANNEX_CONFLICT_PREPARE_INFO in except_msg or KEY_IS_PREPARE in except_msg or KEY_RESOLVING_GIT in except_msg or KEY_ANNEX_SELECTED_ACTION in except_msg:
-            err_msg = message.get('nb_exec', 'not_exec_pre_section')
-            md.display_err(err_msg)
+        err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
         raise DGTaskError() from e
 
     except Exception as e:
@@ -429,11 +401,6 @@ def auto_resolve_task_notebooks()->bool:
         msg = message.get('conflict_helper', 'no_need_adjust_task_notebook')
         md.display_info(msg)
         return True
-
-
-
-
-
 
 
 def adjust_annex_data()->tuple[list[str],list[str]]:

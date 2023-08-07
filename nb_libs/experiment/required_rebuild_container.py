@@ -121,6 +121,10 @@ def get_pkg_data():
     preparation_completed()
     experiment_title = ex_pkg_info.exec_get_ex_title()
     sync.datalad_get(p.create_experiments_with_subpath(experiment_title))
+    clear_output()
+    msg = msg_mod.get('git', 'success_get_data')
+    msg_display.display_info(msg)
+
 
 
 def syncs_config() -> tuple[list[str], str]:

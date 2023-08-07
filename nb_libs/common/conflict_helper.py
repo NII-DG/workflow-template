@@ -506,7 +506,7 @@ def adjust_annex_data()->tuple[list[str],list[str]]:
         # git annex lock
         git.git_annex_lock(path=path.HOME_PATH)
         # git commit
-        git.git_commmit(msg='Annexコンテンツの競合解消調整')
+        git.git_commmit(msg=message.get('conflict_helper', 'commit_adjust_annex'))
 
         return path_after_rename_list, delete_file_path_list
     else:

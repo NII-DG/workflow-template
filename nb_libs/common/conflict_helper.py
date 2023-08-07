@@ -355,7 +355,7 @@ def rename_variants():
             return
         else:
             # get annex path selected both
-            for key, val in annex_selectef_action.item():
+            for key, val in annex_selectef_action.items():
                 action_type = val['action']
                 if action_type == BOTH_REMAIN:
                     both_annex_path.append(key)
@@ -427,7 +427,7 @@ def auto_resolve_task_notebooks()->bool:
                     continue
 
     # conflict_helper.jsonから「競合自動回復Gitファイルパス」を取得する。
-    auto_resolve_paths = rf_data[KEY_CONFLICT_FILES][KEY_GIT_AUTO]
+    auto_resolve_paths = rf_data[KEY_CONFLICT_FILES][KEY_GIT][KEY_GIT_AUTO]
     if len(auto_resolve_paths)>0:
         save_task_notebooks_to_repo_from_tmp(auto_resolve_paths)
         del_tmp_task_notebooks()
@@ -503,6 +503,11 @@ def adjust_annex_data()->tuple[list[str],list[str]]:
                 err_msg = message.get('DEFAULT', 'unexpected')
                 md.display_err(err_msg)
                 raise DGTaskError(f'Set invalid action type in annex_selected_action. [File Path] : {conflict_annex_path}')
+        # git annex lock
+        git.git_annex_lock(path=path.HOME_PATH)
+        # git commit
+        git.git_commmit(msg='Annexコンテンツの競合解消調整')
+
         return path_after_rename_list, delete_file_path_list
     else:
         msg = message.get('conflict_helper', 'no_need_adjust_task_notebook')
@@ -834,9 +839,11 @@ class GitFileResolveForm:
                 record_rf_data_resolving_git()
 
         except Exception as e:
-            err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
+            err_msg = message.get('DEFAULT','err_format').format(traceback.format_exc())
             git_conflict_rslv_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
             git_conflict_rslv_form_whole_msg.height = 60
+            self.confirm_button.button_type = 'danger'
+            self.confirm_button.name = message.get('DEFAULT', 'unexpected')
 
 
 def git_conflict_resolve_form(file_paths):
@@ -901,7 +908,7 @@ class AnnexFileActionForm:
         self.top_col_data = list()
         for index, filepath in enumerate(filepaths):
             local_remote = annex_rslv_info[filepath]
-            base_file = pn.widgets.StaticText(name=str(index), value=filepath, width=700)
+            base_file = pn.widgets.StaticText(name=str(index), value=filepath)
 
             local_path = local_remote[KEY_LOCAL]
             local_link_html = create_edit_link_for_local(local_path)
@@ -928,9 +935,8 @@ class AnnexFileActionForm:
             annex_selected_action = dict()
 
             for index in range(self.file_col_num):
-
-                selected_key = top_col[index][0].value
-                selected_value = self.options[selected_key]
+                file_col = top_col[index]
+                selected_value = file_col[1].value
 
                 if selected_value == DEFUALT:
                     # DEFUALT値が選ばれたら選択エラー、再度入力
@@ -938,7 +944,7 @@ class AnnexFileActionForm:
                     self.confirm_button.name = message.get('conflict_helper', 'select_default_error')
                     return
 
-                base_file_path = top_col[index][0][0].value
+                base_file_path = file_col[0][0].value
                 annex_selected_action[base_file_path] = {'action' : selected_value}
 
             # update conflict_helper.json
@@ -946,12 +952,12 @@ class AnnexFileActionForm:
             self.confirm_button.button_type = 'success'
             self.confirm_button.name = message.get('conflict_helper', 'complete_action')
             return
-        except Exception as e:
-            self.confirm_button.button_type = 'danger'
-            self.confirm_button.name = message.get('DEFAULT', 'unexpected')
-            err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
+        except Exception:
+            err_msg = message.get('DEFAULT','err_format').format(traceback.format_exc())
             self.whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
             self.whole_msg.height = 60
+            self.confirm_button.button_type = 'danger'
+            self.confirm_button.name = message.get('DEFAULT', 'unexpected')
 
 
 def annex_conflict_resolve_action_form(rf_data:dict):
@@ -972,7 +978,6 @@ def annex_conflict_resolve_action_form(rf_data:dict):
 """
 Annexリネーム選択フォーム
 """
-annex_rename_form_whole_msg = pn.pane.HTML()
 
 class AnnexFileRenameForm:
     """3-3. Annexコンテンツの競合解消リネームフォームクラス
@@ -984,8 +989,9 @@ class AnnexFileRenameForm:
         both_rename_list = common.sortFilePath(both_rename_list)
         # set both_rename_list
         self.both_rename_list = both_rename_list
-        self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'rename_confirmed'), button_type='default')
-        self.confirm_button.on_click(self.submit)
+        # set button
+        self.confirm_button = pn.widgets.Button(name=message.get('conflict_helper', 'rename_confirmed'), button_type='default', width=300)
+        self.confirm_button.on_click(self.submit_file_name)
 
         self.file_col_num = len(both_rename_list)
 
@@ -1005,13 +1011,16 @@ class AnnexFileRenameForm:
             # create local input
             local_input = pn.widgets.TextInput(name=message.get('conflict_helper','local_variant'), placeholder=message.get('conflict_helper','enter_file_name'), width=700)
             # create remote input
-            remote_input = pn.widgets.TextInput(name=message.get('conflict_helper','local_variant'), placeholder=message.get('conflict_helper','enter_file_name'), width=700)
+            remote_input = pn.widgets.TextInput(name=message.get('conflict_helper','remote_variant'), placeholder=message.get('conflict_helper','enter_file_name'), width=700)
             file_col_data = [head_data, local_input, remote_input]
             self.top_col_data.append(file_col_data)
 
-    def submit(self, event):
-        try:
+            self.whole_msg = pn.pane.HTML()
+            self.whole_msg.object = ''
+            self.whole_msg.width = 700
 
+    def submit_file_name(self, event):
+        try:
             submited_top_col_data = self.top_col_data
 
             input_data = dict()
@@ -1030,21 +1039,28 @@ class AnnexFileRenameForm:
                 # form err
                 self.confirm_button.button_type = 'danger'
                 self.confirm_button.name = message.get('conflict_helper', 'invaid_file_name')
-                annex_rename_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_html)
+                head_err_msg = message.get('conflict_helper','err_head_rename')
+                vaild_msg = head_err_msg + err_html
+                self.whole_msg.object = md.creat_html_msg_err_p(msg=vaild_msg)
+                br_num = vaild_msg.count('<br>') -1
+                self.whole_msg.height = 15 * (br_num + 3)
                 return
             else:
                 # validation OK
                 ## 入力情報を記録する
                 record_rf_data_annex_rename(value=input_data, rf_data=self.rf_data)
+                self.whole_msg.object = ''
+                self.whole_msg.height = 5
                 self.confirm_button.button_type = 'success'
                 self.confirm_button.name = message.get('conflict_helper', 'complete_rename')
                 return
-        except Exception as e:
+        except Exception:
+            err_msg=message.get('DEFAULT','err_format').format(traceback.format_exc())
+            self.whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
+            self.whole_msg.height = 100
             self.confirm_button.button_type = 'danger'
             self.confirm_button.name = message.get('DEFAULT', 'unexpected')
-            err_msg=message.get('DEFAULT','unexpected_errors_format').format(str(e))
-            annex_rename_form_whole_msg.object = md.creat_html_msg_err_p(msg=err_msg)
-            return
+
 
     def validate(self, input_data:dict)->str:
         ERR_VARIANT_NEME = 'err_variant_name'
@@ -1076,57 +1092,63 @@ class AnnexFileRenameForm:
         input_path = list()
         err_sumary = dict[str, dict[str,list[str]]]()
         for base_file_path, input in input_data.items():
+            if err_sumary.get(base_file_path) is None:
+                err_sumary[base_file_path] = {KEY_LOCAL:[], KEY_REMOTE:[]}
             local_name = input[KEY_LOCAL]
             remote_name = input[KEY_REMOTE]
-            # 空文字だとエラー
-            if len(local_name) <= 0:
-                err_sumary[base_file_path][KEY_LOCAL].append(ERR_EMPTY)
-            if len(remote_name) <= 0:
-                err_sumary[base_file_path][KEY_REMOTE].append(ERR_EMPTY)
-
-            # スラッシュが含まれるとエラー
-            if '/' in local_name:
-                err_sumary[base_file_path][KEY_LOCAL].append(ERR_SLASH)
-            if '/' in remote_name:
-                err_sumary[base_file_path][KEY_REMOTE].append(ERR_SLASH)
-
-            # バックスラッシュが含まれるとエラー
-            if '\\' in local_name:
-                err_sumary[base_file_path][KEY_LOCAL].append(ERR_BACK_SLASH)
-            if '\\' in remote_name:
-                err_sumary[base_file_path][KEY_REMOTE].append(ERR_BACK_SLASH)
-
-            # 拡張子が不一致だとエラー
-            if get_extension_for_varinat(base_file_path) != get_extension_for_varinat(local_name):
-                err_sumary[base_file_path][KEY_LOCAL].append(ERR_EXTENTION)
-            if get_extension_for_varinat(base_file_path) != get_extension_for_varinat(remote_name):
-                err_sumary[base_file_path][KEY_REMOTE].append(ERR_EXTENTION)
-
-            # バリアント名だとエラー
-            if '.variant-' in local_name:
-                err_sumary[base_file_path][KEY_LOCAL].append(ERR_VARIANT_NEME)
-            if '.variant-' in remote_name:
-                err_sumary[base_file_path][KEY_REMOTE].append(ERR_VARIANT_NEME)
-
 
             base_dir = os.path.dirname(base_file_path)
-
             local_path = os.path.join(base_dir, local_name)
             input_path.append(local_path)
             remote_path = os.path.join(base_dir, remote_name)
             input_path.append(remote_path)
-            # 既存ファイルと同名だとエラー
-            if os.path.exists(os.path.join(path.HOME_PATH, local_path)):
+
+            # Localバリデーション
+            if len(local_name) <= 0:
+                # 空文字だとエラー
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_EMPTY)
+            elif '/' in local_name:
+                # スラッシュが含まれるとエラー
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_SLASH)
+            elif '\\' in local_name:
+                 # バックスラッシュが含まれるとエラー
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_BACK_SLASH)
+            elif get_extension_for_varinat(base_file_path) != get_extension_for_varinat(local_name):
+                # 拡張子が不一致だとエラー
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_EXTENTION)
+            elif '.variant-' in local_name:
+                # バリアント名だとエラー
+                err_sumary[base_file_path][KEY_LOCAL].append(ERR_VARIANT_NEME)
+            elif os.path.exists(os.path.join(path.HOME_PATH, local_path)):
+                 # 既存ファイルと同名だとエラー
                 err_sumary[base_file_path][KEY_LOCAL].append(ERR_ALREADY)
-
-            if os.path.exists(os.path.join(path.HOME_PATH, remote_path)):
-                err_sumary[base_file_path][KEY_REMOTE].append(ERR_ALREADY)
-
-            # どちらかを残す選択データと一致していたらエラー
-            if local_path in not_both_rename_list:
+            elif local_path in not_both_rename_list:
+                # どちらかを残す選択データと一致していたらエラー
                 err_sumary[base_file_path][KEY_LOCAL].append(ERR_ONE_SIDE_SELECT)
-            if remote_path in not_both_rename_list:
+
+            # Remoteバリデーション
+            if len(remote_name) <= 0:
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_EMPTY)
+            elif '/' in remote_name:
+                # スラッシュが含まれるとエラー
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_SLASH)
+            elif '\\' in remote_name:
+                # バックスラッシュが含まれるとエラー
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_BACK_SLASH)
+            elif get_extension_for_varinat(base_file_path) != get_extension_for_varinat(remote_name):
+                # 拡張子が不一致だとエラー
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_EXTENTION)
+            elif '.variant-' in remote_name:
+                # バリアント名だとエラー
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_VARIANT_NEME)
+            elif os.path.exists(os.path.join(path.HOME_PATH, remote_path)):
+                 # 既存ファイルと同名だとエラー
+                err_sumary[base_file_path][KEY_REMOTE].append(ERR_ALREADY)
+            elif remote_path in not_both_rename_list:
+                # どちらかを残す選択データと一致していたらエラー
                 err_sumary[base_file_path][KEY_REMOTE].append(ERR_ONE_SIDE_SELECT)
+
+
 
         # 入力内で重複しているパスを取得する。
         duplicates_paths = list(set([x for x in input_path if input_path.count(x) > 1]))
@@ -1138,41 +1160,51 @@ class AnnexFileRenameForm:
 
             for duplicates_path in duplicates_paths:
                 if local_path == duplicates_path:
-                    err_sumary[base_file_path][KEY_LOCAL].append(ERR_UNIQUE)
+                    if not self.has_err_local(err_sumary, base_file_path):
+                        err_sumary[base_file_path][KEY_LOCAL].append(ERR_UNIQUE)
                 if remote_path == duplicates_path:
-                    err_sumary[base_file_path][KEY_REMOTE].append(ERR_UNIQUE)
+                    if not self.has_err_remote(err_sumary, base_file_path):
+                        err_sumary[base_file_path][KEY_REMOTE].append(ERR_UNIQUE)
 
         # err_sumaryとduplicates_pathsに値がある場合、エラー文を作成する。
-        if len(err_sumary.keys()) > 0:
-            new_line = '<br>'
-            indent_1 = '<span style="margin-left: 1rem;">'
-            indent_2 = '<span style="margin-left: 1rem;">'
-            err_msg = '<br>'
-            for err_base_path, err_info in err_sumary.items():
-                err_local_list = err_info[KEY_LOCAL]
-                err_remote_list = err_info[KEY_REMOTE]
-                if len(err_local_list)>0 or len(err_remote_list)>0:
-                    # 不正値があるパスを追加する
-                    err_msg = err_msg + new_line + err_base_path
+        new_line = '<br>'
+        indent_2 = '<span style="margin-left: 2rem;">'
+        indent_4 = '<span style="margin-left: 4rem;">'
+        err_msg = ''
+        for err_base_path, err_info in err_sumary.items():
+            err_local_list = err_info[KEY_LOCAL]
+            err_remote_list = err_info[KEY_REMOTE]
+            if len(err_local_list)>0 or len(err_remote_list)>0:
+                # 不正値があるパスを追加する
+                err_msg = err_msg + new_line + err_base_path
 
-                    if len(err_local_list)>0:
-                        err_msg = err_msg + new_line + indent_1 + message.get('conflict_helper', 'local_variant')
-                        for err_type in err_local_list:
-                            err_msg = err_msg + new_line + indent_2 + message.get('conflict_helper', err_type)
+                if len(err_local_list)>0:
+                    err_msg = err_msg + new_line + indent_2 + message.get('conflict_helper', 'local_variant')
+                    for err_type in err_local_list:
+                        err_msg = err_msg + new_line + indent_4 + message.get('conflict_helper', err_type)
 
-                    if len(err_remote_list)>0:
-                        err_msg = err_msg + new_line + indent_1 + message.get('conflict_helper', 'remote_variant')
-                        for err_type in err_remote_list:
-                            err_msg = err_msg + new_line + indent_2 + message.get('conflict_helper', err_type)
-            return err_msg
+                if len(err_remote_list)>0:
+                    err_msg = err_msg + new_line + indent_2 + message.get('conflict_helper', 'remote_variant')
+                    for err_type in err_remote_list:
+                        err_msg = err_msg + new_line + indent_4 + message.get('conflict_helper', err_type)
+        if len(err_msg) > 0:
+            return new_line + err_msg
         else:
             return ''
+
+    def has_err_local(self, err_sumary:dict[str, dict[str,list[str]]], target_path):
+        local_errs = err_sumary[target_path][KEY_LOCAL]
+        return len(local_errs) > 0
+
+    def has_err_remote(self, err_sumary:dict[str, dict[str,list[str]]], target_path):
+        local_errs = err_sumary[target_path][KEY_REMOTE]
+        return len(local_errs) > 0
+
+
 
 def annex_conflict_resolve_rename_form(rf_data:dict, both_rename_list:list):
     pn.extension()
     form = AnnexFileRenameForm(rf_data, both_rename_list)
-    annex_rename_form_whole_msg.object = ''
-    annex_rename_form_whole_msg.width = 900
     top_col = pn.Column()
     for file_col_data in form.top_col_data:
         head_data = file_col_data[0]
@@ -1182,7 +1214,7 @@ def annex_conflict_resolve_rename_form(rf_data:dict, both_rename_list:list):
         file_col = pn.Column(head, local_input, remote_input)
         top_col.append(file_col)
 
-    display(pn.Column(top_col, form.confirm_button, annex_rename_form_whole_msg))
+    display(pn.Column(top_col, form.confirm_button, form.whole_msg))
 
 
 

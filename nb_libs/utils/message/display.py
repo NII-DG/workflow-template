@@ -38,10 +38,10 @@ def creat_html_msg(msg='', fore=None, back=None, tag='h1'):
         return "<" + tag + " style='" + style + "'>" + msg + "</" + tag + ">"
 
 def creat_html_msg_info_p(msg=''):
-    creat_html_msg(msg=msg, back='#9eff9e', tag='p')
+    return creat_html_msg(msg=msg, back='#9eff9e', tag='p')
 
 def creat_html_msg_err_p(msg=''):
-    creat_html_msg(msg=msg, back='#ffa8a8', tag='p')
+    return creat_html_msg(msg=msg, back='#ffa8a8', tag='p')
 
 
 def display_html_msg(msg='', fore=None, back=None, tag='h1'):

@@ -244,7 +244,7 @@ def select_action_for_resolving_annex():
     try:
         rf_data = get_rf_data()
         need_key = [KEY_RESOLVING_GIT]
-        no_need_key = []
+        no_need_key = [KEY_FIXATION]
         check_key_rf_data(rf_data, need_key, no_need_key)
 
     except FileNotFoundError as e:
@@ -254,6 +254,11 @@ def select_action_for_resolving_annex():
 
     except NotFoundKey as e:
         err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        return
+
+    except FoundUnnecessarykey as e:
+        err_msg = message.get('conflict_helper', 'input_fixation')
         md.display_err(err_msg)
         return
 
@@ -294,7 +299,7 @@ def rename_variants():
     try:
         rf_data = get_rf_data()
         need_key = [KEY_ANNEX_SELECTED_ACTION]
-        no_need_key = []
+        no_need_key = [KEY_FIXATION]
         check_key_rf_data(rf_data, need_key, no_need_key)
 
     except FileNotFoundError as e:
@@ -304,6 +309,11 @@ def rename_variants():
 
     except NotFoundKey as e:
         err_msg = message.get('nb_exec', 'not_exec_pre_section')
+        md.display_err(err_msg)
+        return
+
+    except FoundUnnecessarykey as e:
+        err_msg = message.get('conflict_helper', 'input_fixation')
         md.display_err(err_msg)
         return
 
@@ -394,10 +404,14 @@ def auto_resolve_task_notebooks()->bool:
     if len(auto_resolve_paths)>0:
         save_task_notebooks_to_repo_from_tmp(auto_resolve_paths)
         del_tmp_task_notebooks()
+        # これまでの入力を固定するためのフラグを付与する。
+        record_rf_data_fixation(rf_data)
         msg = message.get('conflict_helper', 'complete_adjust_task_notebook')
         md.display_info(msg)
         return True
     else:
+        # これまでの入力を固定するためのフラグを付与する。
+        record_rf_data_fixation(rf_data)
         msg = message.get('conflict_helper', 'no_need_adjust_task_notebook')
         md.display_info(msg)
         return True
@@ -676,6 +690,7 @@ KEY_LOCAL_NAME = 'local_name'
 KEY_REMOTE_NAME = 'remote_name'
 KEY_LOCAL = 'local'
 KEY_REMOTE = 'remote'
+KEY_FIXATION = 'fixation'
 
 def record_rf_data_conflict_info(
         git_conflict_file_path_list, git_auto_conflict_filepaths, git_custom_conflict_filepaths, annex_conflict_file_path_list):
@@ -726,6 +741,12 @@ def record_rf_data_annex_rename(value:dict, rf_data=None,):
         rf_data[KEY_ANNEX_SELECTED_ACTION][path][KEY_LOCAL_NAME] = input[KEY_LOCAL]
         rf_data[KEY_ANNEX_SELECTED_ACTION][path][KEY_REMOTE_NAME] = input[KEY_REMOTE]
 
+    common.create_json_file(RF_DATA_FILE_PATH, rf_data)
+
+def record_rf_data_fixation(rf_data=None,):
+    if rf_data == None:
+        rf_data = get_rf_data()
+    rf_data[KEY_FIXATION] = True
     common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
 

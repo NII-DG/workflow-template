@@ -8,7 +8,7 @@ from ..utils.message import message, display as md
 from ..utils.git import git_module as git
 from ..utils.common import common, raise_error
 from ..utils.except_class import DGTaskError, NotFoundKey, FoundUnnecessarykey
-from IPython.display import HTML, display
+from IPython.display import HTML, display, clear_output
 from datalad import api
 import panel as pn
 
@@ -59,11 +59,6 @@ def analyze_conflict_status():
             git_custom_conflict_filepaths,
             annex_conflict_file_path_list
             )
-        md.display_debug(f'[DEBUG] git_conflict_file_path_list : {git_conflict_file_path_list}')
-        md.display_debug(f'[DEBUG] git_auto_conflict_filepaths : {git_auto_conflict_filepaths}')
-        md.display_debug(f'[DEBUG] git_custom_conflict_filepaths : {git_custom_conflict_filepaths}')
-        md.display_debug(f'[DEBUG] annex_conflict_file_path_list : {annex_conflict_file_path_list}')
-
     except Exception as e:
         err_msg = message.get('DEFAULT', 'unexpected')
         md.display_err(err_msg)
@@ -104,15 +99,13 @@ def get_annex_variatns():
     # Get conflicted annex paths
     try:
         conflicted_annex_paths = get_conflicted_annex_paths_from_rf_data(rf_data)
-        md.display_debug(f'[DEBUG] conflicted_annex_paths : {conflicted_annex_paths}')
-        md.display_debug(f'[DEBUG] len(conflicted_annex_paths) : {len(conflicted_annex_paths)}')
         if len(conflicted_annex_paths) > 0:
             annex_rslv_info = get_annex_rslv_info(conflicted_annex_paths)
-            md.display_debug(f'[DEBUG] annex_rslv_info \n : {json.dumps(annex_rslv_info, indent=4)}')
             dl_data_remote_variatns(annex_rslv_info)
             record_rf_data_annex_rslv_info(rf_data, annex_rslv_info)
             ## Prompts operation of the next section
             msg = message.get('conflict_helper', 'finish_get_annex_variatns_done')
+            clear_output()
             md.display_info(msg)
             return
 
@@ -120,6 +113,7 @@ def get_annex_variatns():
             record_rf_data_annex_rslv_info(rf_data)
             ## Prompts operation of the next section
             msg = message.get('conflict_helper', 'finish_get_annex_variatns_no_done')
+            clear_output()
             md.display_info(msg)
             return
 
@@ -172,7 +166,6 @@ def record_preparing_event_for_resolving_conflict():
         for git_path in git_conflict_filepaths:
             if not git_path.startswith(path.HOME_PATH):
                 git_path = os.path.join(path.HOME_PATH, git_path)
-            md.display_debug(f'[DEBUG] git add. git_path : {git_path}')
             git.git_add(git_path)
 
         # set commit msg
@@ -187,8 +180,6 @@ def record_preparing_event_for_resolving_conflict():
             err_msg = message.get('DEFAULT', 'unexpected')
             md.display_err(err_msg)
             raise DGTaskError('Unexpected error: there is an abnormality in the file path list of the conflicting Git or Annex.')
-
-        md.display_debug(f'[DEBUG] commit_msg  : {commit_msg}')
         git.git_annex_lock(path.HOME_PATH)
         git.git_commmit(commit_msg)
         git.git_annex_unlock(path.HOME_PATH)
@@ -507,6 +498,7 @@ def adjust_annex_data()->tuple[list[str],list[str]]:
         git.git_annex_lock(path=path.HOME_PATH)
         # git commit
         git.git_commmit(msg=message.get('conflict_helper', 'commit_adjust_annex'))
+        md.creat_html_msg_info_p(message.get('conflict_helper','complete_adjust_annex'))
 
         return path_after_rename_list, delete_file_path_list
     else:
@@ -836,6 +828,7 @@ class GitFileResolveForm:
             if is_correction_complete(self.all_paths, modified_files):
                 msg=message.get('conflict_helper','all_correction_complete')
                 git_conflict_rslv_form_whole_msg.object = md.creat_html_msg_info_p(msg=msg)
+                git_conflict_rslv_form_whole_msg.height = 40
                 # update conflict_helper.json
                 record_rf_data_resolving_git()
 

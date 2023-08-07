@@ -749,14 +749,16 @@ def get_conflicted_git_annex_paths_from_rf_data(rf_data: dict):
     return get_conflicted_git_paths_from_rf_data(rf_data), get_conflicted_annex_paths_from_rf_data(rf_data)
 
 
-def check_key_rf_data(rf_data: dict, need_key, no_need_key :list):
+def check_key_rf_data(rf_data: dict, need_keys, no_need_keys :list):
     keys = rf_data.keys()
 
-    for key in keys:
-        if key not in need_key:
-            raise NotFoundKey('Required key is included in the data. KEY[{}]'.format(key))
-        if key in no_need_key:
-            raise FoundUnnecessarykey('Unnecessary key is included in the data. KEY[{}]'.format(key))
+    for need_key in need_keys:
+        if need_key not in keys:
+            raise NotFoundKey('Required key is included in the data. KEY[{}]'.format(need_key))
+
+    for no_need_key in no_need_keys:
+        if no_need_key in keys:
+            raise FoundUnnecessarykey('Unnecessary key is included in the data. KEY[{}]'.format(no_need_key))
 
 
 """

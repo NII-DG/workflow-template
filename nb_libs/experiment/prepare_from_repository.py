@@ -514,7 +514,7 @@ def prepare_addurls_data():
 
 
 def add_url():
-    """リポジトリに取得データのS3オブジェクトURLと格納先パスを登録する
+    """リポジトリに取得データの情報を登録する
 
     Exception:
         DidNotFinishError: .tmp内のファイルが存在しない場合
@@ -580,7 +580,7 @@ def get_data():
             from_repo_dict = json.load(f)
         path_to_url_dict:dict = from_repo_dict[PATH_TO_URL]
     except FileNotFoundError as e:
-        display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
     except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))

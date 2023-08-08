@@ -8,6 +8,7 @@ from pathlib import Path
 from natsort import natsorted
 
 from ..except_class import ExecCmdError
+from ..message import message, display as display_util
 
 
 def get_AND_elements(list_a, list_b :list)->list:
@@ -168,3 +169,10 @@ def create_json_file(file_path:str, params_dict:dict):
 def read_json_file(file_path:str):
     with open(file_path) as f:
         return json.load(f)
+
+
+def not_exec_pre_cell():
+    '''前のセルが実行されていない可能性があるというエラーメッセージを表示する
+    '''
+    msg = message.get('nb_exec', 'not_exec_pre_cell')
+    display_util.display_err(msg)

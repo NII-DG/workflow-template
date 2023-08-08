@@ -630,7 +630,7 @@ def prepare_sync() -> dict:
             from_repo_dict = json.load(f)
         path_to_url_dict:dict = from_repo_dict[PATH_TO_URL]
     except FileNotFoundError as e:
-        display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+        display_util.display_err(message.get('from_repo_s3', 'did_not_finish'))
         raise DidNotFinishError() from e
     except (KeyError, JSONDecodeError):
         display_util.display_err(message.get('from_repo_s3', 'unexpected'))

@@ -743,7 +743,7 @@ def record_rf_data_annex_rename(value:dict, rf_data=None,):
 
     common.create_json_file(RF_DATA_FILE_PATH, rf_data)
 
-def record_rf_data_fixation(rf_data=None,):
+def record_rf_data_fixation(rf_data=None):
     if rf_data == None:
         rf_data = get_rf_data()
     rf_data[KEY_FIXATION] = True
@@ -768,6 +768,10 @@ def get_annex_rslv_info_from_rf_data(rf_data: dict)->dict:
 
 def get_conflicted_git_annex_paths_from_rf_data(rf_data: dict):
     return get_conflicted_git_paths_from_rf_data(rf_data), get_conflicted_annex_paths_from_rf_data(rf_data)
+
+def get_fixation_from_rf_data():
+    rf_data = get_rf_data()
+    return rf_data.get(KEY_FIXATION)
 
 
 def check_key_rf_data(rf_data: dict, need_keys, no_need_keys :list):
@@ -914,6 +918,12 @@ class AnnexFileActionForm:
 
     def submit(self, event):
         try:
+            if get_fixation_from_rf_data() is not None:
+                # 変更付加
+                self.confirm_button.button_type = 'warning'
+                self.confirm_button.name = message.get('conflict_helper', 'input_fixation')
+                return
+
             top_col = self.top_col_data
 
             annex_selected_action = dict()
@@ -1004,6 +1014,12 @@ class AnnexFileRenameForm:
 
     def submit_file_name(self, event):
         try:
+            if get_fixation_from_rf_data() is not None:
+                # 変更付加
+                self.confirm_button.button_type = 'warning'
+                self.confirm_button.name = message.get('conflict_helper', 'input_fixation')
+                return
+
             submited_top_col_data = self.top_col_data
 
             input_data = dict()

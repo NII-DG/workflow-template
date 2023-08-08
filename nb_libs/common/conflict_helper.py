@@ -1,4 +1,3 @@
-import json
 import os
 import shutil
 import traceback
@@ -281,7 +280,7 @@ def select_action_for_resolving_annex():
             md.display_err(msg)
             return
         elif len(conflicted_annex_path) <= 0 and prepare_info != None:
-            msg = message.get('DEFAULT', 'unexpected_errors_format').format('競合の解析情報が異常です')
+            msg = message.get('DEFAULT', 'unexpected_errors_format').format(message.get('conflict_helper','invaild_analysis_info'))
             md.display_err(msg)
             return
         else:
@@ -521,13 +520,11 @@ def prepare_sync(path_after_rename_list:list[str], delete_file_path_list:list[st
     git.enable_encoding_git()
 
     # ~/.tmp/rf_form_data/conflict_helper.jsonを削除する。
-    common.delete_file(RF_FORM_FILE, raise_err=True)
+    common.delete_file(RF_DATA_FILE_PATH, raise_err=True)
     md.display_info(message.get('conflict_helper','complete_prepare_sync'))
 
     return git_sync_paths, annex_sync_list, commit_msg
 
-
-RF_FORM_FILE = os.path.join(path.RF_FORM_DATA_DIR, 'conflict_helper.json')
 
 def exist_rf_form_file()->bool:
     """Check for the existence of the conflict_helper.json file
@@ -535,7 +532,7 @@ def exist_rf_form_file()->bool:
     Returns:
         [bool]: [True : exist, False : no exist]
     """
-    return os.path.exists(RF_FORM_FILE)
+    return os.path.exists(RF_DATA_FILE_PATH)
 
 
 def trans_top():
@@ -620,7 +617,7 @@ def copy_local_content_to_tmp(target_path:str):
     to_copy_file_path = os.path.join(path.TMP_CONFLICT_DIR, target_path)
     target_dir_path = os.path.dirname(to_copy_file_path)
     os.makedirs(target_dir_path, exist_ok=True)
-    os.system('git cat-file -p {} > {}'.format(hash, to_copy_file_path))
+    common.exec_subprocess('git cat-file -p {} > {}'.format(hash, to_copy_file_path))
 
 def get_annex_rslv_info(conflicted_annex_paths):
     annex_rslv_info = dict[str, dict]()

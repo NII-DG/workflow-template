@@ -1,8 +1,8 @@
 '''prepare_unit_from_s3.ipynbから呼び出されるモジュール'''
 import os, json, traceback
 from urllib  import parse
-from ipywidgets import Text, Button, Layout
 from IPython.display import display, clear_output, Javascript
+import panel as pn
 from json.decoder import JSONDecodeError
 from datalad import api
 from datalad.support.exceptions import IncompleteResultsError
@@ -29,34 +29,37 @@ def input_url_path():
         KeyError, JSONDecodeError: jsonファイルの形式が想定通りでない場合
     """
 
-    def on_click_callback(clicked_button: Button) -> None:
+
+    def on_click_callback(event) -> None:
+
+
+        done_button.name = message.get('from_repo_s3', 'processing')
+        done_button.button_type = 'primary'
         common.delete_file(path.UNIT_S3_JSON_PATH)
 
-        input_url = str(text_url.value)
-        input_path = str(text_path.value)
+        input_url = str(columns[0].value_input)
+        input_path = str(columns[1].value_input)
         err_msg = ""
 
         # URLの検証
         if len(input_url)<=0:
-            err_msg = message.get('from_repo_s3', 'empty_url')
-        elif len(msg := (s3.access_s3_url(input_url))) > 0:
-            err_msg = msg
-
-        experiment_title = ex_pkg_info.get_current_experiment_title()
-        if experiment_title is None:
-            clear_output()
-            display(text_url, text_path, button)
-            display_util.display_err(message.get('from_repo_s3', 'not_finish_setup'))
+            done_button.button_type = 'danger'
+            done_button.name = message.get('from_repo_s3', 'empty_url')
             return
 
-        # 格納先パスの検証
-        if len(err_msg) == 0:
-            err_msg = validate.validate_input_path([(input_path, input_url)], experiment_title)
-
+        err_msg = s3.access_s3_url(input_url)
         if len(err_msg) > 0:
-            button.layout=Layout(width='700px')
-            button.button_style='danger'
-            button.description = err_msg
+            done_button.button_type = 'danger'
+            done_button.name = err_msg
+            return
+
+        experiment_title = ex_pkg_info.exec_get_ex_title()
+
+        # 格納先パスの検証
+        err_msg = validate.validate_input_path([(input_path, input_url)], experiment_title)
+        if len(err_msg) > 0:
+            done_button.button_type = 'danger'
+            done_button.name = err_msg
             return
 
         data = dict()
@@ -67,30 +70,34 @@ def input_url_path():
         with open(path.UNIT_S3_JSON_PATH, mode='w') as f:
             json.dump(data, f, indent=4)
 
-        button.description = message.get('from_repo_s3', 'done_input')
-        button.layout=Layout(width='250px')
-        button.button_style='success'
+        done_button.name = message.get('from_repo_s3', 'done_input')
+        done_button.button_type = 'success'
 
 
     common.delete_file(path.UNIT_S3_JSON_PATH)
 
-    style = {'description_width': 'initial'}
-    text_path = Text(
-        description = message.get('from_repo_s3', 'file_path'),
-        placeholder = message.get('from_repo_s3', 'enter_a_file_path'),
-        layout = Layout(width='700px'),
-        style = style
-    )
-    text_url = Text(
-        description = message.get('from_repo_s3', 'object_url'),
+    # 入力フォーム表示
+    pn.extension()
+    columns = pn.Column()
+    columns.append(pn.widgets.TextInput(
+        name = message.get('from_repo_s3', 'object_url'),
         placeholder = message.get('from_repo_s3', 'enter_object_url'),
-        layout = Layout(width='700px'),
-        style = style
+        width = 700)
     )
+    columns.append(pn.widgets.TextInput(
+        name = message.get('from_repo_s3', 'file_path'),
+        placeholder = message.get('from_repo_s3', 'enter_a_file_path'),
+        width = 700)
+    )
+    done_button = pn.widgets.Button(
+        name= message.get('from_repo_s3', 'end_input'),
+        button_type= "primary",
+        width = 300
+    )
+    done_button.on_click(on_click_callback)
+    columns.append(done_button)
 
-    button = Button(description=message.get('from_repo_s3', 'end_input'), layout=Layout(width='250px'))
-    button.on_click(on_click_callback)
-    display(text_url, text_path, button)
+    display(columns)
 
 
 def prepare_addurls_data():

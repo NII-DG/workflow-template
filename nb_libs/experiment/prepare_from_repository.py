@@ -49,6 +49,9 @@ def input_repository():
         '''入力されたURLの検証を行い、ファイルに記録する
         '''
 
+        button.name = message.get('from_repo_s3', 'processing')
+        button.button_type = 'primary'
+        error_message.value = ''
         common.delete_file(path.FROM_REPO_JSON_PATH)
 
         clone_url = text.value
@@ -89,7 +92,7 @@ def input_repository():
             button.button_type = 'danger'
             return
         else:
-            button.name = message.get('from_repo_s3', 'invalid_url')
+            button.name = message.get('from_repo_s3', 'fail_connnection_for_gin')
             button.button_type = 'danger'
             return
 
@@ -115,18 +118,6 @@ def input_repository():
             to_path=repository_path,
             multi_options=['-b master', '--depth 1', '--filter=blob:none']
         )
-
-        # annexブランチをフェッチ
-        try:
-            os.chdir(repository_path)
-            repo = git.Repo(repository_path)
-            repo.git.fetch('origin', 'git-annex:remotes/origin/git-annex')
-        except Exception as e:
-            error_message.value = str(e)
-            button.button_type = 'danger'
-            return
-        finally:
-            os.chdir(path.HOME_PATH)
 
         # dmp.jsonが存在すること
         try:
@@ -162,6 +153,20 @@ def input_repository():
             parameter_dirs = [dir.replace('/output_data/', '') for dir in parameter_dirs]
             parameter_dirs = [dir.replace(os.path.join(experiments_path, ex_pkg, ''), '') for dir in parameter_dirs]
             ex_pkg_info_dict[ex_pkg] = parameter_dirs
+
+
+        # annexブランチをフェッチ
+        try:
+            os.chdir(repository_path)
+            repo = git.Repo(repository_path)
+            repo.git.fetch('origin', 'git-annex:remotes/origin/git-annex')
+        except Exception as e:
+            error_message.value = str(e)
+            button.name = message.get('from_repo_s3', 'unexpected')
+            button.button_type = 'danger'
+            return
+        finally:
+            os.chdir(path.HOME_PATH)
 
         from_repo_dict = {
             REPO_NAME: repo_name,
@@ -417,6 +422,7 @@ def input_path():
         '''入力された格納先を検証し、ファイルに記録する
         '''
 
+        error_message.value = ''
         input_to_from_list = [(column.value_input, column.name) for column in columns if 'TextInput' in str(type(column))]
         experiment_title = ex_pkg_info.exec_get_ex_title()
 

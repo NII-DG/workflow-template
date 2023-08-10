@@ -147,7 +147,9 @@ def input_aws_info():
         done_button.name = message.get('from_repo_s3', 'done_input')
         done_button.button_type = 'success'
 
+    common.delete_file(path.MULTI_S3_JSON_PATH)
 
+    # 入力フォーム表示
     pn.extension()
     columns = pn.Column()
     columns.append(pn.widgets.PasswordInput(

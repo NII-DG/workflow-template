@@ -1,7 +1,6 @@
 '''prepare_multi_from_s3.ipynbから呼び出されるモジュール'''
 import os, json, boto3
 from json.decoder import JSONDecodeError
-from ipywidgets import Text, Button, Layout, Password
 from IPython.display import display, clear_output, Javascript
 import panel as pn
 from datalad import api
@@ -71,15 +70,18 @@ def input_aws_info():
     '''
 
 
-    def on_click_callback(clicked_button: Button) -> None:
+    def on_click_callback(event) -> None:
         '''入力されたAWS接続情報の検証を行いファイルに記録する
         '''
 
+        done_button.name = message.get('from_repo_s3', 'processing')
+        done_button.button_type = 'primary'
         common.delete_file(path.MULTI_S3_JSON_PATH)
-        access_key_id = input_aws_access_key_id.value
-        secret_access_key = input_aws_secret_access_key.value
-        bucket_name = input_bucket_name.value
-        prefix = input_prefix.value
+
+        access_key_id = columns[0].value_input
+        secret_access_key = columns[1].value_input
+        bucket_name = columns[2].value_input
+        prefix = columns[3].value_input
 
         # 入力値検証
         err_msg = ""
@@ -91,9 +93,8 @@ def input_aws_info():
             err_msg = message.get('from_repo_s3', 'empty_bucket_name')
 
         if len(err_msg) > 0:
-            button.layout = Layout(width='700px')
-            button.description= err_msg
-            button.button_style = 'danger'
+            done_button.name = err_msg
+            done_button.button_type = 'danger'
             return
 
         # s3接続確認
@@ -107,12 +108,11 @@ def input_aws_info():
         try:
             response = bucket.meta.client.get_bucket_location(Bucket=bucket_name)
         except ClientError as e:
-            button.layout=Layout(width='700px')
-            button.button_style='danger'
+            done_button.button_type = 'danger'
             if e.response['Error']['Code'] == 'NoSuchBucket':
-                button.description = message.get('from_repo_s3', 'no_such_bucket')
+                done_button.name = message.get('from_repo_s3', 'no_such_bucket')
             else:
-                button.description = message.get('from_repo_s3', 'client_error')
+                done_button.name = message.get('from_repo_s3', 'client_error')
             return
 
         aws_region = response[LOCATION_CONSTRAINT]
@@ -123,9 +123,8 @@ def input_aws_info():
             response = bucket.meta.client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
 
         if not CONTENTS in response:
-            button.layout=Layout(width='700px')
-            button.button_style='danger'
-            button.description = message.get('from_repo_s3', 'no_contents')
+            done_button.button_type ='danger'
+            done_button.name = message.get('from_repo_s3', 'no_contents')
             return
 
         s3_contens_key_list = []
@@ -145,42 +144,42 @@ def input_aws_info():
         with open(path.MULTI_S3_JSON_PATH, mode='w') as f:
             json.dump(aws_s3_info_dict, f, indent=4)
 
-        button.description=message.get('from_repo_s3', 'done_input')
-        button.button_style='success'
+        done_button.name = message.get('from_repo_s3', 'done_input')
+        done_button.button_type = 'success'
 
 
-    # テキストボックス
-    style = {'description_width': 'initial'}
-    input_aws_access_key_id = Password(
-        description=message.get('from_repo_s3', 'access_key_id'),
-        placeholder=message.get('from_repo_s3', 'enter_access_key_id'),
-        layout=Layout(width='700px'),
-        style=style
+    pn.extension()
+    columns = pn.Column()
+    columns.append(pn.widgets.PasswordInput(
+        name = message.get('from_repo_s3', 'access_key_id'),
+        placeholder = message.get('from_repo_s3', 'enter_access_key_id'),
+        width = 700)
     )
-    input_aws_secret_access_key = Password(
-        description= message.get('from_repo_s3', 'secret_access_key'),
-        placeholder=message.get('from_repo_s3', 'enter_secret_access_key'),
-        layout=Layout(width='700px'),
-        style=style
+    columns.append(pn.widgets.PasswordInput(
+        name = message.get('from_repo_s3', 'secret_access_key'),
+        placeholder = message.get('from_repo_s3', 'enter_secret_access_key'),
+        width = 700)
     )
-    input_bucket_name = Text(
-        description=message.get('from_repo_s3', 'bucket_name'),
-        placeholder=message.get('from_repo_s3', 'enter_bucket_name'),
-        layout=Layout(width='700px'),
-        style=style,
+    columns.append(pn.widgets.TextInput(
+        name = message.get('from_repo_s3', 'bucket_name'),
+        placeholder = message.get('from_repo_s3', 'enter_bucket_name'),
+        width = 700)
     )
-    input_prefix = Text(
-        description=message.get('from_repo_s3', 'folder_path'),
-        placeholder=message.get('from_repo_s3', 'enter_folder_path'),
-        layout=Layout(width='700px'),
-        style=style,
+    columns.append(pn.widgets.TextInput(
+        name = message.get('from_repo_s3', 'folder_path'),
+        placeholder = message.get('from_repo_s3', 'enter_folder_path'),
+        width = 700)
+    )
+    done_button = pn.widgets.Button(
+        name= message.get('from_repo_s3', 'end_input'),
+        button_type= "primary",
+        width = 300
     )
 
-    # 入力フォーム表示
-    common.delete_file(path.MULTI_S3_JSON_PATH)
-    button = Button(description=message.get('from_repo_s3', 'end_input'), layout=Layout(width='200px'))
-    button.on_click(on_click_callback)
-    display(input_aws_access_key_id, input_aws_secret_access_key, input_bucket_name, input_prefix, button)
+    done_button.on_click(on_click_callback)
+    columns.append(done_button)
+
+    display(columns)
 
 
 def choose_get_data():
@@ -197,6 +196,10 @@ def choose_get_data():
 
         try:
             s3_key_list = column[0].value
+            if len(s3_key_list) == 0:
+                done_button.button_type = "danger"
+                done_button.name = message.get('from_repo_s3', 'data_not_selected')
+                return
             multi_s3_dict = get_multi_s3_dict()
             multi_s3_dict[SELECTED_PATHS] = s3_key_list
             with open(path.MULTI_S3_JSON_PATH, mode='w') as f:

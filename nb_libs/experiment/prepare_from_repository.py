@@ -130,14 +130,20 @@ def input_repository():
                 shutil.rmtree(repository_path)
             return
 
-        experiments_path = os.path.join(repository_path, 'experiments')
-
-        ex_pkg_list = list()
-        for ex_pkg in os.listdir(experiments_path):
-            if os.path.isdir(os.path.join(experiments_path, ex_pkg)):
-                ex_pkg_list.append(ex_pkg)
-
         # 実験パッケージが存在すること
+        experiments_path = os.path.join(repository_path, 'experiments')
+        ex_pkg_list = list()
+        try:
+            for ex_pkg in os.listdir(experiments_path):
+                if os.path.isdir(os.path.join(experiments_path, ex_pkg)):
+                    ex_pkg_list.append(ex_pkg)
+        except FileNotFoundError:
+            button.name = message.get('from_repo_s3', 'invalid_repo')
+            button.button_type = 'danger'
+            if os.path.isdir(repository_path):
+                shutil.rmtree(repository_path)
+            return
+
         if len(ex_pkg_list) == 0:
             button.name = message.get('from_repo_s3', 'invalid_repo')
             button.button_type = 'danger'

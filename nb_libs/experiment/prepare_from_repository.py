@@ -237,7 +237,7 @@ def choose_get_pkg():
 
     for ex_pkg, ex_param in from_repo_dict[EX_PKG_INFO].items():
         ex_pkg_choices.append(ex_pkg)
-        ex_param_choices_dict[ex_pkg] = ex_param
+        ex_param_choices_dict[ex_pkg] = ['--'] + ex_param
 
     # 入力フォームを表示
     pn.extension()

@@ -1,11 +1,15 @@
 '''prepare_multi_from_s3.ipynbから呼び出されるモジュール'''
-import os, json, boto3
+import os
+import json
 from json.decoder import JSONDecodeError
+
+import boto3
 from IPython.display import display, clear_output, Javascript
 import panel as pn
 from datalad import api
 from botocore.exceptions import ClientError
 from datalad.support.exceptions import IncompleteResultsError
+
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
@@ -94,7 +98,7 @@ def input_aws_info():
 
         if len(err_msg) > 0:
             done_button.name = err_msg
-            done_button.button_type = 'danger'
+            done_button.button_type = 'warning'
             return
 
         # s3接続確認
@@ -108,7 +112,7 @@ def input_aws_info():
         try:
             response = bucket.meta.client.get_bucket_location(Bucket=bucket_name)
         except ClientError as e:
-            done_button.button_type = 'danger'
+            done_button.button_type = 'warning'
             if e.response['Error']['Code'] == 'NoSuchBucket':
                 done_button.name = message.get('from_repo_s3', 'no_such_bucket')
             else:
@@ -123,7 +127,7 @@ def input_aws_info():
             response = bucket.meta.client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
 
         if not CONTENTS in response:
-            done_button.button_type ='danger'
+            done_button.button_type ='warning'
             done_button.name = message.get('from_repo_s3', 'no_contents')
             return
 
@@ -174,7 +178,7 @@ def input_aws_info():
     )
     done_button = pn.widgets.Button(
         name= message.get('from_repo_s3', 'end_input'),
-        button_type= "primary",
+        button_type= "default",
         width = 300
     )
 
@@ -199,7 +203,7 @@ def choose_get_data():
         try:
             s3_key_list = column[0].value
             if len(s3_key_list) == 0:
-                done_button.button_type = "danger"
+                done_button.button_type = "warning"
                 done_button.name = message.get('from_repo_s3', 'data_not_selected')
                 return
             multi_s3_dict = get_multi_s3_dict()
@@ -229,7 +233,7 @@ def choose_get_data():
     pn.extension()
     column = pn.Column()
     column.append(pn.widgets.MultiSelect(name = message.get('from_repo_s3', 's3_file'), options=content_key_list, size=len(content_key_list), sizing_mode='stretch_width'))
-    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "primary")
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "default")
     column.append(done_button)
     done_button.on_click(generate_dest_list)
     display(column)
@@ -255,7 +259,7 @@ def input_path():
         # 格納先パスの検証
         err_msg = validate.validate_input_path(input_path_url_list, experiment_title)
         if len(err_msg) > 0:
-            done_button.button_type = "danger"
+            done_button.button_type = "warning"
             done_button.name = err_msg
             return
 
@@ -294,7 +298,7 @@ def input_path():
     column.append(message.get('from_repo_s3', 'h3_s3_file'))
     for selected_path in selected_paths:
         column.append(pn.widgets.TextInput(name=selected_path, placeholder=message.get('from_repo_s3', 'enter_a_file_path'), width=700))
-    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary")
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "default")
     column.append(done_button)
     done_button.on_click(verify_input_text)
     display(column)

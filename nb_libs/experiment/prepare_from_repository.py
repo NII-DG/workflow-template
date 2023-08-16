@@ -1,14 +1,20 @@
 '''prepare_from_repository.ipynbから呼び出されるモジュール'''
-import os, json, shutil, git, glob
+import os
+import json
+import shutil
+import glob
 from json.decoder import JSONDecodeError
-from ipywidgets import Text, Button, Layout
-from IPython.display import display, clear_output, Javascript
-import panel as pn
-from datalad import api as datalad_api
 from urllib import parse
 from http import HTTPStatus
 from requests.exceptions import RequestException
+
+import git
+import panel as pn
+from ipywidgets import Text, Button, Layout
+from IPython.display import display, clear_output, Javascript
+from datalad import api as datalad_api
 from datalad.support.exceptions import IncompleteResultsError
+
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
@@ -59,7 +65,7 @@ def input_repository():
         # 空文字でないこと
         if clone_url == '':
             button.name = message.get('from_repo_s3', 'empty_url')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             return
 
         pr = parse.urlparse(clone_url)
@@ -70,7 +76,7 @@ def input_repository():
         # 要素が2つであること
         if len(repo_owner_repo_name) != 2:
             button.name = message.get('from_repo_s3', 'invalid_url')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             return
 
         repo_owner, repo_name = repo_owner_repo_name
@@ -81,7 +87,7 @@ def input_repository():
             response = gin_api.get_repo_info(pr.scheme, pr.netloc, repo_owner, repo_name, ginfork_token)
         except RequestException:
             button.name = message.get('from_repo_s3', 'invalid_url')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             return
 
         # GIN-forkに存在するリポジトリであること
@@ -89,11 +95,11 @@ def input_repository():
             pass
         elif response.status_code == HTTPStatus.NOT_FOUND:
             button.name = message.get('from_repo_s3', 'wrong_or_unauthorized')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             return
         else:
             button.name = message.get('from_repo_s3', 'fail_connnection_for_gin')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             return
 
         repo_info = response.json()
@@ -101,7 +107,7 @@ def input_repository():
         # 公開リポジトリであること
         if repo_info[PRIVATE] == True:
             button.name = message.get('from_repo_s3', 'private_repo')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             return
 
         #.tmp, .tmp/get_repoを作成
@@ -125,7 +131,7 @@ def input_repository():
                 dataset_structure = json.load(f)[DATASET_STRUCTURE]
         except (FileNotFoundError, JSONDecodeError, KeyError):
             button.name = message.get('from_repo_s3', 'invalid_repo')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             if os.path.isdir(repository_path):
                 shutil.rmtree(repository_path)
             return
@@ -139,14 +145,14 @@ def input_repository():
                     ex_pkg_list.append(ex_pkg)
         except FileNotFoundError:
             button.name = message.get('from_repo_s3', 'invalid_repo')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             if os.path.isdir(repository_path):
                 shutil.rmtree(repository_path)
             return
 
         if len(ex_pkg_list) == 0:
             button.name = message.get('from_repo_s3', 'invalid_repo')
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             if os.path.isdir(repository_path):
                 shutil.rmtree(repository_path)
             return
@@ -201,7 +207,7 @@ def input_repository():
         layout=Layout(width='500px'),
         style = {'description_width': 'initial'}
     )
-    button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary", width=300)
+    button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "default", width=300)
     button.on_click(on_click_callback)
     error_message = pre.layout_error_text()
     display(text, button, error_message)
@@ -244,7 +250,7 @@ def choose_get_pkg():
 
     if from_repo_dict[DATASET_STRUCTURE_TYPE] == 'with_code':
         ex_pkg_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'ex_pkg_name'), options=ex_pkg_choices)
-        button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "primary", width=300)
+        button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "default", width=300)
         button.on_click(choose_get_pkg_callback(ex_pkg_choice, None, button, from_repo_dict))
         display(ex_pkg_choice)
         display(button)
@@ -252,7 +258,7 @@ def choose_get_pkg():
     elif from_repo_dict[DATASET_STRUCTURE_TYPE] == 'for_parameters':
         ex_pkg_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'ex_pkg_name'), options=ex_pkg_choices)
         ex_param_choice = pn.widgets.Select(name=message.get('from_repo_s3', 'param_ex_name'), options=ex_param_choices_dict[ex_pkg_choices[0]])
-        button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "primary", width=300)
+        button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "default", width=300)
         button.on_click(choose_get_pkg_callback(ex_pkg_choice, ex_param_choice, button, from_repo_dict))
         ex_pkg_choice.param.watch(update_second_choices, 'value')
         display(ex_pkg_choice)
@@ -283,7 +289,7 @@ def choose_get_pkg_callback(ex_pkg_choice, ex_param_choice, button, from_repo_di
 
         # 選択された実験パッケージ名、パラメータ実験名のフォルダが存在すること
         if not os.path.isdir(ex_pkg_path):
-            button.button_type = 'danger'
+            button.button_type = 'warning'
             button.name = message.get('from_repo_s3', 'ex_pkg_not_selected')
             return
 
@@ -294,7 +300,7 @@ def choose_get_pkg_callback(ex_pkg_choice, ex_param_choice, button, from_repo_di
             ex_param_path = os.path.join(ex_pkg_path, ex_param_choice.value)
 
             if not os.path.isdir(ex_param_path):
-                button.button_type = 'danger'
+                button.button_type = 'warning'
                 button.name = message.get('from_repo_s3', 'ex_param_not_selected')
                 return
 
@@ -329,7 +335,7 @@ def choose_get_data():
 
         # データが選択されていない場合
         if selected_data_count == 0:
-            done_button.button_type = "danger"
+            done_button.button_type = "warning"
             done_button.name = message.get('from_repo_s3', 'data_not_selected')
             return
 
@@ -400,7 +406,7 @@ def choose_get_data():
 
     package_path = os.path.join(path.GET_REPO_PATH, repo_name, 'experiments', package)
 
-    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "primary")
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_choose'), button_type= "default")
     done_button.on_click(record_selected)
 
     # Generate a GUI that matches the configuration of the experimental package.
@@ -435,7 +441,7 @@ def input_path():
         # 格納先パスの検証
         err_msg = validate.validate_input_path(input_to_from_list, experiment_title)
         if len(err_msg) > 0:
-            done_button.button_type = "danger"
+            done_button.button_type = "warning"
             done_button.name = err_msg
             return
 
@@ -498,7 +504,7 @@ def input_path():
                 width = 700)
             )
 
-    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary", width=300)
+    done_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "default", width=300)
     columns.append(done_button)
     done_button.on_click(verify_input_text)
     error_message = pre.layout_error_text()

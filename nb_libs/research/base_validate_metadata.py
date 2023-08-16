@@ -3,7 +3,16 @@ import requests
 import os
 import time
 import json
+import requests
+from urllib import parse
+from typing import Any
+from http import HTTPStatus
+
 import panel as pn
+from dg_packager.ro_generator.gin_ro_generator import GinRoGenerator
+from dg_packager.error.error import JsonValidationError, RoPkgError
+from IPython.display import clear_output, display
+
 from ..utils.params import repository_id, token, param_json
 from ..utils.git import git_module
 from ..utils.message import display as msg_display, message
@@ -11,14 +20,7 @@ from ..utils.except_class import DGTaskError, ExecCmdError
 from ..utils.dg_core import api as core_api
 from ..utils.path import path
 from ..utils.common import raise_error
-import requests
 from ..utils.gin import api as gin_api
-from urllib import parse
-from typing import Any
-from http import HTTPStatus
-from dg_packager.ro_generator.gin_ro_generator import GinRoGenerator
-from dg_packager.error.error import JsonValidationError, RoPkgError
-from IPython.display import clear_output, display
 from ..utils.flow.module import check_finished_setup_research
 # To remove the git config warning message on module import with execution result
 clear_output()
@@ -507,7 +509,7 @@ def select_done_save():
 
     # プルダウン形式のセレクターを生成
     menu_selector = pn.widgets.Select(name=message.get('metadata', 'record_form'), options=option, width=350)
-    done_button = pn.widgets.Button(name=message.get('metadata', 'end_choose'), button_type= "primary")
+    done_button = pn.widgets.Button(name=message.get('metadata', 'end_choose'), button_type= "default")
     html_output = pn.pane.HTML()
 
     def selected(event):

@@ -1,11 +1,15 @@
 '''prepare_unit_from_s3.ipynbから呼び出されるモジュール'''
-import os, json, traceback
+import os
+import json
+import traceback
 from urllib  import parse
+from json.decoder import JSONDecodeError
+
 from IPython.display import display, clear_output, Javascript
 import panel as pn
-from json.decoder import JSONDecodeError
 from datalad import api
 from datalad.support.exceptions import IncompleteResultsError
+
 from ..utils.git import annex_util, git_module
 from ..utils.path import path, validate
 from ..utils.message import message, display as display_util
@@ -43,13 +47,13 @@ def input_url_path():
 
         # URLの検証
         if len(input_url)<=0:
-            done_button.button_type = 'danger'
+            done_button.button_type = 'warning'
             done_button.name = message.get('from_repo_s3', 'empty_url')
             return
 
         err_msg = s3.access_s3_url(input_url)
         if len(err_msg) > 0:
-            done_button.button_type = 'danger'
+            done_button.button_type = 'warning'
             done_button.name = err_msg
             return
 
@@ -58,7 +62,7 @@ def input_url_path():
         # 格納先パスの検証
         err_msg = validate.validate_input_path([(input_path, input_url)], experiment_title)
         if len(err_msg) > 0:
-            done_button.button_type = 'danger'
+            done_button.button_type = 'warning'
             done_button.name = err_msg
             return
 
@@ -91,7 +95,7 @@ def input_url_path():
     )
     done_button = pn.widgets.Button(
         name= message.get('from_repo_s3', 'end_input'),
-        button_type= "primary",
+        button_type= "default",
         width = 300
     )
     done_button.on_click(on_click_callback)

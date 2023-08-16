@@ -1,15 +1,17 @@
 import os
 import shutil
 import traceback
+
+from IPython.display import HTML, display, clear_output
+from datalad import api
+import panel as pn
+
 from ..utils.params import ex_pkg_info as epi
 from ..utils.path import path, display as pd
 from ..utils.message import message, display as md
 from ..utils.git import git_module as git
 from ..utils.common import common, raise_error
 from ..utils.except_class import DGTaskError, NotFoundKey, FoundUnnecessarykey
-from IPython.display import HTML, display, clear_output
-from datalad import api
-import panel as pn
 
 
 
@@ -812,7 +814,7 @@ class GitFileResolveForm:
                 self.confirm_button.button_type = 'success'
                 self.confirm_button.name = message.get('conflict_helper', 'correction_complete')
             else:
-                self.confirm_button.button_type = 'danger'
+                self.confirm_button.button_type = 'warning'
                 self.confirm_button.name = message.get('conflict_helper', 'correction_imcomplete')
 
             # Check the status of all edits
@@ -931,7 +933,7 @@ class AnnexFileActionForm:
 
                 if selected_value == DEFUALT:
                     # DEFUALT値が選ばれたら選択エラー、再度入力
-                    self.confirm_button.button_type = 'danger'
+                    self.confirm_button.button_type = 'warning'
                     self.confirm_button.name = message.get('conflict_helper', 'select_default_error')
                     return
 
@@ -1012,7 +1014,7 @@ class AnnexFileRenameForm:
     def submit_file_name(self, event):
         try:
             if get_fixation_from_rf_data() is not None:
-                # 変更付加
+                # 変更不可
                 self.confirm_button.button_type = 'warning'
                 self.confirm_button.name = message.get('conflict_helper', 'input_fixation')
                 return
@@ -1033,7 +1035,7 @@ class AnnexFileRenameForm:
             err_html = self.validate(input_data)
             if len(err_html) > 0:
                 # form err
-                self.confirm_button.button_type = 'danger'
+                self.confirm_button.button_type = 'warning'
                 self.confirm_button.name = message.get('conflict_helper', 'invaid_file_name')
                 head_err_msg = message.get('conflict_helper','err_head_rename')
                 vaild_msg = head_err_msg + err_html
@@ -1107,7 +1109,7 @@ class AnnexFileRenameForm:
                 # スラッシュが含まれるとエラー
                 err_sumary[base_file_path][KEY_LOCAL].append(ERR_SLASH)
             elif '\\' in local_name:
-                 # バックスラッシュが含まれるとエラー
+                # バックスラッシュが含まれるとエラー
                 err_sumary[base_file_path][KEY_LOCAL].append(ERR_BACK_SLASH)
             elif get_extension_for_varinat(base_file_path) != get_extension_for_varinat(local_name):
                 # 拡張子が不一致だとエラー
@@ -1116,7 +1118,7 @@ class AnnexFileRenameForm:
                 # バリアント名だとエラー
                 err_sumary[base_file_path][KEY_LOCAL].append(ERR_VARIANT_NEME)
             elif os.path.exists(os.path.join(path.HOME_PATH, local_path)):
-                 # 既存ファイルと同名だとエラー
+                # 既存ファイルと同名だとエラー
                 err_sumary[base_file_path][KEY_LOCAL].append(ERR_ALREADY)
             elif local_path in not_both_rename_list:
                 # どちらかを残す選択データと一致していたらエラー
@@ -1138,7 +1140,7 @@ class AnnexFileRenameForm:
                 # バリアント名だとエラー
                 err_sumary[base_file_path][KEY_REMOTE].append(ERR_VARIANT_NEME)
             elif os.path.exists(os.path.join(path.HOME_PATH, remote_path)):
-                 # 既存ファイルと同名だとエラー
+                # 既存ファイルと同名だとエラー
                 err_sumary[base_file_path][KEY_REMOTE].append(ERR_ALREADY)
             elif remote_path in not_both_rename_list:
                 # どちらかを残す選択データと一致していたらエラー

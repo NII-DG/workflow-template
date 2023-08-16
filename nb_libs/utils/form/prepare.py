@@ -257,7 +257,7 @@ def create_select(name:str, options:list[str]):
 
 
 def create_button(name):
-    return pn.widgets.Button(name=name, button_type= "primary", width=DEFAULT_WIDTH)
+    return pn.widgets.Button(name=name, button_type= "default", width=DEFAULT_WIDTH)
 
 
 def layout_error_text():

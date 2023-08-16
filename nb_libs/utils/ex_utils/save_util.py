@@ -1,7 +1,10 @@
 '''おもにprepare_from_local.py, save.pyから呼び出されるモジュール'''
-import os, json
+import os
+import json
+
 from IPython.display import display, Javascript
 import panel as pn
+
 from ..path import path
 from ..message import message, display as display_util
 from ..common import common
@@ -63,7 +66,7 @@ def input_message(json_file_path:str):
         width = 700
     )
 
-    submit_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "primary", width=300)
+    submit_button = pn.widgets.Button(name= message.get('from_repo_s3', 'end_input'), button_type= "default", width=300)
     submit_button.on_click(submit_message_callback(input_form, submit_button, json_file_path))
 
     display(input_form, submit_button)

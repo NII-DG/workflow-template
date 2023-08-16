@@ -109,9 +109,9 @@ def submit_init_experiment_callback(input_form, error_message, submit_button):
         paramfolder_name = input_form.value
 
         try:
-            package_name = ex_pkg_info.exec_get_ex_title(deiplay_error=False)
+            package_name = ex_pkg_info.exec_get_ex_title(display_error=False)
         except Exception as e:
-            submit_button.button_type = 'danger'
+            submit_button.button_type = 'warning'
             submit_button.name =  msg_mod.get('experiment_error', 'experiment_setup_unfinished')
             error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)

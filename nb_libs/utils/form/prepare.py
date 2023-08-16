@@ -44,7 +44,7 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
             submit_button_user_auth.name = m.get('user_auth','unauthorized')
             return
         except requests.exceptions.RequestException as e:
-            submit_button_user_auth.button_type = 'warning'
+            submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = m.get('user_auth','connection_error')
             error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)

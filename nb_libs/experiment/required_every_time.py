@@ -213,7 +213,7 @@ def submit_init_experiment_callback(input_forms, input_radios, error_message, su
             submit_button.name =  msg_mod.get('user_auth','unauthorized')
             return
         except requests.exceptions.RequestException as e:
-            submit_button.button_type = 'warning'
+            submit_button.button_type = 'danger'
             submit_button.name =  msg_mod.get('DEFAULT','connection_error')
             error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
             error_message.object = pn.pane.HTML(error_message.value)

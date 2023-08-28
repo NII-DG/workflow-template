@@ -106,12 +106,12 @@ def git_annex_resolvemerge(exec_path=p.HOME_PATH):
     common.exec_subprocess('git annex resolvemerge', cwd=exec_path)
 
 def git_annex_untrust():
-    stdout, stderr, rt = common.exec_subprocess(cmd='git annex untrust here')
+    stdout, stderr, rt = common.exec_subprocess(cmd='git annex untrust here', cwd=p.HOME_PATH)
     result = stdout.decode('utf-8')
     return result
 
 def git_annex_trust():
-    stdout, stderr, rt = common.exec_subprocess(cmd='git annex --force trust web')
+    stdout, stderr, rt = common.exec_subprocess(cmd='git annex --force trust web', cwd=p.HOME_PATH)
     result = stdout.decode('utf-8')
 
 def git_annex_whereis(path:str, exec_path:str):

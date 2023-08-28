@@ -83,12 +83,12 @@ def enable_encoding_git(exec_path=p.HOME_PATH):
 
 
 def git_annex_lock(path:str):
-    stdout, stderr, rt = common.exec_subprocess(f'git annex lock {path}')
+    stdout, stderr, rt = common.exec_subprocess(f'git annex lock {path}', raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
 def git_annex_unlock(path:str):
-    stdout, stderr, rt = common.exec_subprocess(f'git annex unlock {path}')
+    stdout, stderr, rt = common.exec_subprocess(f'git annex unlock {path}',raise_error=False)
     result = stdout.decode('utf-8')
     return result
 

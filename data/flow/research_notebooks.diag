@@ -1,4 +1,4 @@
-   
+
    blockdiag {
     node_width = 200;
     node_height = 130;
@@ -54,7 +54,7 @@
                 group {
                     orientation = portrait;
                     color = "#ffb95c";
-                    "3. after_experiments_phase"[label = "3 実験終了後", fontsize = 10];
+                    "3. after_experiments_phase"[label = "3. 実験終了後", fontsize = 10];
                     "～準備中（WEKO3と連携予定）～"[fontsize = 10, color = "#e6e5e3"];
                 }
             }

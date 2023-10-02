@@ -178,17 +178,20 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
     datalad_error = ''
     try:
 
-        os.chdir(p.HOME_PATH)
+        # os.chdir(p.HOME_PATH)
         print('[INFO] Lock git-annex content')
-        os.system('git annex lock')
+        # os.system('git annex lock')
+        git_module.git_annex_lock(p.HOME_PATH)
         print('[INFO] Save git-annex content and Register metadata')
         save_annex_and_register_metadata(gitannex_path, gitannex_files, message)
         print('[INFO] Uulock git-annex content')
-        os.system('git annex unlock')
+        #os.system('git annex unlock')
+        git_module.git_annex_unlock(p.HOME_PATH)
         print('[INFO] Save git content')
         save_git(git_path, message)
         print('[INFO] Lock git-annex content')
-        os.system('git annex lock')
+        #os.system('git annex lock')
+        git_module.git_annex_lock(p.HOME_PATH)
         print('[INFO] Update and Merge Repository')
         update()
         if len(get_paths)>0:
@@ -214,8 +217,9 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             git_commit_msg = '{}(auto adjustment)'.format(message)
             err_key_info = extract_info_from_datalad_update_err(datalad_error)
             file_paths = list[str]()
-            os.chdir(p.HOME_PATH)
-            os.system('git annex lock')
+            # os.chdir(p.HOME_PATH)
+            # os.system('git annex lock')
+            git_module.git_annex_lock(p.HOME_PATH)
             if 'The following untracked working tree' in err_key_info:
                 file_paths = common.get_filepaths_from_dalalad_error(err_key_info)
                 adjust_add_git_paths = list[str]()
@@ -235,7 +239,8 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                 print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
                 print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
                 save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
-                os.system('git annex unlock')
+                #os.system('git annex unlock')
+                git_module.git_annex_unlock(p.HOME_PATH)
                 print('[INFO] Save git content(auto adjustment)')
                 save_git(adjust_add_git_paths, message)
             elif 'Your local changes to the following' in err_key_info:
@@ -258,7 +263,8 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
                     print('[INFO] git annex add. path : {}'.format(adjust_add_annex_paths))
                     print('[INFO] Save git-annex content and Register metadata(auto adjustment)')
                     save_annex_and_register_metadata(adjust_add_annex_paths, adjust_add_annex_paths, git_commit_msg)
-                    os.system('git annex unlock')
+                    # os.system('git annex unlock')
+                    git_module.git_annex_unlock(p.HOME_PATH)
                     print('[INFO] Save git content(auto adjustment)')
                     save_git(adjust_add_git_paths, message)
                 else:
@@ -277,12 +283,13 @@ def syncs_with_repo(git_path:list[str], gitannex_path:list[str], gitannex_files 
             print('[INFO] Push to Remote Repository')
             push()
             print('[INFO] Unlock git-annex content')
-            os.system('git annex unlock')
+            #os.system('git annex unlock')
+            git_module.git_annex_unlock(p.HOME_PATH)
         except:
             datalad_error = traceback.format_exc()
             error_message = msg_mod.get('sync', 'push_error')
         else:
-            os.chdir(p.HOME_PATH)
+            # os.chdir(p.HOME_PATH)
             success_message = msg_mod.get('sync', 'success')
     finally:
         clear_output()
@@ -378,7 +385,8 @@ def register_metadata_for_annexdata(file_path):
 
     if os.path.isfile(file_path):
         # generate metadata
-        os.system('git annex unlock')
+        # os.system('git annex unlock')
+        git_module.git_annex_unlock(p.HOME_PATH)
         mime_type = magic.from_file(file_path, mime=True)
         with open(file_path, 'rb') as f:
             binary_data = f.read()
@@ -386,8 +394,8 @@ def register_metadata_for_annexdata(file_path):
         content_size = os.path.getsize(file_path)
 
         # register_metadata
-        os.chdir(p.HOME_PATH)
-        os.system(f'git annex metadata "{file_path}" -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+        #os.system(f'git annex metadata "{file_path}" -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}')
+        git_module.git_annex_metadata_add_minetype_sha256_contentsize(file_path, mime_type, sha256, content_size, p.HOME_PATH)
     else:
         pass
 
@@ -407,7 +415,9 @@ def register_metadata_for_downloaded_annexdata(file_path):
     EXCEPTION
     ---------------
     """
-    os.system('git annex unlock')
+    # os.system('git annex unlock')
+    git_module.git_annex_unlock(p.HOME_PATH)
     current_date = datetime.date.today()
     sd_date_published = current_date.isoformat()
-    os.system(f'git annex metadata "{file_path}" -s sd_date_published={sd_date_published}')
+    # os.system(f'git annex metadata "{file_path}" -s sd_date_published={sd_date_published}')
+    git_module.git_annex_metadata_add_sd_date_published(file_path, sd_date_published, p.HOME_PATH)

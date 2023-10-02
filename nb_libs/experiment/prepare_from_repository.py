@@ -169,7 +169,6 @@ def input_repository():
 
         # annexブランチをフェッチ
         try:
-            os.chdir(repository_path)
             repo = git.Repo(repository_path)
             repo.git.fetch('origin', 'git-annex:remotes/origin/git-annex')
         except Exception as e:
@@ -177,8 +176,6 @@ def input_repository():
             button.name = message.get('from_repo_s3', 'unexpected')
             button.button_type = 'danger'
             return
-        finally:
-            os.chdir(path.HOME_PATH)
 
         from_repo_dict = {
             REPO_NAME: repo_name,

@@ -17,16 +17,20 @@ def get_AND_elements(list_a, list_b :list)->list:
     return list(and_elements)
 
 
-def decode_exec_subprocess(cmd: str, raise_error=True):
-    stdout, stderr, rt = exec_subprocess(cmd, raise_error)
+def decode_exec_subprocess(cmd: str, cwd:str='', raise_error:bool=True):
+    stdout, stderr, rt = exec_subprocess(cmd, cwd, raise_error)
     stdout = stdout.decode('utf-8')
     stderr = stderr.decode('utf-8')
     return stdout, stderr, rt
 
 
-def exec_subprocess(cmd: str, raise_error=True):
-    child = subprocess.Popen(cmd, shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def exec_subprocess(cmd: str, cwd:str='', raise_error=True):
+    if cwd == '':
+        child = subprocess.Popen(cmd, shell=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    else:
+        child = subprocess.Popen(cmd, shell=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
     stdout, stderr = child.communicate()
     rt = child.returncode
     if rt != 0 and raise_error:

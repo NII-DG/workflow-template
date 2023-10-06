@@ -9,7 +9,7 @@ from natsort import natsorted
 
 from ..except_class import ExecCmdError
 from ..message import message, display as display_util
-
+from ..path import path as p
 
 def get_AND_elements(list_a, list_b :list)->list:
 
@@ -79,6 +79,17 @@ def get_AND_dirpaths(paths:list[str])->list[str]:
         else:
             dirpaths.append(dir)
     return dirpaths
+
+def get_AND_absolutedirpaths(paths:list[str])->list[str]:
+    dirpaths = []
+    for path in paths:
+        dir = os.path.dirname(path)
+        if dir in dirpaths:
+            continue
+        else:
+            dirpaths.append( p.HOME_PATH + "/" + dir)
+
+        return dirpaths
 
 def sortFilePath(filepaths : list[str])->list[str]:
     # create file base info for sort

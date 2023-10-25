@@ -93,7 +93,8 @@ def syncs_config() -> tuple[list[str], list[str], list[str], str, list[str]]:
     git_path, gitannex_path, gitannex_files = ex_pkg.create_syncs_path(p.create_experiments_with_subpath(experiment_title))
     nb_path = os.path.join(p.EXP_DIR_PATH, 'prepare_parameter_experiment.ipynb')
     git_path.append(nb_path)
-    get_paths = ['experiments/{}'.format(experiment_title)]
+
+    get_paths = [p.create_experiments_with_subpath(experiment_title)]
     # set commit message
     commit_message = msg_mod.get('commit_message', 'prepare_parameter_experiment').format(experiment_title, param_name)
     # delete temporarily file

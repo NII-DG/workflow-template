@@ -624,7 +624,7 @@ def copy_local_content_to_tmp(target_path:str):
 def get_annex_rslv_info(conflicted_annex_paths):
     annex_rslv_info = dict[str, dict]()
     git.git_annex_resolvemerge()
-    unique_dir_path = common.get_AND_dirpaths(conflicted_annex_paths)
+    unique_dir_path = common.get_AND_absolutedirpaths(conflicted_annex_paths)
     candidate_varitan_file_list = api.status(path=unique_dir_path)
 
     for candidate_file in candidate_varitan_file_list:

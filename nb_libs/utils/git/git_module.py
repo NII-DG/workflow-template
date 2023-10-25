@@ -16,8 +16,7 @@ def exec_git_status():
     ---------------
 
     """
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git status')
+    stdout, stderr, rt = common.exec_subprocess('git status', p.HOME_PATH)
     result = stdout.decode('utf-8')
     return result
 
@@ -32,44 +31,37 @@ def exec_git_branch():
     ---------------
 
     """
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git branch --contains')
+    stdout, stderr, rt = common.exec_subprocess('git branch --contains', p.HOME_PATH)
     result = stdout.decode('utf-8')
     return result
 
 def exec_git_annex_whereis():
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git annex whereis --json', False)
+    stdout, stderr, rt = common.exec_subprocess(cmd='git annex whereis --json', cwd=p.HOME_PATH, raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
 def git_annex_add(path:str):
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git annex add "{}"'.format(path), False)
+    stdout, stderr, rt = common.exec_subprocess('git annex add "{}"'.format(path), cwd=p.HOME_PATH, raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
 def git_add(path:str):
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git add "{}"'.format(path), False)
+    stdout, stderr, rt = common.exec_subprocess('git add "{}"'.format(path), cwd=p.HOME_PATH,raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
 def git_commmit(msg:str):
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git commit -m "{}"'.format(msg), False)
+    stdout, stderr, rt = common.exec_subprocess('git commit -m "{}"'.format(msg), cwd=p.HOME_PATH,raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
 def git_mv(src :str, dest : str):
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git mv "{}" "{}"'.format(src, dest), False)
+    stdout, stderr, rt = common.exec_subprocess('git mv "{}" "{}"'.format(src, dest), cwd=p.HOME_PATH,raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
 def git_ls_files(path:str):
-    os.chdir(p.HOME_PATH)
-    stdout, stderr, rt = common.exec_subprocess('git ls-files -s "{}"'.format(path), False)
+    stdout, stderr, rt = common.exec_subprocess('git ls-files -s "{}"'.format(path), cwd=p.HOME_PATH,raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
@@ -79,8 +71,7 @@ def disable_encoding_git(exec_path=p.HOME_PATH):
     Args:
         exec_path ([str], optional): [command execution path]. Defaults to p.HOME_PATH.
     """
-    os.chdir(exec_path)
-    common.exec_subprocess('git config --global core.quotepath false')
+    common.exec_subprocess('git config --global core.quotepath false', cwd=exec_path)
 
 def enable_encoding_git(exec_path=p.HOME_PATH):
     """Enable encoding of git output results
@@ -88,17 +79,16 @@ def enable_encoding_git(exec_path=p.HOME_PATH):
     Args:
         exec_path ([str], optional): [command execution path]. Defaults to p.HOME_PATH.
     """
-    os.chdir(exec_path)
-    common.exec_subprocess('git config --global core.quotepath true')
+    common.exec_subprocess('git config --global core.quotepath true', cwd=exec_path)
 
 
 def git_annex_lock(path:str):
-    stdout, stderr, rt = common.exec_subprocess(f'git annex lock {path}')
+    stdout, stderr, rt = common.exec_subprocess(f'git annex lock {path}', raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
 def git_annex_unlock(path:str):
-    stdout, stderr, rt = common.exec_subprocess(f'git annex unlock {path}')
+    stdout, stderr, rt = common.exec_subprocess(f'git annex unlock {path}',raise_error=False)
     result = stdout.decode('utf-8')
     return result
 
@@ -113,24 +103,29 @@ def git_annex_unannex(path:str):
     return result
 
 def git_annex_resolvemerge(exec_path=p.HOME_PATH):
-    os.chdir(exec_path)
-    common.exec_subprocess('git annex resolvemerge')
+    common.exec_subprocess('git annex resolvemerge', cwd=exec_path)
 
 def git_annex_untrust():
-    stdout, stderr, rt = common.exec_subprocess(cmd='git annex untrust here')
+    stdout, stderr, rt = common.exec_subprocess(cmd='git annex untrust here', cwd=p.HOME_PATH)
     result = stdout.decode('utf-8')
     return result
 
 def git_annex_trust():
-    stdout, stderr, rt = common.exec_subprocess(cmd='git annex --force trust web')
+    stdout, stderr, rt = common.exec_subprocess(cmd='git annex --force trust web', cwd=p.HOME_PATH)
     result = stdout.decode('utf-8')
 
 def git_annex_whereis(path:str, exec_path:str):
-    os.chdir(exec_path)
-    stdout, stderr, rt = common.exec_subprocess(f'git annex whereis {path} --json')
+    stdout, stderr, rt = common.exec_subprocess(f'git annex whereis {path} --json', cwd=exec_path)
     result = stdout.decode('utf-8')
-    os.chdir(p.HOME_PATH)
     return result
+
+def git_annex_metadata_add_minetype_sha256_contentsize(file_path, mime_type, sha256, content_size, exec_path):
+    common.exec_subprocess(f'git annex metadata "{file_path}" -s mime_type={mime_type} -s sha256={sha256} -s content_size={content_size}', cwd=exec_path)
+
+def git_annex_metadata_add_sd_date_published(file_path, sd_date_published, exec_path):
+    common.exec_subprocess(f'git annex metadata "{file_path}" -s sd_date_published={sd_date_published}', cwd=exec_path)
+
+
 
 def get_conflict_filepaths() -> list[str]:
     """Get conflict paths in Unmerged paths for commit from git status

@@ -29,7 +29,7 @@ def test_add_container(mocker):
         repo_id='repo1',
         user_id='user1',
         server_name='test_server',
-        ipynb_url='https://test.binder-domain/test/notebooks/workflow-template/notebooks/research/base_FLOW.ipynb',
+        ipynb_url='https://test.binder-domain/test/notebooks/WORKFLOWS/notebooks/research/base_FLOW.ipynb',
     )
     assert mock_disp_info.call_count == 1
 
@@ -46,7 +46,7 @@ def test_add_container(mocker):
         repo_id='repo1',
         user_id='user1',
         server_name='test_server',
-        ipynb_url='https://test.binder-domain/test/notebooks/workflow-template/notebooks/experiment/experiment.ipynb',
+        ipynb_url='https://test.binder-domain/test/notebooks/WORKFLOWS/notebooks/experiment/experiment.ipynb',
         pkg_title='test_title',
     )
     assert mock_disp_info.call_count == 1

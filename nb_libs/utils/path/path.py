@@ -24,11 +24,23 @@ def create_experiments_with_subpath(experiment_title, sub_path=''):
         return os.path.join(EXPERIMENTS_PATH, experiment_title, sub_path)
 
 
-def get_flow_dir():
-    ret = 'WORKFLOWS'
+def get_home_path():
+    """ホームディレクトリを取得する"""
+
+    home_path = os.environ['HOME']
     if is_test():
-        ret = 'workflow-template'
-    return ret
+        home_path = os.path.join(os.getcwd(), 'test_home')
+        os.makedirs(home_path, exist_ok=True)
+    return home_path
+
+
+def get_flow_path():
+    """ワークフローディレクトリを取得する"""
+
+    flow_path = os.path.join(HOME_PATH, FLOW_DIR)
+    if is_test():
+        flow_path = os.getcwd()
+    return flow_path
 
 
 def get_param_file_name():
@@ -41,7 +53,7 @@ def get_param_file_name():
 
 
 # directory
-FLOW_DIR = get_flow_dir()
+FLOW_DIR = "WORKFLOWS"
 NOTEBOOK_DIR = "notebooks"
 RESEARCH_DIR = "research"
 EXPERIMENT_DIR = "experiment"
@@ -69,10 +81,10 @@ SNAKE_FILE = 'Snakefile'
 
 # path from inside container
 ## /home/jovyan
-HOME_PATH = os.environ['HOME']
+HOME_PATH = get_home_path()
 ## Directory directly under /home/jovyan
 SYS_PATH = os.path.join(HOME_PATH, '.dg-sys')
-FROW_PATH = os.path.join(HOME_PATH, FLOW_DIR)
+FROW_PATH = get_flow_path()
 EXPERIMENTS_PATH = os.path.join(HOME_PATH, 'experiments')
 VALIDATION_RESULTS_DIR_PATH = os.path.join(HOME_PATH, 'validation_results')
 

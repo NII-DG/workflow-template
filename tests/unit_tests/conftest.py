@@ -2,9 +2,9 @@ import os
 import pytest
 import shutil
 
-from nb_libs.utils.path.path import SYS_PATH, EXPERIMENTS_PATH
+from nb_libs.utils.path.path import HOME_PATH, SYS_PATH, EXPERIMENTS_PATH
 
-TEST_DIR = os.path.join(os.environ['HOME'], 'unit_test')
+TEST_DIR = os.path.join(HOME_PATH, 'unit_test')
 
 
 @pytest.fixture(scope='session', autouse=True)

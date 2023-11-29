@@ -1,9 +1,8 @@
-import os
-import json
 import panel as pn
 from IPython.display import display, clear_output, Javascript
 from ..message import message as msg_mod, display as msg_display
-from ..path import path, display as path_display
+from ..params import ex_pkg_info
+from ..path import display as path_display
 from ..common import common
 from ..gin import sync
 from ..git import git_module as git
@@ -12,8 +11,7 @@ from . import prepare as pre
 clear_output()
 
 
-def dg_menu(type='research'):
-    """共通メニューを表示する"""
+def create_dg_menu(type='research'):
     pn.extension()
 
     menu_option = {}
@@ -23,7 +21,6 @@ def dg_menu(type='research'):
     if type == 'research':
         menu_option[msg_mod.get('menu', 'show_name_only_res')] = 2
         menu_option[msg_mod.get('menu', 'trans_reserch_top')] = 3
-
     elif type == 'experiment':
         menu_option[msg_mod.get('menu', 'show_name')] = 4
         menu_option[msg_mod.get('menu', 'trans_experiment_top')] = 5
@@ -39,7 +36,7 @@ def dg_menu(type='research'):
     # プルダウン形式のセレクターを生成
     menu_selector = pn.widgets.Select(name=msg_mod.get('menu', 'select'), options=menu_option, value=1, width=350)
 
-    html_output  = pn.pane.HTML()
+    html_output = pn.pane.HTML()
 
     def update_selected_value(event):
         selected_value = event.new
@@ -72,6 +69,14 @@ def dg_menu(type='research'):
 
     menu_selector.param.watch(update_selected_value,'value')
 
+    return menu_selector, html_output
+
+
+def dg_menu(type='research'):
+    """共通メニューを表示する"""
+
+    menu_selector, html_output = create_dg_menu(type)
+
     display(pn.Column(menu_selector, html_output))
     display(Javascript('IPython.notebook.save_checkpoint();'))
 
@@ -90,14 +95,8 @@ def html_res_name(color='black'):
 
 def html_exp_name(color='black'):
     """実験名を表示する"""
-    try:
-        file_path = os.path.join(path.SYS_PATH, 'ex_pkg_info.json')
-        with open(file_path, mode='r') as f:
-            info = json.load(f)
-            experiment_title = info['ex_pkg_name']
-    except Exception:
-        experiment_title = '-'
 
+    experiment_title = ex_pkg_info.get_current_experiment_title() or '-'
     msg = msg_mod.get('menu', 'experiment_title').format(experiment_title)
     return msg_display.creat_html_msg(msg=msg, fore=color, tag='h1')
 

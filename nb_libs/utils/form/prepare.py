@@ -46,13 +46,13 @@ def submit_user_auth_callback(user_auth_forms, error_message, submit_button_user
         except requests.exceptions.RequestException as e:
             submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = m.get('user_auth','connection_error')
-            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
+            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         except Exception as e:
             submit_button_user_auth.button_type = 'danger'
             submit_button_user_auth.name = m.get('user_auth','unexpected')
-            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\\n'))
+            error_message.value = 'ERROR : {}'.format(traceback.format_exception_only(type(e), e)[0].rstrip('\n'))
             error_message.object = pn.pane.HTML(error_message.value)
             return
         else:
@@ -261,4 +261,4 @@ def create_button(name):
 
 
 def layout_error_text():
-    return pn.widgets.StaticText(value='', style={'color': 'red'}, sizing_mode='stretch_width')
+    return pn.widgets.StaticText(value='', styles={'color': 'red'}, sizing_mode='stretch_width')

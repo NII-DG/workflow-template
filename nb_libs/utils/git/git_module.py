@@ -113,6 +113,7 @@ def git_annex_untrust():
 def git_annex_trust():
     stdout, stderr, rt = common.exec_subprocess(cmd='git annex --force trust web', cwd=p.HOME_PATH)
     result = stdout.decode('utf-8')
+    return result
 
 def git_annex_whereis(path:str, exec_path:str):
     stdout, stderr, rt = common.exec_subprocess(f'git annex whereis {path} --json', cwd=exec_path)

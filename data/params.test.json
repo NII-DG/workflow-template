@@ -1,0 +1,13 @@
+{
+    "siblings": {
+        "ginHttp": "https://test.gin-domain",
+        "ginSsh": "git@test.gin-domain:",
+        "gitHugibHttp": "https://test.github-domain/",
+        "gitHubSsh": "git@test.github-domain:"
+    },
+    "rcosBinderUrl": "https://test.binder-domain",
+    "dgCore": {
+        "Scheme": "https",
+        "Netloc": "test.dgcore-domain"
+    }
+}

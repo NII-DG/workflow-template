@@ -4,8 +4,44 @@
 import os
 
 
+def is_test():
+    return os.getenv('AUTOMATED_TEST') is not None
+
+
+def create_experiments_with_subpath(experiment_title, sub_path=''):
+    '''実験パッケージ配下の絶対パスを生成する
+
+    Arg:
+        experiment_title(str): 実験パッケージ名
+
+        sub_path(str): 実験パッケージ配下のパス（オプション）
+    Return:
+        str: 実験パッケージ配下の絶対パス
+    '''
+    if len(sub_path) == 0:
+        return os.path.join(EXPERIMENTS_PATH, experiment_title)
+    else:
+        return os.path.join(EXPERIMENTS_PATH, experiment_title, sub_path)
+
+
+def get_flow_dir():
+    ret = 'WORKFLOWS'
+    if is_test():
+        ret = 'workflow-template'
+    return ret
+
+
+def get_param_file_name():
+    """設定ファイルのファイル名を取得する"""
+
+    file_name = 'params.json'
+    if is_test():
+        file_name = 'params.test.json'
+    return file_name
+
+
 # directory
-FLOW_DIR = "WORKFLOWS"
+FLOW_DIR = get_flow_dir()
 NOTEBOOK_DIR = "notebooks"
 RESEARCH_DIR = "research"
 EXPERIMENT_DIR = "experiment"
@@ -64,24 +100,6 @@ SAVE_JSON_PATH = os.path.join(RF_FORM_DATA_DIR, 'save.json')
 ## File under /home/jovyan/.tmp/validation/
 REQUEST_ID_FILE_PATH = os.path.join(TMP_VALIDATION_DIR, 'request_id.txt')
 
-
-
 # path from outside container
 URL_RES_PATH = os.path.join(FLOW_DIR, NOTEBOOK_DIR, RESEARCH_DIR, RESEARCH_TOP)
 URL_EXP_PATH = os.path.join(FLOW_DIR, NOTEBOOK_DIR, EXPERIMENT_DIR, EXPERIMENT_TOP)
-
-
-def create_experiments_with_subpath(experiment_title, sub_path=''):
-    '''実験パッケージ配下の絶対パスを生成する
-
-    Arg:
-        experiment_title(str): 実験パッケージ名
-
-        sub_path(str): 実験パッケージ配下のパス（オプション）
-    Return:
-        str: 実験パッケージ配下の絶対パス
-    '''
-    if len(sub_path) == 0:
-        return os.path.join(EXPERIMENTS_PATH, experiment_title)
-    else:
-        return os.path.join(EXPERIMENTS_PATH, experiment_title, sub_path)

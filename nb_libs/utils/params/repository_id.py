@@ -5,7 +5,7 @@ import os
 from ..path import path as p
 
 
-file_path = os.path.join(p.HOME_PATH, '.repository_id')
+FILE_PATH = os.path.join(p.HOME_PATH, '.repository_id')
 
 
 def get_repo_id()->str:
@@ -16,6 +16,6 @@ def get_repo_id()->str:
     repo_id : str
         Description : リポジトリID
     """
-    with open(file_path, 'r') as f:
+    with open(FILE_PATH, 'r') as f:
         repo_id = f.read()
     return repo_id

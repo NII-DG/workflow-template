@@ -1,5 +1,6 @@
-from utils.gin import api as gin_api
 from urllib import parse
+
+from ..gin import api as gin_api
 
 def get_metadata_from_repo(head_url, token, repo_id, branch):
 

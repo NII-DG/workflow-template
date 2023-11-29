@@ -10,7 +10,7 @@ from ..path import path
 from ..except_class.common_err import NoValueInDgFileError
 
 
-PARAM_FILE_PATH = os.path.join(path.DATA_PATH, 'params.json')
+PARAM_FILE_PATH = os.path.join(path.DATA_PATH, path.get_param_file_name())
 
 
 def get_params()->dict:
@@ -22,7 +22,7 @@ def get_params()->dict:
         Description : parameter for connection
     """
     with open(PARAM_FILE_PATH, mode='r') as f:
-            params = json.load(f)
+        params = json.load(f)
     return params
 
 def get_gin_http()->str:

@@ -34,7 +34,7 @@ def exec_subprocess(cmd: str, cwd:str='', raise_error=True):
     stdout, stderr = child.communicate()
     rt = child.returncode
     if rt != 0 and raise_error:
-        raise ExecCmdError(f"command return code is not 0. got {rt}. stderr = {stderr}")
+        raise ExecCmdError(f"command return code is not 0. got {rt}. stderr = {stderr.decode('utf-8')}")
 
     return stdout, stderr, rt
 

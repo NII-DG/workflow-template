@@ -12,6 +12,7 @@ def prepare_unitteset():
     # 前処理
 
     # フォルダ作成
+    os.makedirs(HOME_PATH, exist_ok=True)
     os.makedirs(SYS_PATH, exist_ok=True)
     os.makedirs(EXPERIMENTS_PATH, exist_ok=True)
     os.makedirs(TEST_DIR, exist_ok=True)

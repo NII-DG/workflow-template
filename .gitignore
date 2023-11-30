@@ -9,4 +9,6 @@ __pycache__/
 .coverage
 coverage.xml
 htmlcov/
+htmlcov.zip
 test_home/
+test_env/

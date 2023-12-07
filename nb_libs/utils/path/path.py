@@ -29,7 +29,7 @@ def get_home_path():
 
     home_path = os.environ['HOME']
     if is_test():
-        home_path = os.path.join(os.getcwd(), 'test_home')
+        home_path = os.path.join(os.getcwd(), 'test_data')
     return home_path
 
 

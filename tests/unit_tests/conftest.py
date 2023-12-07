@@ -8,7 +8,7 @@ TEST_DIR = os.path.join(HOME_PATH, 'unit_test')
 
 
 @pytest.fixture(scope='session', autouse=True)
-def prepare_unitteset():
+def prepare_unit_test():
     # 前処理
 
     # フォルダ作成

@@ -6,9 +6,12 @@ env*
 
 __pycache__/
 
+.pytest_cache/
+test_data/
+test_env/
 .coverage
 coverage.xml
 htmlcov/
 htmlcov.zip
-test_home/
-test_env/
+screenshot/
+screenshot.zip

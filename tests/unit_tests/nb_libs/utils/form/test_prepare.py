@@ -59,7 +59,7 @@ def test_submit_user_auth_callback(mocker):
     assert button.button_type == 'warning'
     assert button.name == 'ユーザー名、またはパスワードが間違っています。再度、入力しボタンをクリックしてください。'
 
-    # Gin-forkとの通信失敗
+    # GIN-forkとの通信失敗
     mocker.patch('nb_libs.utils.form.prepare.setup_local', side_effect=HTTPError('test_message'))
     button._process_event(None)     # クリックイベントを発生させる
     assert button.button_type == 'danger'

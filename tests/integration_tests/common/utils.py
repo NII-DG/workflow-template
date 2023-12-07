@@ -11,16 +11,18 @@ from .setting import STATE_PATH
 def get_browser_context(playwright: Playwright):
     """ブラウザコンテキストを取得する"""
 
+    args = sys.argv
+
     # ブラウザの表示設定
     headless = True
+    if '--headed' in args:
+        headless = False
     if 'debugpy' in sys.modules:
         # デバッグ実行の場合はブラウザを表示する
         headless = False
 
     # State file
     storage_state = STATE_PATH if os.path.exists(STATE_PATH) else None
-
-    args = sys.argv
 
     context = None
     if '--browser' in args:

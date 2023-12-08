@@ -1,6 +1,9 @@
+import os
 import re
 
 from playwright.sync_api import Page, Locator, expect
+
+from .path import SCREENSHOT_DIR
 
 CELL_CLASS_SUCCESS = 'cell-status-success'
 CELL_CLASS_ERROR = 'cell-status-error'
@@ -29,7 +32,7 @@ def run_cell(page: Page):
 def wait_until_finished(page: Page, expected_index: int = None, timeout: int = 10 * 1000) -> int:
     """実行中のセルが終了するまで待機"""
     if expected_index is None:
-        # 1つ目のセルでは共通メニューが表示されるまで待機
+        # 1つ目のセルは共通メニューのセレクトボックスが表示されるまで待機
         cell = get_code_cell(page, 0)
         expect(cell.locator('.bk-input')).to_be_visible(timeout=timeout)
     else:
@@ -80,3 +83,11 @@ def run_code_cell(
 
     # 終了まで待機
     wait_until_finished(page, execute_index, timeout)
+
+
+def screenshot(page: Page, path: str):
+    # タイミングによっては画面の描画が追い付いていない場合があるので少し待機する
+    page.wait_for_timeout(100)
+
+    output_path = os.path.join(SCREENSHOT_DIR, path)
+    page.screenshot(path=output_path, full_page=True)

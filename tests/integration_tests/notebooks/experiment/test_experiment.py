@@ -3,7 +3,7 @@ import os
 from playwright.sync_api import BrowserContext
 
 from tests.integration_tests.common import notebook
-from tests.integration_tests.common.path import JUPYTER_HUB_URL, SCREENSHOT_DIR
+from tests.integration_tests.common.path import JUPYTER_HUB_URL
 from tests.integration_tests.common.setting import read_it_setting
 from tests.integration_tests.common.utils import login_gakunin_rdm
 
@@ -23,25 +23,25 @@ def experiment(env_key: str, context: BrowserContext):
     notebook.init_notebook(page)
 
     # 共通メニュー
+    cell_index = 0
+    cell = notebook.get_code_cell(page, cell_index)
     # セルの実行
-    notebook.run_code_cell(page, 0, None)
+    notebook.run_code_cell(page, cell_index, None)
     # セル実行後のスクリーンショット保存
-    path = os.path.join(SCREENSHOT_DIR, 'experiment', 'experiment_01.png')
-    page.screenshot(path=path, full_page=True)
+    notebook.screenshot(page, 'experiment/experiment_01.png')
     # セルの実行に成功したか確認
-    cell = notebook.get_code_cell(page, 0)
     notebook.check_cell(cell, notebook.CELL_CLASS_SUCCESS)
 
     # 1つ目のセルの実行インデックス取得
     execute_index = notebook.get_execute_index(cell)
 
     # 実験フロー図を表示
-    # セルの実行
+    cell_index = 1
+    cell = notebook.get_code_cell(page, cell_index)
     execute_index = execute_index + 1
-    notebook.run_code_cell(page, 1, execute_index)
+    # セルの実行
+    notebook.run_code_cell(page, cell_index, execute_index)
     # セル実行後のスクリーンショット保存
-    path = os.path.join(SCREENSHOT_DIR, 'experiment', 'experiment_02.png')
-    page.screenshot(path=path, full_page=True)
+    notebook.screenshot(page, 'experiment/experiment_02.png')
     # セルの実行に成功したか確認
-    cell = notebook.get_code_cell(page, 1)
     notebook.check_cell(cell, notebook.CELL_CLASS_SUCCESS)

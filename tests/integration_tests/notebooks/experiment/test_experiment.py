@@ -1,30 +1,17 @@
 import os
 
-from playwright.sync_api import sync_playwright, BrowserContext
+from playwright.sync_api import BrowserContext
 
 from tests.integration_tests.common import notebook
 from tests.integration_tests.common.path import JUPYTER_HUB_URL, SCREENSHOT_DIR
 from tests.integration_tests.common.setting import read_it_setting
-from tests.integration_tests.common.utils import get_browser_context, login_gakunin_rdm
+from tests.integration_tests.common.utils import login_gakunin_rdm
 
 FILE_PATH = 'notebooks/experiment/experiment.ipynb'
 
 
-def test_experiment(prepare_exp_env):
-    # pytest -v -s tests/integration_tests/notebooks/experiment/test_experiment.py::test_experiment
-
-    with sync_playwright() as playwright:
-        context = get_browser_context(playwright)
-        try:
-            experiment(context)
-        finally:
-            browser = context.browser
-            context.close()
-            browser.close()
-
-
-def experiment(context: BrowserContext):
-    it_setting = read_it_setting()
+def experiment(env_key: str, context: BrowserContext):
+    it_setting = read_it_setting(env_key)
     page_url = f'{JUPYTER_HUB_URL}/user/{it_setting["user"]}/{it_setting["exp_server"]}/notebooks/WORKFLOWS/{FILE_PATH}'
     page = context.new_page()
     page.goto(page_url)

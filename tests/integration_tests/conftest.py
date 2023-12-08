@@ -6,30 +6,49 @@ from tests.integration_tests.common.exe_env import create_res_env, delete_res_en
 from tests.integration_tests.common.path import SCREENSHOT_DIR
 from tests.integration_tests.common.setting import init_setting
 
-@pytest.fixture()
+
+class EnvKey():
+    def get(self) -> str:
+        return self.key
+
+    def set(self, key: str):
+        self.key = key
+
+
+@pytest.fixture(scope='module')
 def prepare_res_env():
     """研究実行環境の準備"""
 
-    # 研究実行環境作成
-    create_res_env()
+    key = EnvKey()
 
-    yield
+    def _setup(env_key: str):
+        key.set(env_key)
+
+        # 研究実行環境作成
+        create_res_env(key.get())
+
+    yield _setup
 
     # 研究実行環境削除
-    delete_res_env()
+    delete_res_env(key.get())
 
 
 @pytest.fixture()
 def prepare_exp_env():
     """実験実行環境の準備"""
 
-    # 実験実行環境作成
-    create_exp_env()
+    key = EnvKey()
 
-    yield
+    def _setup(env_key: str):
+        key.set(env_key)
+
+        # 実験実行環境作成
+        create_exp_env(key.get())
+
+    yield _setup
 
     # 実験実行環境削除
-    delete_exp_env()
+    delete_exp_env(key.get())
 
 
 @pytest.fixture(scope='session', autouse=True)

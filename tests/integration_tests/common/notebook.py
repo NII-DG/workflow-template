@@ -31,11 +31,10 @@ def wait_until_finished(page: Page, expected_index: int = None, timeout: int = 1
     if expected_index is None:
         # 1つ目のセルでは共通メニューが表示されるまで待機
         cell = get_code_cell(page, 0)
-        cell.locator('.bk-input').select_option('6', timeout=timeout)
+        expect(cell.locator('.bk-input')).to_be_visible(timeout=timeout)
     else:
         # 2つ目以降のセルは"In [index]"が表示されるまで待機
-        expect(page.locator('#notebook-container div').filter(has_text=f'In [{expected_index}]:').nth(2)) \
-            .to_be_visible(timeout=timeout)
+        expect(page.locator('#notebook-container div').filter(has_text=f'In [{expected_index}]:').nth(2)).to_be_visible(timeout=timeout)
 
 
 def get_execute_index(locate: Locator) -> int:
@@ -74,7 +73,7 @@ def run_code_cell(
     cell.click()
 
     # すぐに実行すると出力の表示がうまくいかないことがあったので少し待機する
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(1000)
 
     # セルを実行
     run_cell(page)

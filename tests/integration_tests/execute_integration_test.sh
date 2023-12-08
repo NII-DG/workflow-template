@@ -6,6 +6,13 @@ python3 -m venv test_env
 python3 -m pip install --upgrade pip
 pip3 install -r requirements_test.txt
 
+# ブラウザインストール
+playwright install
+playwright install msedge
+playwright install chrome
+playwright install-deps
+python3 -m playwright install
+
 # テスト実行
 pytest tests/integration_tests -v --junitxml=coverage.xml $1
 

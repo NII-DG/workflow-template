@@ -5,10 +5,10 @@ from tests.integration_tests.common.path import JUPYTER_HUB_URL
 from tests.integration_tests.common.setting import read_it_setting
 from tests.integration_tests.common.utils import login_gakunin_rdm
 
-FILE_PATH = 'notebooks/research/base_FLOW.ipynb'
+FILE_PATH = 'notebooks/research/base_finish_research.ipynb'
 
 
-def base_flow(env_key: str, context: BrowserContext):
+def base_finish_research(env_key: str, context: BrowserContext):
     it_setting = read_it_setting(env_key)
     page_url = f'{JUPYTER_HUB_URL}/user/{it_setting["user"]}/{it_setting["res_server"]}/notebooks/WORKFLOWS/{FILE_PATH}'
     page = context.new_page()
@@ -26,7 +26,7 @@ def base_flow(env_key: str, context: BrowserContext):
     # セルの実行
     notebook.run_code_cell(page, cell_index, None)
     # セル実行後のスクリーンショット保存
-    notebook.screenshot(page, 'research/base_flow_01.png')
+    notebook.screenshot(page, 'research/base_finish_research_01.png')
     # セルの実行に成功したか確認
     notebook.check_cell(cell, notebook.CELL_CLASS_SUCCESS)
 
@@ -34,13 +34,13 @@ def base_flow(env_key: str, context: BrowserContext):
     cell = notebook.get_code_cell(page, 0)
     execute_index = notebook.get_execute_index(cell)
 
-    # 研究フロー図を表示
+    # 1-1. 当実行環境の確認
     cell_index = 1
     cell = notebook.get_code_cell(page, cell_index)
     execute_index = execute_index + 1
     # セルの実行
     notebook.run_code_cell(page, cell_index, execute_index)
     # セル実行後のスクリーンショット保存
-    notebook.screenshot(page, 'research/base_flow_02.png')
+    notebook.screenshot(page, 'research/base_finish_research_02.png')
     # セルの実行に成功したか確認
     notebook.check_cell(cell, notebook.CELL_CLASS_SUCCESS)

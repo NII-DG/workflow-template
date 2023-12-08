@@ -137,6 +137,31 @@ def change_checkout_branch(page: Page, branch_name: str):
         page.locator(text_area).press(branch_char)
 
 
+def res_init_setup(env_key: str):
+    """研究実行環境の初期セットアップ"""
+
+    with sync_playwright() as playwright:
+        context = get_browser_context(playwright)
+        try:
+            # 研究の初期セットアップ
+            it_setting = read_it_setting(env_key)
+            file_path = 'notebooks/research/base_required_every_time.ipynb'
+            page_url = f'{JUPYTER_HUB_URL}/user/{it_setting["user"]}/{it_setting["res_server"]}/notebooks/WORKFLOWS/{file_path}'
+            page = context.new_page()
+            page.goto(page_url)
+
+            # GakuNin RDMへのログイン
+            login_gakunin_rdm(page)
+
+            # base_required_every_time.ipynbの操作
+            operate_base_required_every_time(page)
+
+        finally:
+            browser = context.browser
+            context.close()
+            browser.close()
+
+
 def delete_res_env(env_key: str):
     """研究実行環境の削除"""
 

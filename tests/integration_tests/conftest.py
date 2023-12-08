@@ -2,7 +2,7 @@ import os
 import pytest
 import shutil
 
-from tests.integration_tests.common.exe_env import create_res_env, delete_res_env, create_exp_env, delete_exp_env
+from tests.integration_tests.common.exe_env import create_res_env, delete_res_env, create_exp_env, delete_exp_env, res_init_setup
 from tests.integration_tests.common.path import SCREENSHOT_DIR
 from tests.integration_tests.common.setting import init_setting
 
@@ -26,6 +26,26 @@ def prepare_res_env():
 
         # 研究実行環境作成
         create_res_env(key.get())
+
+    yield _setup
+
+    # 研究実行環境削除
+    delete_res_env(key.get())
+
+
+@pytest.fixture(scope='module')
+def prepare_res_env_setup():
+    """研究実行環境の準備(初期セットアップまで実施)"""
+
+    key = EnvKey()
+
+    def _setup(env_key: str):
+        key.set(env_key)
+
+        # 研究実行環境作成
+        create_res_env(key.get())
+        # 初期セットアップ
+        res_init_setup(key.get())
 
     yield _setup
 

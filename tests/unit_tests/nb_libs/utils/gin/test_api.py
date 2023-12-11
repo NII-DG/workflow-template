@@ -21,7 +21,7 @@ from tests.unit_tests.common.utils import MockResponse
 
 
 def test_search_public_repo(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_search_public_repo
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_search_public_repo
 
     mock_obj = mocker.patch('requests.get', return_value=MockResponse(200))
     res = search_public_repo('https', 'localhost', 'repo_id')
@@ -33,7 +33,7 @@ def test_search_public_repo(mocker):
 
 
 def test_search_repo(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_search_repo
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_search_repo
 
     mock_obj = mocker.patch('requests.get', return_value=MockResponse(200))
     res = search_repo('https', 'localhost', 'repo_id', 'user_id', 'token')
@@ -45,7 +45,7 @@ def test_search_repo(mocker):
 
 
 def test_delete_access_token(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_delete_access_token
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_delete_access_token
 
     mock_obj = mocker.patch('requests.delete', return_value=MockResponse(200))
     res = delete_access_token('https', 'localhost', 'token')
@@ -57,7 +57,7 @@ def test_delete_access_token(mocker):
 
 
 def test_create_token_for_launch(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_create_token_for_launch
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_create_token_for_launch
 
     mock_obj = mocker.patch('requests.post', return_value=MockResponse(200))
     res = create_token_for_launch('https', 'localhost', 'token')
@@ -69,7 +69,7 @@ def test_create_token_for_launch(mocker):
 
 
 def test_get_server_info(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_get_server_info
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_get_server_info
 
     mock_obj = mocker.patch('requests.get', return_value=MockResponse(200))
     res = get_server_info('https', 'localhost')
@@ -80,7 +80,7 @@ def test_get_server_info(mocker):
 
 
 def test_get_token_for_auth(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_get_token_for_auth
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_get_token_for_auth
 
     mock_obj = mocker.patch('requests.get', return_value=MockResponse(200))
     res = get_token_for_auth('https', 'localhost', 'user_name', 'password')
@@ -92,7 +92,7 @@ def test_get_token_for_auth(mocker):
 
 
 def test_create_token_for_auth(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::teset_create_token_for_auth
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::teset_create_token_for_auth
 
     mock_obj = mocker.patch('requests.post', return_value=MockResponse(200))
     res = create_token_for_auth('https', 'localhost', 'user_name', 'password')
@@ -105,7 +105,7 @@ def test_create_token_for_auth(mocker):
 
 
 def test_get_user_info(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_get_user_info
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_get_user_info
 
     mock_obj = mocker.patch('requests.get', return_value=MockResponse(200))
     res = get_user_info('https', 'localhost', 'token')
@@ -117,7 +117,7 @@ def test_get_user_info(mocker):
 
 
 def test_get_repo_info(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_get_repo_info
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_get_repo_info
 
     mock_obj = mocker.patch('requests.get', return_value=MockResponse(200))
     res = get_repo_info('https', 'localhost', 'user_name', 'repo_name', 'token')
@@ -129,7 +129,7 @@ def test_get_repo_info(mocker):
 
 
 def test_upload_key(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_upload_key
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_upload_key
 
     mock_obj = mocker.patch('requests.post', return_value=MockResponse(200))
     time_now = time.time()
@@ -147,7 +147,7 @@ def test_upload_key(mocker):
 
 
 def test_add_container(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_add_container
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_add_container
 
     mock_obj = mocker.patch('requests.post', return_value=MockResponse(200))
 
@@ -178,7 +178,7 @@ def test_add_container(mocker):
 
 
 def test_patch_container(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_patch_container
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_patch_container
 
     mock_obj = mocker.patch('requests.patch', return_value=MockResponse(200))
     res = patch_container('https', 'localhost', 'token', 'server_name', 'user_id')
@@ -194,7 +194,7 @@ def test_patch_container(mocker):
 
 
 def test_delete_container(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_delete_container
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_delete_container
 
     mock_obj = mocker.patch('requests.delete', return_value=MockResponse(200))
     res = delete_container('https', 'localhost', 'token', 'server_name', 'user_id')
@@ -210,7 +210,7 @@ def test_delete_container(mocker):
 
 
 def test_get_repo_metadata(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_api.py::test_get_repo_metadata
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_api.py::test_get_repo_metadata
 
     mock_obj = mocker.patch('requests.get', return_value=MockResponse(200))
     res = get_repo_metadata('https', 'localhost', 'token', 'repo_id', 'branch')

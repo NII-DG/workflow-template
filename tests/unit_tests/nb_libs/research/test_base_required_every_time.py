@@ -25,7 +25,7 @@ file_token = pathlib.Path(token.FILE_PATH)
 
 
 def test_preparation_completed():
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_preparation_completed
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_preparation_completed
 
     # 両方のファイルなし
     file_user.unlink(True)
@@ -56,7 +56,7 @@ def test_preparation_completed():
 
 
 def test_del_build_token(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_del_build_token
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_del_build_token
 
     mocker.patch('nb_libs.utils.git.git_module.get_remote_url', return_value='http://dummy-url')
     mock_disp_err = mocker.patch('nb_libs.utils.message.display.display_err')
@@ -94,7 +94,7 @@ def test_del_build_token(mocker):
 
 
 def test_datalad_create(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_datalad_create
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_datalad_create
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.gin.sync.datalad_create')
@@ -102,7 +102,7 @@ def test_datalad_create(mocker):
 
 
 def test_ssh_create_key(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_ssh_create_key
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_ssh_create_key
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.gin.ssh.create_key')
@@ -110,7 +110,7 @@ def test_ssh_create_key(mocker):
 
 
 def test_upload_ssh_key(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_upload_ssh_key
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_upload_ssh_key
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.gin.ssh.upload_ssh_key')
@@ -118,7 +118,7 @@ def test_upload_ssh_key(mocker):
 
 
 def test_ssh_trust_gin(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_ssh_trust_gin
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_ssh_trust_gin
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.gin.ssh.trust_gin')
@@ -126,7 +126,7 @@ def test_ssh_trust_gin(mocker):
 
 
 def test_prepare_sync(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_prepare_sync
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_prepare_sync
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.gin.sync.prepare_sync')
@@ -134,7 +134,7 @@ def test_prepare_sync(mocker):
 
 
 def test_setup_sibling(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_setup_sibling
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_setup_sibling
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.gin.sync.setup_sibling')
@@ -143,7 +143,7 @@ def test_setup_sibling(mocker):
 
 
 def test_add_container(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_add_container
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_add_container
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.gin.container.add_container')
@@ -151,7 +151,7 @@ def test_add_container(mocker):
 
 
 def test_finished_setup(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_finished_setup
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_finished_setup
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.flow.module.put_mark_research')
@@ -159,7 +159,7 @@ def test_finished_setup(mocker):
 
 
 def test_syncs_config(mocker):
-    # pytest -v -s tests/nb_libs/research/test_base_required_every_time.py::test_syncs_config
+    # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_syncs_config
 
     mocker.patch('nb_libs.research.base_required_every_time.preparation_completed')
     mocker.patch('nb_libs.utils.flow.module.put_mark_research')

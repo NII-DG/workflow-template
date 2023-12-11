@@ -112,7 +112,7 @@ git_status_conflict = [
 
 
 def test_exec_git_status(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_exec_git_status
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_exec_git_status
 
     stdout = 'test output'.encode(encoding='utf-8')
     mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -121,7 +121,7 @@ def test_exec_git_status(mocker):
 
 
 def test_exec_git_branch(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_exec_git_branch
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_exec_git_branch
 
     stdout = 'test output'.encode(encoding='utf-8')
     mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -130,7 +130,7 @@ def test_exec_git_branch(mocker):
 
 
 def test_exec_git_annex_whereis(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_exec_git_annex_whereis
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_exec_git_annex_whereis
 
     stdout = 'test output'.encode(encoding='utf-8')
     mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -139,7 +139,7 @@ def test_exec_git_annex_whereis(mocker):
 
 
 def test_git_annex_add(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_add
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_add
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -150,7 +150,7 @@ def test_git_annex_add(mocker):
 
 
 def test_git_add(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_add
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_add
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -161,7 +161,7 @@ def test_git_add(mocker):
 
 
 def test_git_commmit(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_commmit
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_commmit
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -172,7 +172,7 @@ def test_git_commmit(mocker):
 
 
 def test_git_mv(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_mv
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_mv
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -183,7 +183,7 @@ def test_git_mv(mocker):
 
 
 def test_git_ls_files(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_ls_files
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_ls_files
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -194,7 +194,7 @@ def test_git_ls_files(mocker):
 
 
 def test_disable_encoding_git(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_disable_encoding_git
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_disable_encoding_git
 
     mocker.patch('nb_libs.utils.common.common.exec_subprocess')
     # エラーが発生しなければOK
@@ -202,7 +202,7 @@ def test_disable_encoding_git(mocker):
 
 
 def test_enable_encoding_git(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_enable_encoding_git
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_enable_encoding_git
 
     mocker.patch('nb_libs.utils.common.common.exec_subprocess')
     # エラーが発生しなければOK
@@ -210,7 +210,7 @@ def test_enable_encoding_git(mocker):
 
 
 def test_git_annex_lock(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_lock
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_lock
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -221,7 +221,7 @@ def test_git_annex_lock(mocker):
 
 
 def test_git_annex_unlock(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_unlock
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_unlock
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -232,7 +232,7 @@ def test_git_annex_unlock(mocker):
 
 
 def test_git_annex_remove_metadata(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_remove_metadata
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_remove_metadata
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -243,7 +243,7 @@ def test_git_annex_remove_metadata(mocker):
 
 
 def test_git_annex_unannex(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_unannex
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_unannex
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -254,7 +254,7 @@ def test_git_annex_unannex(mocker):
 
 
 def test_git_annex_resolvemerge(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_resolvemerge
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_resolvemerge
 
     mocker.patch('nb_libs.utils.common.common.exec_subprocess')
     # エラーが発生しなければOK
@@ -262,7 +262,7 @@ def test_git_annex_resolvemerge(mocker):
 
 
 def test_git_annex_untrust(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_untrust
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_untrust
 
     stdout = 'test output'.encode(encoding='utf-8')
     mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -271,7 +271,7 @@ def test_git_annex_untrust(mocker):
 
 
 def test_git_annex_trust(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_trust
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_trust
 
     stdout = 'test output'.encode(encoding='utf-8')
     mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -280,7 +280,7 @@ def test_git_annex_trust(mocker):
 
 
 def test_git_annex_whereis(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_whereis
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_whereis
 
     stdout = 'test output'.encode(encoding='utf-8')
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -291,7 +291,7 @@ def test_git_annex_whereis(mocker):
 
 
 def test_git_annex_metadata_add_minetype_sha256_contentsize(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_metadata_add_minetype_sha256_contentsize
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_metadata_add_minetype_sha256_contentsize
 
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess')
     git_annex_metadata_add_minetype_sha256_contentsize('test_path', 'test_type', 'test_sha256', 0, 'test_exec_path')
@@ -300,7 +300,7 @@ def test_git_annex_metadata_add_minetype_sha256_contentsize(mocker):
 
 
 def test_git_annex_metadata_add_sd_date_published(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_git_annex_metadata_add_sd_date_published
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_git_annex_metadata_add_sd_date_published
 
     mock_obj = mocker.patch('nb_libs.utils.common.common.exec_subprocess')
     git_annex_metadata_add_sd_date_published('test_path', '2023-01-01', 'test_exec_path')
@@ -309,7 +309,7 @@ def test_git_annex_metadata_add_sd_date_published(mocker):
 
 
 def test_get_conflict_filepaths(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_conflict_filepaths
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_conflict_filepaths
 
     # 変更なし
     stdout = '\n'.join(git_status_no_change).encode(encoding='utf-8')
@@ -337,7 +337,7 @@ def test_get_conflict_filepaths(mocker):
 
 
 def test_get_modified_filepaths(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_modified_filepaths
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_modified_filepaths
 
     # 変更なし
     stdout = '\n'.join(git_status_no_change).encode(encoding='utf-8')
@@ -365,7 +365,7 @@ def test_get_modified_filepaths(mocker):
 
 
 def test_get_delete_filepaths(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_delete_filepaths
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_delete_filepaths
 
     # 変更なし
     stdout = '\n'.join(git_status_no_change).encode(encoding='utf-8')
@@ -393,7 +393,7 @@ def test_get_delete_filepaths(mocker):
 
 
 def test_get_annex_content_file_path_list(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_annex_content_file_path_list
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_annex_content_file_path_list
 
     output_git_annex_whereis = [
         '{"file": "dir1/test_file1.txt"}',
@@ -408,7 +408,7 @@ def test_get_annex_content_file_path_list(mocker):
 
 
 def test_get_remote_annex_variant_path(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_remote_annex_variant_path
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_remote_annex_variant_path
 
     stdout = '\n'.join(git_status_staging).encode(encoding='utf-8')
     mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -417,7 +417,7 @@ def test_get_remote_annex_variant_path(mocker):
 
 
 def test_get_local_object_hash_by_path(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_local_object_hash_by_path
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_local_object_hash_by_path
 
     # 正常ケース
     output_git_ls_files = [
@@ -438,7 +438,7 @@ def test_get_local_object_hash_by_path(mocker):
 
 
 def test_get_multi_local_object_hash_by_path(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_multi_local_object_hash_by_path
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_multi_local_object_hash_by_path
 
     output_git_ls_files1 = [
         '100644 6277bb8e29c3cb9c00cfb9d8f0b8908bc5ef8a53 1	dir1/test_conflict1.py',
@@ -463,7 +463,7 @@ def test_get_multi_local_object_hash_by_path(mocker):
 
 
 def test_is_conflict(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_is_conflict
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_is_conflict
 
     # 変更なし
     stdout = '\n'.join(git_status_no_change).encode(encoding='utf-8')
@@ -487,7 +487,7 @@ def test_is_conflict(mocker):
 
 
 def test_get_remote_url(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_remote_url
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_remote_url
 
     stdout = 'https://test.github-domain/test_user/test_repo.git\n'.encode(encoding='utf-8')
     mocker.patch('nb_libs.utils.common.common.exec_subprocess', return_value=(stdout, None, None))
@@ -496,7 +496,7 @@ def test_get_remote_url(mocker):
 
 
 def test_get_current_branch(mocker):
-    # pytest -v -s tests/nb_libs/utils/git/test_git_module.py::test_get_current_branch
+    # pytest -v -s tests/unit_tests/nb_libs/utils/git/test_git_module.py::test_get_current_branch
 
     # 正常ケース
     stdout = '* develop'.encode(encoding='utf-8')

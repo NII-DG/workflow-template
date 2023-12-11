@@ -14,13 +14,13 @@ from tests.unit_tests.common.utils import MockResponse
 
 
 def test_get_params():
-    # pytest -v -s tests/nb_libs/utils/params/test_param_json.py::test_get_params
+    # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_param_json.py::test_get_params
 
     assert get_params()
 
 
 def test_get_gin_http(backup_parameter_file):
-    # pytest -v -s tests/nb_libs/utils/params/test_param_json.py::test_get_gin_http
+    # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_param_json.py::test_get_gin_http
 
     # 正常ケース
     ret = get_gin_http()
@@ -39,7 +39,7 @@ def test_get_gin_http(backup_parameter_file):
 
 
 def test_update_param_url(mocker, backup_parameter_file):
-    # pytest -v -s tests/nb_libs/utils/params/test_param_json.py::test_update_param_url
+    # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_param_json.py::test_update_param_url
 
     url_remote = 'https://user:token@test.github-domain/test_dg/test_repo.git'
 
@@ -61,7 +61,7 @@ def test_update_param_url(mocker, backup_parameter_file):
 
 
 def test_get_core_scheme_netloc():
-    # pytest -v -s tests/nb_libs/utils/params/test_param_json.py::test_get_core_scheme_netloc
+    # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_param_json.py::test_get_core_scheme_netloc
 
     ret = get_core_scheme_netloc()
     assert ret[0] == 'https'

@@ -11,7 +11,7 @@ from tests.unit_tests.common.utils import UnitTestError
 
 
 def test_create_dg_menu(mocker):
-    # pytest -v -s tests/nb_libs/utils/form/test_menu.py::test_create_dg_menu
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_menu.py::test_create_dg_menu
 
     mocker.patch('nb_libs.utils.git.git_module.get_remote_url', return_value='https://test.github-domain/test_user/test_repo.git')
     mocker.patch('nb_libs.utils.params.ex_pkg_info.get_current_experiment_title', return_value='test_title')
@@ -44,14 +44,14 @@ def test_create_dg_menu(mocker):
 
 
 def test_dg_menu():
-    # pytest -v -s tests/nb_libs/utils/form/test_menu.py::test_dg_menu
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_menu.py::test_dg_menu
 
     # エラーが発生しなければOK
     dg_menu()
 
 
 def test_html_res_name(mocker):
-    # pytest -v -s tests/nb_libs/utils/form/test_menu.py::test_html_res_name
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_menu.py::test_html_res_name
 
     mocker.patch('nb_libs.utils.git.git_module.get_remote_url', return_value='https://test.github-domain/test_user/test_repo.git')
 
@@ -67,7 +67,7 @@ def test_html_res_name(mocker):
 
 
 def test_html_exp_name(mocker):
-    # pytest -v -s tests/nb_libs/utils/form/test_menu.py::test_html_exp_name
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_menu.py::test_html_exp_name
 
     # 正常ケース
     mocker.patch('nb_libs.utils.params.ex_pkg_info.get_current_experiment_title', return_value='test_title')
@@ -80,7 +80,7 @@ def test_html_exp_name(mocker):
     assert ret == "<h1 style='color:black'>実験パッケージ名：-</h1>"
 
 def test_gin_link_html(mocker):
-    # pytest -v -s tests/nb_libs/utils/form/test_menu.py::test_gin_link_html
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_menu.py::test_gin_link_html
 
     mocker.patch('nb_libs.utils.git.git_module.get_remote_url', return_value='https://test.github-domain/test_user/test_repo.git')
 

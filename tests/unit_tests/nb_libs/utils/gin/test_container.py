@@ -7,7 +7,7 @@ from tests.unit_tests.common.utils import MockResponse, UnitTestError
 
 
 def test_add_container(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_container.py::test_add_container
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_container.py::test_add_container
 
     mocker.patch('nb_libs.utils.params.token.get_ginfork_token', return_value='token1')
     mocker.patch('nb_libs.utils.params.repository_id.get_repo_id', return_value='repo1')
@@ -84,7 +84,7 @@ def test_add_container(mocker):
 
 
 def test_patch_container(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_container.py::test_patch_container
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_container.py::test_patch_container
 
     mocker.patch('nb_libs.utils.params.token.get_ginfork_token', return_value='token1')
     mocker.patch('nb_libs.utils.params.user_info.get_user_id', return_value='user1')
@@ -116,7 +116,7 @@ def test_patch_container(mocker):
 
 
 def test_delete_container(mocker):
-    # pytest -v -s tests/nb_libs/utils/gin/test_container.py::test_delete_container
+    # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_container.py::test_delete_container
 
     mocker.patch('nb_libs.utils.params.token.get_ginfork_token', return_value='token1')
     mocker.patch('nb_libs.utils.params.user_info.get_user_id', return_value='user1')

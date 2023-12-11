@@ -29,7 +29,7 @@ from tests.unit_tests.common.utils import MockResponse, UnitTestError
 
 
 def test_submit_user_auth_callback(mocker):
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_submit_user_auth_callback
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_submit_user_auth_callback
 
     pn.extension()
     error_message = StaticText()
@@ -75,7 +75,7 @@ def test_submit_user_auth_callback(mocker):
 
 
 def test_validate_format_username():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_validate_format_username
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_validate_format_username
 
     # 使用可能な文字のみ
     user_name = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.'
@@ -91,7 +91,7 @@ def test_validate_format_username():
 
 
 def test_validate_format_input():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_validate_format_input
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_validate_format_input
 
     # 使用可能な文字のみ(50文字以内)
     input_text = 'abcdefghijklmnopqrstuvwxyz'
@@ -122,7 +122,7 @@ def test_validate_format_input():
 
 
 def test_validate_user_auth():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_validate_user_auth
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_validate_user_auth
 
     # チェックOK
     button = Button()
@@ -148,7 +148,7 @@ def test_validate_user_auth():
 
 
 def test_validate_experiment_folder_name(create_package_dir):
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_validate_experiment_folder_name
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_validate_experiment_folder_name
 
     package_exist = create_package_dir
     package_not_exist = os.path.join(EXPERIMENTS_PATH, 'package_not_exist')
@@ -177,7 +177,7 @@ def test_validate_experiment_folder_name(create_package_dir):
 
 
 def test_validate_parameter_folder_name():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_validate_parameter_folder_name
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_validate_parameter_folder_name
 
     # チェックOK
     button = Button()
@@ -203,7 +203,7 @@ def test_validate_parameter_folder_name():
 
 
 def test_validate_select_default():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_validate_select_default
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_validate_select_default
 
     button = Button()
     assert validate_select_default('selected_value', 'test_message', button)
@@ -215,7 +215,7 @@ def test_validate_select_default():
 
 
 def test_validate_commit_message():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_validate_commit_message
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_validate_commit_message
 
     # 文字数0
     message = ''
@@ -234,7 +234,7 @@ def test_validate_commit_message():
 
 
 def test_setup_local(mocker):
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_setup_local
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_setup_local
 
     token_setter = mocker.patch('nb_libs.utils.params.token.set_ginfork_token')
     user_info_setter = mocker.patch('nb_libs.utils.params.user_info.set_user_info')
@@ -269,42 +269,42 @@ def test_setup_local(mocker):
 
 
 def test_initial_gin_user_auth():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_initial_gin_user_auth
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_initial_gin_user_auth
 
     # エラーが発生しなければOK
     initial_gin_user_auth()
 
 
 def test_create_user_auth_forms():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_create_user_auth_forms
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_create_user_auth_forms
 
     pn.extension()
     assert create_user_auth_forms()
 
 
 def test_create_param_form():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_create_param_form
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_create_param_form
 
     pn.extension()
     assert create_param_form()
 
 
 def test_create_select():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_create_select
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_create_select
 
     pn.extension()
     assert create_select('test_name', ['test_option1', 'test_option2'])
 
 
 def test_create_button():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_create_button
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_create_button
 
     pn.extension()
     assert create_button('test_name')
 
 
 def test_layout_error_text():
-    # pytest -v -s tests/nb_libs/utils/form/test_prepare.py::test_layout_error_text
+    # pytest -v -s tests/unit_tests/nb_libs/utils/form/test_prepare.py::test_layout_error_text
 
     pn.extension()
     assert layout_error_text()

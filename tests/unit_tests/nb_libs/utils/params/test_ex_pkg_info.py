@@ -13,7 +13,7 @@ from nb_libs.utils.except_class import DGTaskError
 
 
 def test_get_current_experiment_title(create_ex_pkg_info_file):
-    # pytest -v -s tests/nb_libs/utils/params/test_ex_pkg_info.py::test_get_current_experiment_title
+    # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_ex_pkg_info.py::test_get_current_experiment_title
 
     # 正常ケース
     title = get_current_experiment_title()
@@ -27,7 +27,7 @@ def test_get_current_experiment_title(create_ex_pkg_info_file):
 
 
 def test_exec_get_ex_title(mocker):
-    # pytest -v -s tests/nb_libs/utils/params/test_ex_pkg_info.py::exec_get_ex_title
+    # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_ex_pkg_info.py::exec_get_ex_title
 
     # 正常ケース
     mocker.patch('nb_libs.utils.params.ex_pkg_info.get_current_experiment_title', return_value='test_package')
@@ -42,7 +42,7 @@ def test_exec_get_ex_title(mocker):
 
 
 def test_set_current_experiment_title(delete_ex_pkg_info_file):
-    # pytest -v -s tests/nb_libs/utils/params/test_ex_pkg_info.py::test_set_current_experiment_title
+    # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_ex_pkg_info.py::test_set_current_experiment_title
 
     set_current_experiment_title('test_package')
     assert os.path.isfile(FILE_PATH)
@@ -52,7 +52,7 @@ def test_set_current_experiment_title(delete_ex_pkg_info_file):
 
 
 def test_exist_file(create_ex_pkg_info_file):
-    # pytest -v -s tests/nb_libs/utils/params/test_ex_pkg_info.py::test_exist_file
+    # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_ex_pkg_info.py::test_exist_file
 
     # ファイルが存在するケース
     assert exist_file()

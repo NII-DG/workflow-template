@@ -7,7 +7,7 @@ from tests.unit_tests.common.utils import MockResponse
 
 
 def test_access_s3_url(mocker):
-    # pytest -v -s tests/nb_libs/utils/aws/test_s3.py::test_access_s3_url
+    # pytest -v -s tests/unit_tests/nb_libs/utils/aws/test_s3.py::test_access_s3_url
 
     mocker.patch('requests.head', return_value=MockResponse(200))
     msg = access_s3_url('')

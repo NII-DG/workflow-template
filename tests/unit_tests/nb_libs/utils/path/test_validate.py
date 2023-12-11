@@ -3,7 +3,7 @@ from nb_libs.utils.path.validate import validate_input_path
 
 
 def test_validate_input_path(create_duplicate_file):
-    # pytest -v -s tests/nb_libs/utils/path/test_validate.py::test_validate_input_path
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/test_validate.py::test_validate_input_path
 
     # input_data/, source/から始まること
     input = [

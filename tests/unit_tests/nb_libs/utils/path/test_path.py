@@ -4,7 +4,7 @@ from nb_libs.utils.path.path import HOME_PATH, create_experiments_with_subpath
 
 
 def test_create_experiments_with_subpath():
-    # pytest -v -s tests/nb_libs/utils/path/path.py::test_create_experiments_with_subpath
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/path.py::test_create_experiments_with_subpath
 
     # sub_pathなし
     ret = create_experiments_with_subpath('title1')

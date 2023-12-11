@@ -10,7 +10,7 @@ from nb_libs.utils.path.display import (
 
 
 def test_button_html():
-    # pytest -v -s tests/nb_libs/utils/path/test_display.py::test_button_html
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/test_display.py::test_button_html
 
     # デフォルト値の場合
     ret = button_html('https://test-domain/', 'test_message')
@@ -24,40 +24,40 @@ def test_button_html():
 
 
 def test_res_top_html():
-    # pytest -v -s tests/nb_libs/utils/path/test_display.py::test_res_top_html
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/test_display.py::test_res_top_html
 
     assert res_top_html()
 
 
 def test_res_top_link():
-    # pytest -v -s tests/nb_libs/utils/path/test_display.py::test_res_top_link
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/test_display.py::test_res_top_link
 
     # エラーが発生しなければOK
     res_top_link()
 
 
 def test_res_top_link_from_maDMP():
-    # pytest -v -s tests/nb_libs/utils/path/test_display.py::test_res_top_link_from_maDMP
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/test_display.py::test_res_top_link_from_maDMP
 
     # エラーが発生しなければOK
     res_top_link_from_maDMP()
 
 
 def test_exp_top_html():
-    # pytest -v -s tests/nb_libs/utils/path/test_display.py::test_exp_top_html
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/test_display.py::test_exp_top_html
 
     assert exp_top_html()
 
 
 def test_exp_top_link():
-    # pytest -v -s tests/nb_libs/utils/path/test_display.py::test_exp_top_link
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/test_display.py::test_exp_top_link
 
     # エラーが発生しなければOK
     exp_top_link()
 
 
 def test_create_link():
-    # pytest -v -s tests/nb_libs/utils/path/test_display.py::test_create_link
+    # pytest -v -s tests/unit_tests/nb_libs/utils/path/test_display.py::test_create_link
 
     # targetなし
     ret = create_link('https://test-domain/', 'test_title')

@@ -26,7 +26,7 @@ from nb_libs.utils.except_class import ExecCmdError
 
 
 def test_get_AND_elements():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_get_AND_elements
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_get_AND_elements
 
     list_a = ['test1', 'test1', 'test2', 'test3']
     list_b = ['test1', 'test3', 'test4', 'test4', 'test5']
@@ -37,7 +37,7 @@ def test_get_AND_elements():
 
 
 def test_decode_exec_subprocess(mocker):
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_decode_exec_subprocess
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_decode_exec_subprocess
 
     stdout = 'test_stdout'.encode('utf-8')
     stderr = 'test_stderr'.encode('utf-8')
@@ -49,7 +49,7 @@ def test_decode_exec_subprocess(mocker):
 
 
 def test_exec_subprocess():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_exec_subprocess
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_exec_subprocess
 
     command_normal = 'echo test'
     command_stderr = 'echo test 1>&2'
@@ -85,7 +85,7 @@ def test_exec_subprocess():
 
 
 def test_is_should_annex_content_path():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::is_should_annex_content_path
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::is_should_annex_content_path
 
     assert is_should_annex_content_path('experiments/test_package/input_data/file1.txt')
     assert is_should_annex_content_path('experiments/test_package/output_data/file1.txt')
@@ -107,7 +107,7 @@ def test_is_should_annex_content_path():
 
 
 def test_has_unicode_escape():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_has_unicode_escape
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_has_unicode_escape
 
     assert has_unicode_escape(r'\u0aA0')
     assert not has_unicode_escape(r'\u0aAG')
@@ -115,7 +115,7 @@ def test_has_unicode_escape():
 
 
 def test_get_filepaths_from_dalalad_error():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_get_filepaths_from_dalalad_error
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_get_filepaths_from_dalalad_error
 
     err_info = [
         r"'\t" + "dir1/test1.txt" + r"\n'",
@@ -127,7 +127,7 @@ def test_get_filepaths_from_dalalad_error():
 
 
 def test_get_AND_dirpaths():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_get_AND_dirpaths
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_get_AND_dirpaths
 
     paths = [
         'dir1/dir2/file1.txt',
@@ -140,7 +140,7 @@ def test_get_AND_dirpaths():
 
 
 def test_get_AND_absolutedirpaths():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_get_AND_absolutedirpaths
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_get_AND_absolutedirpaths
 
     paths = [
         'dir1/dir2/file1.txt',
@@ -160,7 +160,7 @@ def test_get_AND_absolutedirpaths():
 
 
 def test_sortFilePath():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_sortFilePath
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_sortFilePath
 
     paths = [
         'dir1/dir2/file10.txt',
@@ -184,7 +184,7 @@ def test_sortFilePath():
 
 
 def test_convert_url_remove_user_token():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_convert_url_remove_user_token
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_convert_url_remove_user_token
 
     # パブリックリポジトリ
     url = 'https://test.github-domain/test_user/test_repo.git'
@@ -198,7 +198,7 @@ def test_convert_url_remove_user_token():
 
 
 def test_delete_file(create_file):
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_delete_file
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_delete_file
 
     # ファイルが存在しない
     path_not_exist = create_file['not_exist']
@@ -215,7 +215,7 @@ def test_delete_file(create_file):
 
 
 def test_cp_dir(prepare_cp_dir):
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_cp_dir
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_cp_dir
 
     src = prepare_cp_dir['src']
     dst = prepare_cp_dir['dst']
@@ -248,7 +248,7 @@ def test_cp_dir(prepare_cp_dir):
 
 
 def test_cp_file(prepare_cp_file):
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_cp_file
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_cp_file
 
     src = prepare_cp_file['src']
     dst = prepare_cp_file['dst']
@@ -276,7 +276,7 @@ def test_cp_file(prepare_cp_file):
 
 
 def test_create_json_file(prepare_create_json_file):
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_create_json_file
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_create_json_file
 
     work_dir = prepare_create_json_file
     test_json = {'test_key': 'test_value'}
@@ -302,7 +302,7 @@ def test_create_json_file(prepare_create_json_file):
 
 
 def test_read_json_file(prepare_read_json_file):
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_read_json_file
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_read_json_file
 
     file = prepare_read_json_file
     data = read_json_file(file)
@@ -310,7 +310,7 @@ def test_read_json_file(prepare_read_json_file):
 
 
 def test_not_exec_pre_cell():
-    # pytest -v -s tests/nb_libs/utils/common/test_common.py::test_not_exec_pre_cell
+    # pytest -v -s tests/unit_tests/nb_libs/utils/common/test_common.py::test_not_exec_pre_cell
 
     # エラーが発生しなければOK
     not_exec_pre_cell()

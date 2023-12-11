@@ -14,7 +14,7 @@ playwright install-deps
 python3 -m playwright install
 
 # テスト実行
-pytest tests/integration_tests -v --junitxml=coverage.xml $1
+pytest -v tests/integration_tests --junitxml=coverage.xml ${@:1}
 
 # スクリーンショットをzip化
 zip screenshot -r screenshot

@@ -3,19 +3,14 @@ import uuid
 
 from playwright.sync_api import sync_playwright, BrowserContext, Page, expect
 
+from nb_libs.utils.message import message
 from nb_libs.utils.git.git_module import get_current_branch
 
 from . import notebook
 from .credentials import get_credentials
 from .path import GIN_FORK_URL, JUPYTER_HUB_URL, JUPYTER_HUB_HOME_URL
 from .setting import write_it_setting, read_it_setting, write_state
-from .utils import (
-    get_browser_context,
-    login_gakunin_rdm,
-    signin_gin_fork,
-    operate_base_required_every_time,
-    operate_base_launch_an_experiment,
-)
+from .utils import get_browser_context, login_gakunin_rdm, signin_gin_fork
 
 
 def create_res_env(env_key: str):
@@ -28,7 +23,80 @@ def create_res_env(env_key: str):
     with sync_playwright() as playwright:
         context = get_browser_context(playwright)
         try:
+            # 研究実行環境作成
             operate_res_env_creation(env_key, context)
+        finally:
+            browser = context.browser
+            context.close()
+            browser.close()
+
+
+def create_res_env_setup(env_key: str):
+    """研究実行環境の作成(初期セットアップまで実施)"""
+
+    if read_it_setting(env_key):
+        # 環境作成済みの場合は作成しない
+        return
+
+    with sync_playwright() as playwright:
+        context = get_browser_context(playwright)
+        try:
+            # 研究実行環境作成
+            operate_res_env_creation(env_key, context)
+            # 研究実行環境の初期セットアップ
+            operate_res_env_setup(env_key, context)
+        finally:
+            browser = context.browser
+            context.close()
+            browser.close()
+
+
+def create_exp_env(env_key: str):
+    """実験実行環境の作成"""
+
+    if read_it_setting(env_key):
+        # 環境作成済みの場合は作成しない
+        return
+
+    with sync_playwright() as playwright:
+        context = get_browser_context(playwright)
+        try:
+            # 研究実行環境作成
+            operate_res_env_creation(env_key, context)
+            # 研究実行環境の初期セットアップ
+            operate_res_env_setup(env_key, context)
+            # 実験実行環境作成
+            operate_exp_env_creation(env_key, context)
+        finally:
+            browser = context.browser
+            context.close()
+            browser.close()
+
+
+def delete_res_env(env_key: str):
+    """研究実行環境の削除"""
+
+    with sync_playwright() as playwright:
+        context = get_browser_context(playwright)
+        try:
+            # 研究実行環境削除
+            operate_res_env_deletion(env_key, context)
+        finally:
+            browser = context.browser
+            context.close()
+            browser.close()
+
+
+def delete_exp_env(env_key: str):
+    """実験実行環境の削除"""
+
+    with sync_playwright() as playwright:
+        context = get_browser_context(playwright)
+        try:
+            # 実験実行環境削除
+            operate_exp_env_deletion(env_key, context)
+            # 研究実行環境削除
+            operate_res_env_deletion(env_key, context)
         finally:
             browser = context.browser
             context.close()
@@ -37,6 +105,7 @@ def create_res_env(env_key: str):
 
 def operate_res_env_creation(env_key: str, context: BrowserContext):
     """研究実行環境の作成"""
+
     gin_fork = get_credentials('gin_fork')
     project_name = f'auto_test_it_{uuid.uuid4()}'
 
@@ -90,6 +159,93 @@ def operate_res_env_creation(env_key: str, context: BrowserContext):
     write_state(context)
 
 
+def operate_res_env_setup(env_key: str, context: BrowserContext):
+    """研究実行環境の初期セットアップ"""
+
+    it_setting = read_it_setting(env_key)
+
+    # base_required_every_time.ipynbに遷移
+    file_path = 'notebooks/research/base_required_every_time.ipynb'
+    page_url = f'{JUPYTER_HUB_URL}/user/{it_setting["user"]}/{it_setting["res_server"]}/notebooks/WORKFLOWS/{file_path}'
+    page = context.new_page()
+    page.goto(page_url)
+
+    # base_required_every_time.ipynbの操作
+    operate_base_required_every_time(page)
+
+
+def operate_exp_env_creation(env_key: str, context: BrowserContext):
+    """実験実行環境の作成"""
+
+    it_setting = read_it_setting(env_key)
+
+    # base_launch_an_experiment.ipynbに遷移
+    file_path = 'notebooks/research/base_launch_an_experiment.ipynb'
+    page_url = f'{JUPYTER_HUB_URL}/user/{it_setting["user"]}/{it_setting["res_server"]}/notebooks/WORKFLOWS/{file_path}'
+    page = context.new_page()
+    page.goto(page_url)
+
+    # base_launch_an_experiment.ipynbの操作
+    exp_page = operate_base_launch_an_experiment(page)
+
+    # 実験の情報を設定ファイルに保存
+    exp_url = exp_page.url.split('/')
+    it_setting['exp_server'] = exp_url[5]
+    write_it_setting(env_key, it_setting)
+
+
+def operate_res_env_deletion(env_key: str, context: BrowserContext):
+    """研究実行環境の削除"""
+
+    it_setting = read_it_setting(env_key)
+    if 'res_server' not in it_setting:
+        # 何らかの理由で削除済みの場合は何もしない
+        return
+
+    page = context.new_page()
+
+    # コントロールパネルに遷移
+    page.goto(JUPYTER_HUB_HOME_URL)
+
+    # サーバー削除
+    timeout = 10 * 1000  # サーバー停止に少し時間がかかるので長めに待機する
+    expect(page.locator(f'#stop-{it_setting["res_server"]}')).to_be_visible(timeout=timeout)
+    page.locator(f'#stop-{it_setting["res_server"]}').click()
+    expect(page.locator(f'#delete-{it_setting["res_server"]}')).to_be_visible(timeout=timeout)
+    page.locator(f'#delete-{it_setting["res_server"]}').click()
+
+    # GIN-forkに遷移
+    gin_fork = get_credentials('gin_fork')
+    page_url = f'{GIN_FORK_URL}/{gin_fork["username"]}/{it_setting["project_name"]}/settings'
+    page.goto(page_url)
+
+    # GIN-forkのリポジトリ削除
+    page.get_by_role('button', name='Delete This Repository').click()
+    page.locator('#delete-repo-modal #repo_name').fill(it_setting['project_name'])
+    page.get_by_role('button', name='Confirm Deletion').click()
+
+
+def operate_exp_env_deletion(env_key: str, context: BrowserContext):
+    """実験実行環境の削除"""
+
+    it_setting = read_it_setting(env_key)
+    if 'exp_server' not in it_setting:
+        # 実験実行環境を作成していない場合は削除しない
+        return
+
+    page = context.new_page()
+
+    # コントロールパネルに遷移
+    page.goto(JUPYTER_HUB_HOME_URL)
+
+    # サーバー削除
+    timeout = 10 * 1000  # サーバー停止に少し時間がかかるので長めに待機する
+    expect(page.locator(f'#stop-{it_setting["exp_server"]}')).to_be_visible(timeout=timeout)
+    page.locator(f'#stop-{it_setting["exp_server"]}').click()
+    expect(page.locator(f'#delete-{it_setting["exp_server"]}')).to_be_visible(timeout=timeout)
+    page.locator(f'#delete-{it_setting["exp_server"]}').click()
+
+
 def operate_madmp(page: Page):
     """maDMP.ipynbの操作"""
 
@@ -137,150 +293,97 @@ def change_checkout_branch(page: Page, branch_name: str):
         page.locator(text_area).press(branch_char)
 
 
-def res_init_setup(env_key: str):
-    """研究実行環境の初期セットアップ"""
+def operate_base_required_every_time(page: Page):
+    """base_required_every_time.ipynbの操作"""
 
-    with sync_playwright() as playwright:
-        context = get_browser_context(playwright)
-        try:
-            # 研究の初期セットアップ
-            it_setting = read_it_setting(env_key)
-            file_path = 'notebooks/research/base_required_every_time.ipynb'
-            page_url = f'{JUPYTER_HUB_URL}/user/{it_setting["user"]}/{it_setting["res_server"]}/notebooks/WORKFLOWS/{file_path}'
-            page = context.new_page()
-            page.goto(page_url)
+    # ノートブックの初期処理
+    notebook.init_notebook(page)
 
-            # GakuNin RDMへのログイン
-            login_gakunin_rdm(page)
+    # 共通メニュー
+    notebook.run_code_cell(page, 0, None)
 
-            # base_required_every_time.ipynbの操作
-            operate_base_required_every_time(page)
+    # 1つ目のセルの実行インデックス取得
+    cell = notebook.get_code_cell(page, 0)
+    execute_index = notebook.get_execute_index(cell)
 
-        finally:
-            browser = context.browser
-            context.close()
-            browser.close()
-
-
-def delete_res_env(env_key: str):
-    """研究実行環境の削除"""
-
-    with sync_playwright() as playwright:
-        context = get_browser_context(playwright)
-        try:
-            operate_res_env_deletion(env_key, context)
-        finally:
-            browser = context.browser
-            context.close()
-            browser.close()
-
-
-def operate_res_env_deletion(env_key: str, context: BrowserContext):
-    it_setting = read_it_setting(env_key)
-    if 'res_server' not in it_setting:
-        # 何らかの理由で削除済みの場合は何もしない
-        return
-
-    page = context.new_page()
-
-    # サーバー削除
-    page.goto(JUPYTER_HUB_HOME_URL)
-
-    expect(page.locator(f'#stop-{it_setting["res_server"]}')).to_be_visible()
-    page.locator(f'#stop-{it_setting["res_server"]}').click()
-    expect(page.locator(f'#delete-{it_setting["res_server"]}')).to_be_visible(timeout=10*1000)
-    page.locator(f'#delete-{it_setting["res_server"]}').click()
-
-    # GIN-forkのリポジトリ削除
+    # 1. 事前準備
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 1, execute_index)
+    # GIN-forkのユーザー情報入力
     gin_fork = get_credentials('gin_fork')
-    page_url = f'{GIN_FORK_URL}/{gin_fork["username"]}/{it_setting["project_name"]}/settings'
-    page.goto(page_url)
+    cell = notebook.get_code_cell(page, 1)
+    cell.get_by_placeholder(message.get('user_auth', 'username_help')).fill(gin_fork['username'])
+    cell.get_by_placeholder(message.get('user_auth', 'password_help')).fill(gin_fork['password'])
+    cell.get_by_role('button').click()
+    expect(page.get_by_role('button', name=message.get('user_auth', 'success'))).to_be_visible()
 
-    page.get_by_role('button', name='Delete This Repository').click()
-    page.locator('#delete-repo-modal #repo_name').fill(it_setting['project_name'])
-    page.get_by_role('button', name='Confirm Deletion').click()
+    # 2. 初期セットアップ
+    # 2-1. 不要なGIN-forkアクセストークンの削除
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 2, execute_index)
 
+    # 2-2. データ同期設定
+    # dataladデータセット設定
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 3, execute_index)
+    # SSHキー作成
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 4, execute_index)
+    # GIN-forkへの公開鍵の登録
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 5, execute_index)
+    # SSHホスト（GIN-fork）を信頼することを設定する
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 6, execute_index)
+    # GIN-forkへの同期調整
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 7, execute_index)
+    # ローカルリポジトリへのSSH接続情報の登録
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 8, execute_index)
 
-def create_exp_env(env_key: str):
-    """実験実行環境の作成"""
+    # 2-3. 実行環境情報を登録
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 9, execute_index)
 
-    if read_it_setting(env_key):
-        # 環境作成済みの場合は作成しない
-        return
+    # 2-4. 研究フロー図を更新
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 10, execute_index)
 
-    with sync_playwright() as playwright:
-        context = get_browser_context(playwright)
-        try:
-            # 研究実行環境の作成
-            operate_res_env_creation(env_key, context)
-            # 実験実行環境の作成
-            operate_exp_env_creation(env_key, context)
-        finally:
-            browser = context.browser
-            context.close()
-            browser.close()
+    # 2-5. 実行結果の保存準備
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 11, execute_index)
 
+    # 3. GIN-forkに実行結果を同期
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 12, execute_index, 60 * 1000)
 
-def operate_exp_env_creation(env_key: str, context: BrowserContext):
-    """実験実行環境の作成"""
-
-    # 研究の初期セットアップ
-    it_setting = read_it_setting(env_key)
-    file_path = 'notebooks/research/base_required_every_time.ipynb'
-    page_url = f'{JUPYTER_HUB_URL}/user/{it_setting["user"]}/{it_setting["res_server"]}/notebooks/WORKFLOWS/{file_path}'
-    page = context.new_page()
-    page.goto(page_url)
-
-    # GakuNin RDMへのログイン
-    login_gakunin_rdm(page)
-
-    # base_required_every_time.ipynbの操作
-    operate_base_required_every_time(page)
-
-    # 実験実行環境作成
-    file_path = 'notebooks/research/base_launch_an_experiment.ipynb'
-    page_url = f'{JUPYTER_HUB_URL}/user/{it_setting["user"]}/{it_setting["res_server"]}/notebooks/WORKFLOWS/{file_path}'
-    page.goto(page_url)
-
-    # base_launch_an_experiment.ipynbの操作
-    exp_page = operate_base_launch_an_experiment(page)
-
-    # 実験の情報を設定ファイルに保存
-    exp_url = exp_page.url.split('/')
-    it_setting['exp_server'] = exp_url[5]
-    write_it_setting(env_key, it_setting)
+    # 4. 研究フロートップページへ
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 13, execute_index)
 
 
-def delete_exp_env(env_key: str):
-    """実験実行環境の削除"""
+def operate_base_launch_an_experiment(page: Page) -> Page:
+    """base_launch_an_experiment.ipynbの操作"""
 
-    with sync_playwright() as playwright:
-        context = get_browser_context(playwright)
-        try:
-            # 実験実行環境の削除
-            operate_exp_env_deletion(env_key, context)
-            # 研究実行環境の削除
-            operate_res_env_deletion(env_key, context)
-        finally:
-            browser = context.browser
-            context.close()
-            browser.close()
+    # ノートブックの初期処理
+    notebook.init_notebook(page)
 
+    # 共通メニュー
+    notebook.run_code_cell(page, 0, None)
 
-def operate_exp_env_deletion(env_key: str, context: BrowserContext):
-    """実験実行環境の削除"""
+    # 1つ目のセルの実行インデックス取得
+    cell = notebook.get_code_cell(page, 0)
+    execute_index = notebook.get_execute_index(cell)
 
-    it_setting = read_it_setting(env_key)
-    if 'exp_server' not in it_setting:
-        # 実験実行環境を作成していない場合は削除しない
-        return
+    # 1. 実験実行環境の作成
+    execute_index = execute_index + 1
+    notebook.run_code_cell(page, 1, execute_index)
+    # 作成ボタンクリック
+    cell = notebook.get_code_cell(page, 1)
+    with page.expect_popup() as page1_info:
+        cell.get_by_role('button', name=message.get('launch', 'launch')).click()
+    page1 = page1_info.value
+    page1.locator('#notebook').click(timeout=2*60*1000)  # サーバー作成に少し時間がかかるので長めに待つ
 
-    page = context.new_page()
-
-    # サーバー削除
-    page.goto(JUPYTER_HUB_HOME_URL)
-
-    expect(page.locator(f'#stop-{it_setting["exp_server"]}')).to_be_visible()
-    page.locator(f'#stop-{it_setting["exp_server"]}').click()
-    expect(page.locator(f'#delete-{it_setting["exp_server"]}')).to_be_visible(timeout=10*1000)
-    page.locator(f'#delete-{it_setting["exp_server"]}').click()
+    return page1

@@ -51,8 +51,9 @@ def get_browser_context(playwright: Playwright):
                 context = browser.new_context(storage_state=storage_state)
 
     if not context:
-        # ブラウザの指定なしの場合
-        browser = playwright.chromium.launch(headless=headless)
+        # ブラウザの指定なしの場合はChromeを使う
+        channel_type = 'chrome'
+        browser = playwright.chromium.launch(channel=channel_type, headless=headless)
         context = browser.new_context(storage_state=storage_state)
 
     return context

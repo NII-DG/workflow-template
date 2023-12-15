@@ -1,21 +1,20 @@
 import os
 import pytest
-import shutil
 
 from nb_libs.utils.path.path import EXPERIMENTS_PATH
+
+from tests.unit_tests.common.utils import DirUtil
 
 
 @pytest.fixture()
 def create_package_dir():
-    package_path = os.path.join(EXPERIMENTS_PATH, 'package_exist')
+    dir_package = DirUtil(os.path.join(EXPERIMENTS_PATH, 'package_exist'))
 
     # フォルダ作成
-    if os.path.isdir(package_path):
-        shutil.rmtree(package_path)
-    os.makedirs(package_path)
+    dir_package.delete()
+    dir_package.create()
 
-    yield package_path
+    yield dir_package.path
 
     # フォルダ削除
-    if os.path.isdir(package_path):
-        shutil.rmtree(package_path)
+    dir_package.delete()

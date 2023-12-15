@@ -8,45 +8,43 @@ from nb_libs.utils.gin.ssh import (
     __SSH_CONFIG as SSH_CONFIG,
 )
 
+from tests.unit_tests.common.utils import FileUtil, DirUtil
+
 
 @pytest.fixture()
 def create_ssh_pub_key():
-    os.makedirs(SSH_PATH, exist_ok=True)
+    ssh_dir = DirUtil(SSH_PATH)
+    ssh_dir.create()
 
-    with open(SSH_PUB_KEY_PATH, 'w') as f:
-        f.write('test_key')
+    ssh_pub_key = FileUtil(SSH_PUB_KEY_PATH)
+    ssh_pub_key.create('test_key')
 
     yield
 
-    if os.path.exists(SSH_PUB_KEY_PATH):
-        os.remove(SSH_PUB_KEY_PATH)
+    ssh_pub_key.delete()
 
 
 @pytest.fixture()
-def delete_ssh_key():
-    os.makedirs(SSH_PATH, exist_ok=True)
-
-    if os.path.exists(SSH_KEY_PATH):
-        os.remove(SSH_KEY_PATH)
-    if os.path.exists(SSH_PUB_KEY_PATH):
-        os.remove(SSH_PUB_KEY_PATH)
+def prepare_ssh_key():
+    ssh_dir = DirUtil(SSH_PATH)
+    ssh_dir.create()
 
     yield
 
-    if os.path.exists(SSH_KEY_PATH):
-        os.remove(SSH_KEY_PATH)
-    if os.path.exists(SSH_PUB_KEY_PATH):
-        os.remove(SSH_PUB_KEY_PATH)
+    ssh_key = FileUtil(SSH_KEY_PATH)
+    ssh_key.delete()
+    ssh_pub_key = FileUtil(SSH_PUB_KEY_PATH)
+    ssh_pub_key.delete()
 
 
 @pytest.fixture()
 def delete_config():
-    os.makedirs(SSH_PATH, exist_ok=True)
+    ssh_dir = DirUtil(SSH_PATH)
+    ssh_dir.create()
 
-    if os.path.exists(SSH_CONFIG):
-        os.remove(SSH_CONFIG)
+    config = FileUtil(SSH_CONFIG)
+    config.delete()
 
     yield
 
-    if os.path.exists(SSH_CONFIG):
-        os.remove(SSH_CONFIG)
+    config.delete()

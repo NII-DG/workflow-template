@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from requests.exceptions import RequestException
@@ -14,21 +13,24 @@ from nb_libs.utils.gin.ssh import (
     __SSH_CONFIG as SSH_CONFIG,
 )
 
-from tests.unit_tests.common.utils import MockResponse
+from tests.unit_tests.common.utils import MockResponse, FileUtil
 
 
-def test_create_key(mocker, delete_ssh_key):
+def test_create_key(mocker, prepare_ssh_key):
     # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_ssh.py::test_create_key
+
+    ssh_key = FileUtil(SSH_KEY_PATH)
+    ssh_pub_key = FileUtil(SSH_PUB_KEY_PATH)
 
     mock_disp_info = mocker.patch('nb_libs.utils.message.display.display_info')
     mock_disp_warn = mocker.patch('nb_libs.utils.message.display.display_warm')
 
     # キーが存在しない
-    assert not os.path.exists(SSH_KEY_PATH)
-    assert not os.path.exists(SSH_PUB_KEY_PATH)
+    ssh_key.delete()
+    ssh_pub_key.delete()
     create_key()
-    assert os.path.exists(SSH_KEY_PATH)
-    assert os.path.exists(SSH_PUB_KEY_PATH)
+    assert ssh_key.exists()
+    assert ssh_pub_key.exists()
     assert mock_disp_info.call_count == 1
     assert mock_disp_warn.call_count == 0
 
@@ -109,12 +111,12 @@ def test_trust_gin(mocker):
 def test_config_GIN():
     # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_ssh.py::test_config_GIN
 
+    config_file = FileUtil(SSH_CONFIG)
+
     # 設定ファイルなし
-    if os.path.exists(SSH_CONFIG):
-        os.remove(SSH_CONFIG)
+    config_file.delete()
     config_GIN('https://test.gin-domain')
-    with open(SSH_CONFIG, 'r') as f:
-        data = f.read()
+    data = config_file.read()
     expected = '\n'.join([
         '',
         'host test.gin-domain',
@@ -132,11 +134,9 @@ def test_config_GIN():
         '\tUserKnownHostsFile=/dev/null',
         '',
     ])
-    with open(SSH_CONFIG, mode='w') as f:
-        f.write(input)
+    config_file.create(input)
     config_GIN('https://test.gin-domain')
-    with open(SSH_CONFIG, 'r') as f:
-        data = f.read()
+    data = config_file.read()
     expected = '\n'.join([
         '',
         'host test2.gin-domain',
@@ -162,11 +162,9 @@ def test_config_GIN():
         '\tUserKnownHostsFile=/dev/null',
         '',
     ])
-    with open(SSH_CONFIG, mode='w') as f:
-        f.write(input)
+    config_file.create(input)
     config_GIN('https://test.gin-domain')
-    with open(SSH_CONFIG, 'r') as f:
-        data = f.read()
+    data = config_file.read()
     assert data == input
 
 
@@ -174,7 +172,8 @@ def test_write_GIN_config(delete_config):
     # pytest -v -s tests/unit_tests/nb_libs/utils/gin/test_ssh.py::test_write_GIN_config
 
     write_GIN_config('w', 'test_domain')
-    assert os.path.exists(SSH_CONFIG)
-    with open(SSH_CONFIG, 'r') as f:
-        data = f.read()
+
+    config = FileUtil(SSH_CONFIG)
+    assert config.exists()
+    data = config.read()
     assert data == '\nhost test_domain\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n'

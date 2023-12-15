@@ -1,4 +1,3 @@
-import json
 import os
 import pytest
 
@@ -23,6 +22,8 @@ from nb_libs.utils.common.common import (
 
 from nb_libs.utils.path.path import HOME_PATH
 from nb_libs.utils.except_class import ExecCmdError
+
+from tests.unit_tests.common.utils import FileUtil
 
 
 def test_get_AND_elements():
@@ -222,29 +223,27 @@ def test_cp_dir(prepare_cp_dir):
     cp_dir(src, dst)
 
     # フォルダとファイルがコピーされることを確認
-    assert sorted(os.listdir(dst)) == ['dir1', 'dir2', 'dir3', 'file0_1.txt', 'file0_2.txt', 'file0_3.txt']
+    assert sorted(os.listdir(dst)) == ['dir1', 'dir2', 'dir3', 'file01.txt', 'file02.txt', 'file03.txt']
 
     # 同じ名前のファイルは上書きされないことを確認
-    dst_file01 = os.path.join(dst, 'file0_1.txt')
-    with open(dst_file01, mode='r') as f:
-        data = f.read()
+    dst_file01 = FileUtil(os.path.join(dst, 'file01.txt'))
+    data = dst_file01.read()
     assert data == 'dst_file01'
-    dst_file11 = os.path.join(dst, 'dir1', 'file1_1.txt')
-    with open(dst_file11, mode='r') as f:
-        data = f.read()
+    dst_file11 = FileUtil(os.path.join(dst, 'dir1', 'file11.txt'))
+    data = dst_file11.read()
     assert data == 'dst_file11'
 
     # コピー先に存在しないファイルはコピーされることを確認
-    # dst_file12 = os.path.join(dst, 'dir1', 'file1_2.txt')
-    # assert os.path.isfile(dst_file12)
-    dst_file21 = os.path.join(dst, 'dir2', 'file2_1.txt')
-    assert os.path.isfile(dst_file21)
+    # dst_file12 = FileUtil(os.path.join(dst, 'dir1', 'file12.txt'))
+    # assert dst_file12.exists()
+    dst_file22 = FileUtil(os.path.join(dst, 'dir2', 'file22.txt'))
+    assert dst_file22.exists()
 
     # コピー元に存在しないファイルはそのまま存在することを確認
-    dst_file13 = os.path.join(dst, 'dir1', 'file1_3.txt')
-    assert os.path.isfile(dst_file13)
-    dst_file31 = os.path.join(dst, 'dir3', 'file3_1.txt')
-    assert os.path.isfile(dst_file31)
+    dst_file13 = FileUtil(os.path.join(dst, 'dir1', 'file13.txt'))
+    assert dst_file13.exists()
+    dst_file33 = FileUtil(os.path.join(dst, 'dir3', 'file33.txt'))
+    assert dst_file33.exists()
 
 
 def test_cp_file(prepare_cp_file):
@@ -254,24 +253,23 @@ def test_cp_file(prepare_cp_file):
     dst = prepare_cp_file['dst']
 
     # フォルダが存在しないケース
-    src_file11 = os.path.join(src, 'dir1', 'file1_1.txt')
-    dst_file11 = os.path.join(dst, 'dir1', 'file1_1.txt')
-    cp_file(src_file11, dst_file11)
-    assert os.path.isfile(dst_file11)
+    src_file11 = FileUtil(os.path.join(src, 'dir1', 'file11.txt'))
+    dst_file11 = FileUtil(os.path.join(dst, 'dir1', 'file11.txt'))
+    cp_file(src_file11.path, dst_file11.path)
+    assert dst_file11.exists()
 
     # ファイルが存在しないケース
-    src_file21 = os.path.join(src, 'dir2', 'file2_1.txt')
-    dst_file21 = os.path.join(dst, 'dir2', 'file2_1.txt')
-    cp_file(src_file21, dst_file21)
-    assert os.path.isfile(dst_file21)
+    src_file21 = FileUtil(os.path.join(src, 'dir2', 'file21.txt'))
+    dst_file21 = FileUtil(os.path.join(dst, 'dir2', 'file21.txt'))
+    cp_file(src_file21.path, dst_file21.path)
+    assert dst_file21.exists()
 
     # ファイルが存在するケース(上書き)
-    src_file22 = os.path.join(src, 'dir2', 'file2_2.txt')
-    dst_file22 = os.path.join(dst, 'dir2', 'file2_2.txt')
-    cp_file(src_file22, dst_file22)
-    assert os.path.isfile(dst_file22)
-    with open(dst_file22, mode='r') as f:
-        data = f.read()
+    src_file22 = FileUtil(os.path.join(src, 'dir2', 'file22.txt'))
+    dst_file22 = FileUtil(os.path.join(dst, 'dir2', 'file22.txt'))
+    cp_file(src_file22.path, dst_file22.path)
+    assert dst_file22.exists()
+    data = dst_file22.read()
     assert data == 'src_file22'
 
 
@@ -282,21 +280,20 @@ def test_create_json_file(prepare_create_json_file):
     test_json = {'test_key': 'test_value'}
 
     # フォルダが存在しないケース
-    file1 = os.path.join(work_dir, 'dir', 'file1.json')
-    create_json_file(file1, test_json)
-    assert os.path.isfile(file1)
+    file1 = FileUtil(os.path.join(work_dir, 'dir', 'file1.json'))
+    create_json_file(file1.path, test_json)
+    assert file1.exists()
 
     # ファイルが存在しないケース
-    file2 = os.path.join(work_dir, 'file2.json')
-    create_json_file(file2, test_json)
-    assert os.path.isfile(file2)
+    file2 = FileUtil(os.path.join(work_dir, 'file2.json'))
+    create_json_file(file2.path, test_json)
+    assert file2.exists()
 
     # ファイルが存在するケース(上書き)
-    file3 = os.path.join(work_dir, 'exist.json')
-    create_json_file(file3, test_json)
-    assert os.path.isfile(file3)
-    with open(file3, mode='r') as f:
-        data = json.load(f)
+    file3 = FileUtil(os.path.join(work_dir, 'exist.json'))
+    create_json_file(file3.path, test_json)
+    assert file3.exists()
+    data = file3.read_json()
     assert 'exist_key' not in data
     assert data['test_key'] == 'test_value'
 

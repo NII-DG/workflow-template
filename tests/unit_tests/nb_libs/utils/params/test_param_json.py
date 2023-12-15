@@ -1,4 +1,3 @@
-import json
 import pytest
 
 from nb_libs.utils.except_class.common_err import NoValueInDgFileError
@@ -10,7 +9,7 @@ from nb_libs.utils.params.param_json import (
     get_core_scheme_netloc
 )
 
-from tests.unit_tests.common.utils import MockResponse
+from tests.unit_tests.common.utils import MockResponse, FileUtil
 
 
 def test_get_params():
@@ -22,16 +21,16 @@ def test_get_params():
 def test_get_gin_http(backup_parameter_file):
     # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_param_json.py::test_get_gin_http
 
+    param_file = FileUtil(PARAM_FILE_PATH)
+
     # 正常ケース
     ret = get_gin_http()
     assert ret == 'https://test.gin-domain'
 
     # テスト用にパラメータファイルを修正
-    with open(PARAM_FILE_PATH, mode='r') as f:
-        params = json.load(f)
+    params = param_file.read_json()
     params['siblings']['ginHttp'] = ''
-    with open(PARAM_FILE_PATH, mode='w') as f:
-        json.dump(params, f, indent=4)
+    param_file.create_json(params)
 
     # 未設定のケース
     with pytest.raises(NoValueInDgFileError):
@@ -41,6 +40,7 @@ def test_get_gin_http(backup_parameter_file):
 def test_update_param_url(mocker, backup_parameter_file):
     # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_param_json.py::test_update_param_url
 
+    param_file = FileUtil(PARAM_FILE_PATH)
     url_remote = 'https://user:token@test.github-domain/test_dg/test_repo.git'
 
     # サーバー情報取得失敗
@@ -54,8 +54,7 @@ def test_update_param_url(mocker, backup_parameter_file):
     res200 = MockResponse(200, {'http': 'https://test.update-domain/', 'ssh': 'git@test.update-domain:'})
     mocker.patch('nb_libs.utils.gin.api.get_server_info', return_value=res200)
     update_param_url(url_remote)
-    with open(PARAM_FILE_PATH, mode='r') as f:
-        params = json.load(f)
+    params = param_file.read_json()
     assert params['siblings']['ginHttp'] == 'https://test.update-domain'
     assert params['siblings']['ginSsh'] == 'git@test.update-domain:'
 

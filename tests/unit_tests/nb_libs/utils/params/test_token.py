@@ -1,5 +1,3 @@
-import json
-import os
 import pytest
 
 from nb_libs.utils.params.token import (
@@ -9,21 +7,28 @@ from nb_libs.utils.params.token import (
     del_build_token_by_remote_origin_url,
 )
 
-from tests.unit_tests.common.utils import MockResponse
+from tests.unit_tests.common.utils import MockResponse, FileUtil
 
 
-def test_set_ginfork_token(delete_token_file):
+def test_set_ginfork_token(prepare_token_file):
     # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_token.py::test_set_ginfork_token
 
+    # ファイル削除
+    token_info = FileUtil(FILE_PATH)
+    token_info.delete()
+
     set_ginfork_token('test_token')
-    assert os.path.isfile(FILE_PATH)
-    with open(FILE_PATH, 'r') as f:
-        data = json.load(f)
+    assert token_info.exists()
+    data = token_info.read_json()
     assert data['ginfork_token'] == 'test_token'
 
 
-def test_get_ginfork_token(create_token_file):
+def test_get_ginfork_token(prepare_token_file):
     # pytest -v -s tests/unit_tests/nb_libs/utils/params/test_token.py::test_get_ginfork_token
+
+    # ファイル作成
+    token_info = FileUtil(FILE_PATH)
+    token_info.create_json({'ginfork_token': 'test_token'})
 
     ret = get_ginfork_token()
     assert ret == 'test_token'

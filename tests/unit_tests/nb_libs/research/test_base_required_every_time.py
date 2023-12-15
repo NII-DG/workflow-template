@@ -1,4 +1,3 @@
-import pathlib
 import pytest
 from requests.exceptions import RequestException
 
@@ -18,52 +17,48 @@ from nb_libs.research.base_required_every_time import (
 from nb_libs.utils.except_class import DidNotFinishError
 from nb_libs.utils.params import token, user_info
 
-from tests.unit_tests.common.utils import UnitTestError
+from tests.unit_tests.common.utils import UnitTestError, FileUtil
 
-file_user = pathlib.Path(user_info.FILE_PATH)
-file_token = pathlib.Path(token.FILE_PATH)
+file_user = FileUtil(user_info.FILE_PATH)
+file_token = FileUtil(token.FILE_PATH)
 
 
-def test_preparation_completed():
+def test_preparation_completed(prepare_preparation_completed):
     # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_preparation_completed
 
     # 両方のファイルなし
-    file_user.unlink(True)
-    file_token.unlink(True)
+    file_user.delete()
+    file_token.delete()
     with pytest.raises(DidNotFinishError):
         preparation_completed()
 
     # ユーザーファイルあり/トークンファイルなし
-    file_user.touch(True)
-    file_token.unlink(True)
+    file_user.create()
+    file_token.delete()
     with pytest.raises(DidNotFinishError):
         preparation_completed()
 
     # ユーザーファイルなし/トークンファイルあり
-    file_user.unlink(True)
-    file_token.touch(True)
+    file_user.delete()
+    file_token.create()
     with pytest.raises(DidNotFinishError):
         preparation_completed()
 
     # 両方のファイルあり
-    file_user.touch(True)
-    file_token.touch(True)
+    file_user.create()
+    file_token.create()
     preparation_completed()
 
-    # ファイル削除
-    file_user.unlink(True)
-    file_token.unlink(True)
 
-
-def test_del_build_token(mocker):
+def test_del_build_token(mocker, prepare_preparation_completed):
     # pytest -v -s tests/unit_tests/nb_libs/research/test_base_required_every_time.py::test_del_build_token
 
     mocker.patch('nb_libs.utils.git.git_module.get_remote_url', return_value='http://dummy-url')
     mock_disp_err = mocker.patch('nb_libs.utils.message.display.display_err')
 
     # 事前準備未完了
-    file_user.unlink(True)
-    file_token.unlink(True)
+    file_user.delete()
+    file_token.delete()
     mocker.patch('nb_libs.utils.params.token.del_build_token_by_remote_origin_url')
     with pytest.raises(DidNotFinishError):
         del_build_token()
@@ -71,8 +66,8 @@ def test_del_build_token(mocker):
     mock_disp_err.reset_mock()
 
     # 事前準備完了
-    file_user.touch(True)
-    file_token.touch(True)
+    file_user.create()
+    file_token.create()
     del_build_token()
     assert mock_disp_err.call_count == 0
 

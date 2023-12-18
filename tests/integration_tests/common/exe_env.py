@@ -170,6 +170,9 @@ def operate_res_env_setup(env_key: str, context: BrowserContext):
     page = context.new_page()
     page.goto(page_url)
 
+    page.wait_for_timeout(1000)
+    notebook.screenshot(page, 'research/operate_res_env_setup_01.png')
+
     # base_required_every_time.ipynbの操作
     operate_base_required_every_time(page)
 
@@ -300,7 +303,7 @@ def operate_base_required_every_time(page: Page):
     notebook.init_notebook(page)
 
     # 共通メニュー
-    notebook.run_code_cell(page, 0, None)
+    notebook.run_code_cell(page, 0, 1)
 
     # 1つ目のセルの実行インデックス取得
     cell = notebook.get_code_cell(page, 0)

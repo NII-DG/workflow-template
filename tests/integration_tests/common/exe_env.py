@@ -283,9 +283,8 @@ def change_checkout_branch(page: Page):
         branch_name = os.environ['BRANCH'].replace('origin/', '')
     else:
         branch_name = get_current_branch()
-    notebook.screenshot(page, f'madmp/{branch_name.replace("/", "_")}.png')
 
-    if branch_name:
+    if not branch_name:
         return
 
     # 入力のコード部分のHTMLはテキストボックスではないのでfillは使えない。

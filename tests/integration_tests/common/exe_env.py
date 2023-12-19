@@ -258,18 +258,15 @@ def operate_madmp(page: Page):
 
     # 1-1. DMP情報の取り込み
     notebook.run_code_cell(page, 0, 1)
-    notebook.screenshot(page, 'madmp/madmp_01.png')
 
     # 1-2. リサーチフローの作成
     notebook.run_code_cell(page, 1, 2)
-    notebook.screenshot(page, 'madmp/madmp_02.png')
 
     # 1-3. GIN-forkアクセス準備
     # リサーチフローテンプレートのダウンロード
     notebook.run_code_cell(page, 2, 3)
     # DMP情報からリサーチフローの作成
     notebook.run_code_cell(page, 3, 4)
-    notebook.screenshot(page, 'madmp/madmp_03.png')
 
     # 2. 研究フロートップページへ
     notebook.run_code_cell(page, 4, 5)

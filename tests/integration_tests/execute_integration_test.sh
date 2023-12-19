@@ -8,13 +8,15 @@ pip3 install -r requirements_test.txt
 
 # ブラウザインストール
 playwright install
-playwright install msedge
 playwright install chrome
+playwright install msedge
 playwright install-deps
 python3 -m playwright install
 
 # テスト実行
-pytest tests/integration_tests -v --junitxml=coverage.xml ${PYTEST_OPTION}
+pytest tests/integration_tests -v --junitxml=coverage.xml ${PYTEST_OPTION} || RET=$?
 
 # スクリーンショットをzip化
 zip screenshot -r screenshot
+
+exit $RET

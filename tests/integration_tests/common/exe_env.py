@@ -1,3 +1,4 @@
+import os
 import re
 import uuid
 
@@ -170,9 +171,6 @@ def operate_res_env_setup(env_key: str, context: BrowserContext):
     page = context.new_page()
     page.goto(page_url)
 
-    page.wait_for_timeout(1000)
-    notebook.screenshot(page, 'research/operate_res_env_setup_01.png')
-
     # base_required_every_time.ipynbの操作
     operate_base_required_every_time(page)
 
@@ -256,27 +254,38 @@ def operate_madmp(page: Page):
     notebook.init_notebook(page)
 
     # チェックアウトするブランチを変更
-    branch = get_current_branch()
-    change_checkout_branch(page, branch)
+    change_checkout_branch(page)
 
     # 1-1. DMP情報の取り込み
     notebook.run_code_cell(page, 0, 1)
+    notebook.screenshot(page, 'madmp/madmp_01.png')
 
     # 1-2. リサーチフローの作成
     notebook.run_code_cell(page, 1, 2)
+    notebook.screenshot(page, 'madmp/madmp_02.png')
 
     # 1-3. GIN-forkアクセス準備
     # リサーチフローテンプレートのダウンロード
     notebook.run_code_cell(page, 2, 3)
     # DMP情報からリサーチフローの作成
     notebook.run_code_cell(page, 3, 4)
+    notebook.screenshot(page, 'madmp/madmp_03.png')
 
     # 2. 研究フロートップページへ
     notebook.run_code_cell(page, 4, 5)
 
 
-def change_checkout_branch(page: Page, branch_name: str):
+def change_checkout_branch(page: Page):
     """チェックアウトするブランチをmainから変更する"""
+
+    branch_name = ''
+    if 'BRANCH' in os.environ:
+        branch_name = os.environ['BRANCH'].replace('origin/', '')
+    else:
+        branch_name = get_current_branch()
+
+    if branch_name:
+        return
 
     # 入力のコード部分のHTMLはテキストボックスではないのでfillは使えない。
     # カーソルを移動してブランチ名を1文字ずつ入力することで実現する。

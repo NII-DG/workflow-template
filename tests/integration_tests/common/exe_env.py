@@ -277,7 +277,10 @@ def change_checkout_branch(page: Page):
 
     branch_name = ''
     if 'BRANCH' in os.environ:
-        branch_name = os.environ['BRANCH'].replace('origin/', '')
+        branch_name = os.environ['BRANCH'] \
+            .replace('origin/', '') \
+            .replace('refs/', '') \
+            .replace('heads/', '')
     else:
         branch_name = get_current_branch()
 

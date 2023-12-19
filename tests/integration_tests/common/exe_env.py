@@ -327,6 +327,7 @@ def operate_base_required_every_time(page: Page):
     cell.get_by_placeholder(message.get('user_auth', 'username_help')).fill(gin_fork['username'])
     cell.get_by_placeholder(message.get('user_auth', 'password_help')).fill(gin_fork['password'])
     cell.get_by_role('button').click()
+    page.wait_for_timeout(500)
     expect(page.get_by_role('button', name=message.get('user_auth', 'success'))).to_be_visible()
 
     # 2. 初期セットアップ
@@ -396,6 +397,7 @@ def operate_base_launch_an_experiment(page: Page) -> Page:
     with page.expect_popup() as page1_info:
         cell.get_by_role('button', name=message.get('launch', 'launch')).click()
     page1 = page1_info.value
+    page1.wait_for_timeout(500)
     page1.locator('#notebook').click(timeout=2*60*1000)  # サーバー作成に少し時間がかかるので長めに待つ
 
     return page1

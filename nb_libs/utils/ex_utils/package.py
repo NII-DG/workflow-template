@@ -80,12 +80,10 @@ def create_syncs_path(experiment_path:str)-> tuple[list[str], list[str], list[st
     # Delete Git-annex managed directories (input_data and output_data) from the retrieved list.
     dirs = [f for f in files if os.path.isdir(os.path.join(experiment_path, f))]
 
-    for dirname in dirs:
-        if dirname == 'input_data' :
-            dirs.remove('input_data')
-
-        if dirname == 'output_data' :
-            dirs.remove('output_data')
+    if 'input_data' in dirs:
+        dirs.remove('input_data')
+    if 'output_data' in dirs:
+        dirs.remove('output_data')
 
     for dirname in dirs:
         if dirname != 'ci' and dirname != 'source':

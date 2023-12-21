@@ -13,8 +13,11 @@ TEST_DIR = os.path.join(HOME_PATH, 'unit_test')
 
 
 def download_font_file():
+    file_font = FileUtil(os.path.join(HOME_PATH, '.fonts', 'ipag.ttf'))
+    if file_font.exists():
+        return
+
     dir_font = DirUtil(os.path.join(HOME_PATH, '.fonts'))
-    dir_font.delete()
     dir_font.create()
     dir_tmp = DirUtil(os.path.join(dir_font.path, 'tmp'))
     dir_tmp.create()
@@ -23,15 +26,15 @@ def download_font_file():
     file_name = 'fonts-ipafont-gothic_00303-18ubuntu1_all.deb'
     url = f'http://archive.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/{file_name}'
     with contextlib.redirect_stdout(open(os.devnull, 'w')):     # 標準出力を一時的に無効化する
-        font_deb = wget.download(url=url, out=dir_tmp.path)
+        deb_font = wget.download(url=url, out=dir_tmp.path)
     # deb形式の解凍
-    ar_file = unix_ar.open(font_deb)
-    tarball = ar_file.open('data.tar.xz')
-    tar_file = tarfile.open(fileobj=tarball)
-    tar_file.extractall(path=dir_tmp.path)
+    file_ar = unix_ar.open(deb_font)
+    tarball = file_ar.open('data.tar.xz')
+    file_tar = tarfile.open(fileobj=tarball)
+    file_tar.extractall(path=dir_tmp.path)
     # フォントファイルを配置
-    font_file = FileUtil(os.path.join(dir_tmp.path, 'usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'))
-    font_file.copy(os.path.join(dir_font.path, 'ipag.ttf'))
+    file_font = FileUtil(os.path.join(dir_tmp.path, 'usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'))
+    file_font.copy(os.path.join(dir_font.path, 'ipag.ttf'))
     dir_tmp.delete()
 
 
@@ -50,6 +53,7 @@ def prepare_unit_test():
     dir_experiments.create()
     dir_test.create()
 
+    # フォントファイルのダウンロード
     download_font_file()
 
     yield

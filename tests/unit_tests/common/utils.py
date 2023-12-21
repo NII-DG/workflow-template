@@ -96,6 +96,9 @@ class DirUtil:
     def exists(self):
         return os.path.isdir(self.path)
 
+    def children(self):
+        return os.listdir(self.path)
+
     def create(self):
         os.makedirs(self.path, exist_ok=True)
 
